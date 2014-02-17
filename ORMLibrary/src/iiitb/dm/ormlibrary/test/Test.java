@@ -1,7 +1,7 @@
 /**
  * 
  */
-package iiitb.dm.ormlibrary;
+package iiitb.dm.ormlibrary.test;
 
 /**
  * @author kempa
