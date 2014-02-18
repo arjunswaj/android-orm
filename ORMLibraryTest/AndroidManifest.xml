@@ -24,4 +24,5 @@
         </activity>
     </application>
 
+    <meta-data android:value="entity_objects" android:name="entity_objects"></meta-data>
 </manifest>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EntityObjects>
+    <EntityObject>edu.iiitb.ormtestapp.eo.Student</EntityObject>
+    <EntityObject>edu.iiitb.ormtestapp.eo.Course</EntityObject>    
+</EntityObjects>

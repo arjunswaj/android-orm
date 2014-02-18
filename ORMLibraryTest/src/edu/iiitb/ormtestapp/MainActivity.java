@@ -1,8 +1,8 @@
 package edu.iiitb.ormtestapp;
 
-import android.os.Bundle;
+import iiitb.dm.ormlibrary.ORMHelper;
 import android.app.Activity;
-import android.view.Menu;
+import android.os.Bundle;
 
 public class MainActivity extends Activity {
 
@@ -10,13 +10,7 @@ public class MainActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+    ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
+        "testDB.sqlite", null, 1);
   }
-
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    // Inflate the menu; this adds items to the action bar if it is present.
-    getMenuInflater().inflate(R.menu.main, menu);
-    return true;
-  }
-
 }
