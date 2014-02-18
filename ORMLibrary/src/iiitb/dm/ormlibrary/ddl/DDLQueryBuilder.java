@@ -1,5 +1,7 @@
 package iiitb.dm.ormlibrary.ddl;
 
+import iiitb.dm.ormlibrary.dml.ClassDetails;
+
 import java.util.List;
 
 /**
@@ -10,14 +12,12 @@ import java.util.List;
  */
 public interface DDLQueryBuilder {
 
-  /**
-   * Generate the Insert Query for a given tableName with list of fieldValues
-   * 
-   * @param tableName
-   *          table name
-   * @param fieldValues
-   *          field values
-   * @return Insert SQL query
-   */
-  String generateInsertQuery(String tableName, List<FieldValue> fieldValues);
+	  /**
+	   * Generate the Create Table Query from the Class Details
+	   * 
+	   * @param classDetails
+	   *          class Details
+	   * @return SQL Query
+	   */
+	  public String generateCreateTableQuery(ClassDetails classDetails);
 }

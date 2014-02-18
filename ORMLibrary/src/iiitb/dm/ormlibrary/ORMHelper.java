@@ -1,8 +1,8 @@
 package iiitb.dm.ormlibrary;
 
-import iiitb.dm.ormlibrary.ddl.DDLQueryBuilder;
+import iiitb.dm.ormlibrary.dml.DMLQueryBuilder;
 import iiitb.dm.ormlibrary.ddl.FieldValue;
-import iiitb.dm.ormlibrary.ddl.impl.DDLQueryBuilderImpl;
+import iiitb.dm.ormlibrary.dml.impl.DMLQueryBuilderImpl;
 import iiitb.dm.ormlibrary.dml.ClassDetails;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 import iiitb.dm.ormlibrary.scanner.ClassScanner;
@@ -32,7 +32,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class ORMHelper extends SQLiteOpenHelper {
 
   Context context;
-  private DDLQueryBuilder ddlQueryBuilder;
+  private DMLQueryBuilder dmlQueryBuilder;
   Map<Class, List<FieldValue>> scannedClassesFieldsMap;
   Map<Class, String> scannedClassesTableMap;
   ClassScanner scanner;
@@ -46,7 +46,7 @@ public class ORMHelper extends SQLiteOpenHelper {
     super(context, name, factory, version);
     this.context = context;
 //    classDetails = annotationsScanner.getEntityObjectDetails(this.context);
-    ddlQueryBuilder = new DDLQueryBuilderImpl();
+    dmlQueryBuilder = new DMLQueryBuilderImpl();
     scannedClassesFieldsMap = new HashMap<Class, List<FieldValue>>();
     scannedClassesTableMap = new HashMap<Class, String>();
     scanner = new ClassScannerImpl();
@@ -88,7 +88,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 			e.printStackTrace();
 		}
 	  }
-	  String insertQuery = ddlQueryBuilder.generateInsertQuery(scannedClassesTableMap.get(objClass), fieldValues);
+	  String insertQuery = dmlQueryBuilder.generateInsertQuery(scannedClassesTableMap.get(objClass), fieldValues);
 	  
 	  getWritableDatabase().execSQL(insertQuery);
   }

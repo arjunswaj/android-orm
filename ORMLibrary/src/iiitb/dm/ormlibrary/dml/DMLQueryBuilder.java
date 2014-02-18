@@ -1,5 +1,9 @@
 package iiitb.dm.ormlibrary.dml;
 
+import iiitb.dm.ormlibrary.ddl.FieldValue;
+
+import java.util.List;
+
 /**
  * DML Query Builder Interface
  * 
@@ -8,12 +12,14 @@ package iiitb.dm.ormlibrary.dml;
  */
 public interface DMLQueryBuilder {
 
-  /**
-   * Generate the Create Table Query from the Class Details
-   * 
-   * @param classDetails
-   *          class Details
-   * @return SQL Query
-   */
-  public String generateCreateTableQuery(ClassDetails classDetails);
+	  /**
+	   * Generate the Insert Query for a given tableName with list of fieldValues
+	   * 
+	   * @param tableName
+	   *          table name
+	   * @param fieldValues
+	   *          field values
+	   * @return Insert SQL query
+	   */
+	  String generateInsertQuery(String tableName, List<FieldValue> fieldValues);
 }
