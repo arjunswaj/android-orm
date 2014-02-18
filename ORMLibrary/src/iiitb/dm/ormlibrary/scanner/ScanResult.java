@@ -1,6 +1,7 @@
 package iiitb.dm.ormlibrary.scanner;
 
-import iiitb.dm.ormlibrary.ddl.FieldValue;
+import iiitb.dm.ormlibrary.dml.FieldValue;
+
 import java.util.List;
 
 public class ScanResult {

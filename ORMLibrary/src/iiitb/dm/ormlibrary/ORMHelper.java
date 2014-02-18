@@ -1,9 +1,9 @@
 package iiitb.dm.ormlibrary;
 
 import iiitb.dm.ormlibrary.dml.DMLQueryBuilder;
-import iiitb.dm.ormlibrary.ddl.FieldValue;
+import iiitb.dm.ormlibrary.dml.FieldValue;
+import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.dml.impl.DMLQueryBuilderImpl;
-import iiitb.dm.ormlibrary.dml.ClassDetails;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 import iiitb.dm.ormlibrary.scanner.ClassScanner;
 import iiitb.dm.ormlibrary.scanner.ScanResult;
@@ -37,7 +37,7 @@ public class ORMHelper extends SQLiteOpenHelper {
   Map<Class, String> scannedClassesTableMap;
   ClassScanner scanner;
 
-  List<ClassDetails> classDetails = null;
+  List<ClassDetails> classDetailsList = null;
 
   AnnotationsScanner annotationsScanner = new AnnotationsScannerImpl();
 
@@ -45,7 +45,7 @@ public class ORMHelper extends SQLiteOpenHelper {
       int version) {
     super(context, name, factory, version);
     this.context = context;
-//    classDetails = annotationsScanner.getEntityObjectDetails(this.context);
+    classDetailsList = annotationsScanner.getEntityObjectDetails(this.context);
     dmlQueryBuilder = new DMLQueryBuilderImpl();
     scannedClassesFieldsMap = new HashMap<Class, List<FieldValue>>();
     scannedClassesTableMap = new HashMap<Class, String>();

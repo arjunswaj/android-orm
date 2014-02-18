@@ -1,4 +1,4 @@
-package iiitb.dm.ormlibrary.ddl;
+package iiitb.dm.ormlibrary.dml;
 
 import iiitb.dm.ormlibrary.constants.JavaFieldType;
 

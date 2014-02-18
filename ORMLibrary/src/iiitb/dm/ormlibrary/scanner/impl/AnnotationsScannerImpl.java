@@ -1,7 +1,7 @@
 package iiitb.dm.ormlibrary.scanner.impl;
 
-import iiitb.dm.ormlibrary.dml.ClassDetails;
-import iiitb.dm.ormlibrary.dml.FieldTypeDetails;
+import iiitb.dm.ormlibrary.ddl.ClassDetails;
+import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 
 import java.io.IOException;

@@ -3,9 +3,8 @@ package iiitb.dm.ormlibrary.dml.impl;
 import java.util.List;
 
 import android.util.Log;
-import iiitb.dm.ormlibrary.ddl.FieldValue;
-import iiitb.dm.ormlibrary.dml.ClassDetails;
 import iiitb.dm.ormlibrary.dml.DMLQueryBuilder;
+import iiitb.dm.ormlibrary.dml.FieldValue;
 
 public class DMLQueryBuilderImpl implements DMLQueryBuilder {  
 

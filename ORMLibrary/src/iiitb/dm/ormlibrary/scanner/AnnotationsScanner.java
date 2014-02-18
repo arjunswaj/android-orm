@@ -1,6 +1,6 @@
 package iiitb.dm.ormlibrary.scanner;
 
-import iiitb.dm.ormlibrary.dml.ClassDetails;
+import iiitb.dm.ormlibrary.ddl.ClassDetails;
 
 import java.util.List;
 

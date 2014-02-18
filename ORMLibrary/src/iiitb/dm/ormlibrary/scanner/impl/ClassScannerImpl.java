@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import iiitb.dm.ormlibrary.constants.JavaFieldType;
-import iiitb.dm.ormlibrary.ddl.FieldValue;
+import iiitb.dm.ormlibrary.dml.FieldValue;
 import iiitb.dm.ormlibrary.scanner.ClassScanner;
 import iiitb.dm.ormlibrary.scanner.ScanResult;
 import iiitb.dm.ormlibrary.utils.JavaFieldTypeEnumMap;

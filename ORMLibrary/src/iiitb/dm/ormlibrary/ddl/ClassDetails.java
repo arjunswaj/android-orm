@@ -1,4 +1,4 @@
-package iiitb.dm.ormlibrary.dml;
+package iiitb.dm.ormlibrary.ddl;
 
 import java.util.List;
 import java.util.Map;

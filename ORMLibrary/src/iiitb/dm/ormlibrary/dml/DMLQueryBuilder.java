@@ -1,7 +1,5 @@
 package iiitb.dm.ormlibrary.dml;
 
-import iiitb.dm.ormlibrary.ddl.FieldValue;
-
 import java.util.List;
 
 /**
