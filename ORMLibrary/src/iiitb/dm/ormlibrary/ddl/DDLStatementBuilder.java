@@ -10,7 +10,7 @@ import java.util.List;
  * @author arjun
  * 
  */
-public interface DDLQueryBuilder {
+public interface DDLStatementBuilder {
 
 	  /**
 	   * Generate the Create Table Query from the Class Details
