@@ -1,10 +1,19 @@
 package iiitb.dm.ormlibrary;
 
+import iiitb.dm.ormlibrary.ddl.DDLQueryBuilder;
+import iiitb.dm.ormlibrary.ddl.FieldValue;
+import iiitb.dm.ormlibrary.ddl.impl.DDLQueryBuilderImpl;
 import iiitb.dm.ormlibrary.dml.ClassDetails;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
+import iiitb.dm.ormlibrary.scanner.ClassScanner;
+import iiitb.dm.ormlibrary.scanner.ScanResult;
 import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
+import iiitb.dm.ormlibrary.scanner.impl.ClassScannerImpl;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -23,6 +32,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class ORMHelper extends SQLiteOpenHelper {
 
   Context context;
+  private DDLQueryBuilder ddlQueryBuilder;
+  Map<Class, List<FieldValue>> scannedClassesFieldsMap;
+  Map<Class, String> scannedClassesTableMap;
+  ClassScanner scanner;
 
   List<ClassDetails> classDetails = null;
 
@@ -32,7 +45,11 @@ public class ORMHelper extends SQLiteOpenHelper {
       int version) {
     super(context, name, factory, version);
     this.context = context;
-    classDetails = annotationsScanner.getEntityObjectDetails(this.context);
+//    classDetails = annotationsScanner.getEntityObjectDetails(this.context);
+    ddlQueryBuilder = new DDLQueryBuilderImpl();
+    scannedClassesFieldsMap = new HashMap<Class, List<FieldValue>>();
+    scannedClassesTableMap = new HashMap<Class, String>();
+    scanner = new ClassScannerImpl();
   }
 
   private String getEOPackage() throws NameNotFoundException {
@@ -41,6 +58,39 @@ public class ORMHelper extends SQLiteOpenHelper {
     String ormPackage = (String) ai.metaData.get("ormPackage");
     context.getResources();
     return ormPackage;
+  }
+  
+  
+  public void persist(Object obj)
+  {
+	  
+	  Class objClass = obj.getClass();
+	  
+	  if(scannedClassesFieldsMap.containsKey(objClass) == false)
+	  {
+		  ScanResult result = scanner.scan(objClass);
+		  scannedClassesFieldsMap.put(objClass, result.getFieldValues());
+		  scannedClassesTableMap.put(objClass, result.getTableName());
+		  
+	  }
+	  List<FieldValue> fieldValues = new ArrayList<FieldValue>(scannedClassesFieldsMap.get(objClass));
+	  for(FieldValue fieldValue : fieldValues)
+	  {
+		  try {
+			  
+			fieldValue.setFieldValue(fieldValue.getField().get(obj).toString());
+			
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	  }
+	  String insertQuery = ddlQueryBuilder.generateInsertQuery(scannedClassesTableMap.get(objClass), fieldValues);
+	  
+	  getWritableDatabase().execSQL(insertQuery);
   }
 
   @Override
