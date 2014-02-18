@@ -1,6 +1,5 @@
 package iiitb.dm.ormlibrary.ddl;
 
-import iiitb.dm.ormlibrary.constants.JavaFieldType;
 
 /**
  * Class that captures the value of every field in the Entity along with its
@@ -13,7 +12,7 @@ public class FieldValue {
 
   private String fieldName;
   private String fieldValue;
-  private JavaFieldType javaFieldType;
+  private Class<?> fieldType;
 
   public FieldValue() {
     super();
@@ -35,12 +34,12 @@ public class FieldValue {
     this.fieldValue = fieldValue;
   }
 
-  public JavaFieldType getJavaFieldType() {
-    return javaFieldType;
+  public Class<?> getFieldType() {
+    return fieldType;
   }
 
-  public void setJavaFieldType(JavaFieldType javaFieldType) {
-    this.javaFieldType = javaFieldType;
+  public void setFieldType(Class<?> fieldType) {
+    this.fieldType = fieldType;
   }
 
 }
