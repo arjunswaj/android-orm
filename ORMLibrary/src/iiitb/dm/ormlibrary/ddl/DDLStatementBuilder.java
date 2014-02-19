@@ -1,9 +1,5 @@
 package iiitb.dm.ormlibrary.ddl;
 
-import iiitb.dm.ormlibrary.dml.ClassDetails;
-
-import java.util.List;
-
 /**
  * DDLQueryBuilder Interface
  * 
