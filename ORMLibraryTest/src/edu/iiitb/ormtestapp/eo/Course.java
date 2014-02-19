@@ -1,6 +1,6 @@
 package edu.iiitb.ormtestapp.eo;
 
-import javax.persistence.Basic;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -8,13 +8,13 @@ import javax.persistence.Id;
 public class Course {
 
   @Id
-  @Basic(name = "_id")
+  @Column(name = "_id")
   private int _id;
-  @Basic(name = "CREDITS")
+  @Column(name = "CREDITS")
   private int credits;
-  @Basic(name = "COURSE_NAME")
+  @Column(name = "COURSE_NAME")
   private String courseName;
-  @Basic(name = "COURSE_DESCRIPTION")
+  @Column(name = "COURSE_DESCRIPTION")
   private String courseDescription;
 
   public int get_id() {
