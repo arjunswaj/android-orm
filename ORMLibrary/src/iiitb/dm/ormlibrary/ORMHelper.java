@@ -102,7 +102,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 
 
 	@Override
-	public void onCreate(SQLiteDatabase arg0) {
+	public void onCreate(SQLiteDatabase db) {
 			Log.d(this.getClass().getName() + ".onCreate()", "Creating tables");
 			classDetailsList = annotationsScanner
 					.getEntityObjectDetails(this.context);
@@ -113,7 +113,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 				String stmt = ddlStatementBuilder
 						.generateCreateTableQuery(classDetails);
 				Log.d(this.getClass().getName() + ".onCreate()", stmt);
-				getWritableDatabase().execSQL(stmt);
+				db.execSQL(stmt);
 			}
 	}
 

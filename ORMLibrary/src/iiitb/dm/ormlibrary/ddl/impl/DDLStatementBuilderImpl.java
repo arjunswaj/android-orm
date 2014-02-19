@@ -9,34 +9,34 @@ import android.util.Log;
 public class DDLStatementBuilderImpl implements DDLStatementBuilder
 {
 
+	private static final String DDL_TAG = "DDL Statement Builder";
+
 	@Override
 	public String generateCreateTableQuery(ClassDetails classDetails)
 	{
-		Log.d(this.getClass().getSimpleName(), "generateCreateTableQuery()");
+		// TODO: Error Checking
 		String tableName = classDetails.getAnnotationOptionValues()
-				.get("Entity").get("Name");
-		StringBuilder sb = new StringBuilder("create table " + tableName + "(");
+				.get("Entity").get("name");
+		StringBuilder createStmt = new StringBuilder("create table "
+				+ tableName + "(");
 
 		for (FieldTypeDetails fieldTypeDetail : classDetails
 				.getFieldTypeDetails())
 		{
-			// TODO: What if there are no columns specified?
 			String columnName = fieldTypeDetail.getAnnotationOptionValues()
-					.get("Basic").get("name");
-			
-			Log.d(this.getClass().getSimpleName(), "Looking for " + fieldTypeDetail.getFieldType().getSimpleName());
+					.get("Column").get("name");
+
 			String columnType = SQLColTypeEnumMap.get(
 					fieldTypeDetail.getFieldType().getSimpleName()).toString();
-			sb.append(columnName + " " + columnType + " ");
+			createStmt.append(columnName + " " + columnType + " ");
 
 			if (fieldTypeDetail.getAnnotationOptionValues().get("Id") == null)
-				sb.append(", ");
+				createStmt.append(", ");
 			else
-				sb.append("primary key ,");
+				createStmt.append("primary key ,");
 		}
-		sb.replace(sb.length() - 1, sb.length() - 1, ")");
-		Log.d(this.getClass().getName(), sb.toString());
-
-		return sb.toString();
+		createStmt.replace(createStmt.length() - 2, createStmt.length(), ")");
+		Log.d(DDL_TAG, "generateCreateTableQuery() : " + createStmt);
+		return createStmt.toString();
 	}
 }

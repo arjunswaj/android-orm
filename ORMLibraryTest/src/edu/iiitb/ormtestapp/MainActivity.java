@@ -13,13 +13,13 @@ public class MainActivity extends Activity {
     setContentView(R.layout.activity_main);
     ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
         "testDB.sqlite", null, 1);
-    try
+    /*try
     {
     	ormHelper.getWritableDatabase().execSQL("Create table COURSE(_id int, CREDITS int, COURSE_NAME varchar, COURSE_DESCRIPTION varchar);");
     }
     catch(Exception ex){
     	ex.printStackTrace();
-    }
+    }*/
     Course course = new Course();
     course.set_id(2);
     course.setCourseDescription("Course1");
