@@ -27,7 +27,7 @@ public class ClassScannerImpl implements ClassScanner{
 		
 		
 		List<FieldValue> fieldValues = new ArrayList<FieldValue>();
-		for(Field field : classObject.getFields())
+		for(Field field : classObject.getDeclaredFields())
 		{
 			Column annotation = field.getAnnotation(Column.class);	
 			if(annotation != null)
