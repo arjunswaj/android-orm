@@ -1,5 +1,5 @@
 # cache for current jar dependency. DO NOT EDIT.
 # format is <lastModified> <length> <SHA-1> <path>
 # Encoding is UTF-8
-1392702085000 621451 5896b0a4e377ac4242eb2bc785220c1c4fc052f4 /Users/arjun/program/androidORM/ORMLibraryTest/libs/android-support-v4.jar
-1392639560000 627582 db0f122c99ef9f90dbab3fada6d191f2880cbb8e /Users/arjun/program/androidORM/ORMLibrary/libs/android-support-v4.jar
+1392721322000 621451 5896b0a4e377ac4242eb2bc785220c1c4fc052f4 /home/kempa/git/orm-library/ORMLibraryTest/libs/android-support-v4.jar
+1392721322000 627582 db0f122c99ef9f90dbab3fada6d191f2880cbb8e /home/kempa/git/orm-library/ORMLibrary/libs/android-support-v4.jar
