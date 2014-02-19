@@ -44,9 +44,10 @@ public class DMLQueryBuilderImpl implements DMLQueryBuilder {
 			values.append(",");
 		}
 
-		
-		fields.deleteCharAt(fields.length() - 1);
-		values.deleteCharAt(values.length() - 1);
+		if(fields.length() > 0)
+			fields.deleteCharAt(fields.length() - 1);
+		if(values.length() > 0)
+			values.deleteCharAt(values.length() - 1);
 		query.append("(" + fields + ")" + " values " + "(" + values + ");");
 		Log.d("ADebugTag", query.toString());
 		return query.toString();

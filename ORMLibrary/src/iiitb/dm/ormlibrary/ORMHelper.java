@@ -10,6 +10,7 @@ import iiitb.dm.ormlibrary.scanner.ScanResult;
 import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
 import iiitb.dm.ormlibrary.scanner.impl.ClassScannerImpl;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +78,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 	  for(FieldValue fieldValue : fieldValues)
 	  {
 		  try {
-			  
+			fieldValue.getField().setAccessible(true);
 			fieldValue.setFieldValue(fieldValue.getField().get(obj).toString());
 			
 		} catch (IllegalAccessException e) {
