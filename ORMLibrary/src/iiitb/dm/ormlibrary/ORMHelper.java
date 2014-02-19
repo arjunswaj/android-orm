@@ -43,7 +43,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 	Map<Class, String> scannedClassesTableMap;
 	ClassScanner scanner;
 
-  List<ClassDetails> classDetailsList = null;
+    List<ClassDetails> classDetailsList = null;
 
 	AnnotationsScanner annotationsScanner = new AnnotationsScannerImpl();
 
