@@ -4,5 +4,8 @@
     <EntityObject>edu.iiitb.ormtestapp.eo.Course</EntityObject> 
     <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.Employee</EntityObject> 
     <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.FullTimeEmployee</EntityObject> 
-    <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.PartTimeEmployee</EntityObject>
+    <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.PartTimeEmployee</EntityObject>     
+    <EntityObject>edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Sportsman</EntityObject> 
+    <EntityObject>edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Cricketer</EntityObject>
+    <EntityObject>edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Footballer</EntityObject>
 </EntityObjects>
