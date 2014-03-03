@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <EntityObjects>
     <EntityObject>edu.iiitb.ormtestapp.eo.Student</EntityObject>
-    <EntityObject>edu.iiitb.ormtestapp.eo.Course</EntityObject>    
+    <EntityObject>edu.iiitb.ormtestapp.eo.Course</EntityObject> 
+    <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.Employee</EntityObject> 
+    <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.FullTimeEmployee</EntityObject> 
+    <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.PartTimeEmployee</EntityObject>
 </EntityObjects>
