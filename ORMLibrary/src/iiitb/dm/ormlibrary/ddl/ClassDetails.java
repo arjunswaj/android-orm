@@ -25,6 +25,11 @@ public class ClassDetails {
    */
   private List<FieldTypeDetails> fieldTypeDetails;
 
+  /**
+   * List of all the Sub Classes
+   */
+  private List<ClassDetails> subClassDetails;
+
   public ClassDetails(String className,
       Map<String, Map<String, String>> annotationOptionValues,
       List<FieldTypeDetails> fieldTypeDetails) {
@@ -57,6 +62,14 @@ public class ClassDetails {
 
   public void setFieldTypeDetails(List<FieldTypeDetails> fieldTypeDetails) {
     this.fieldTypeDetails = fieldTypeDetails;
+  }
+
+  public List<ClassDetails> getSubClassDetails() {
+    return subClassDetails;
+  }
+
+  public void setSubClassDetails(List<ClassDetails> subClassDetails) {
+    this.subClassDetails = subClassDetails;
   }
 
 }

@@ -1,19 +1,17 @@
 package iiitb.dm.ormlibrary.scanner.impl;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.ArrayList;
-
-import iiitb.dm.ormlibrary.constants.JavaFieldType;
 import iiitb.dm.ormlibrary.dml.FieldValue;
 import iiitb.dm.ormlibrary.scanner.ClassScanner;
 import iiitb.dm.ormlibrary.scanner.ScanResult;
 import iiitb.dm.ormlibrary.utils.JavaFieldTypeEnumMap;
 
-import javax.persistence.*;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
-import android.util.Log;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
 public class ClassScannerImpl implements ClassScanner{
 	
