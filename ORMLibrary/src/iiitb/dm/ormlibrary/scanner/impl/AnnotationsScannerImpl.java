@@ -9,9 +9,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -53,20 +56,20 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
   }
 
   @Override
-  public List<ClassDetails> getEntityObjectDetails(Context context) {
-    List<ClassDetails> classDetailsList = new ArrayList<ClassDetails>();
+  public Collection<ClassDetails> getEntityObjectDetails(Context context) {
+    Map<String, ClassDetails> classDetailsMap = new HashMap<String, ClassDetails>();
     List<String> eoClassNames;
     try {
       eoClassNames = getEntityObjectsNamesFromManifest(context);
       for (String className : eoClassNames) {
         List<FieldTypeDetails> fieldTypeDetailList = new ArrayList<FieldTypeDetails>();
-        Map<String, Map<String, String>> classAnnotationOptionValues = new HashMap<String, Map<String, String>>();
+        Map<String, Map<String, Object>> classAnnotationOptionValues = new HashMap<String, Map<String, Object>>();
         try {
           Class<?> classToInvestigate = Class.forName(className);
           Annotation[] classAnnotations = classToInvestigate.getAnnotations();
 
           for (Annotation annotation : classAnnotations) {
-            Map<String, String> classOptionValues = new HashMap<String, String>();
+            Map<String, Object> classOptionValues = new HashMap<String, Object>();
             String classAnnotationName = annotation.annotationType()
                 .getSimpleName();
             Log.d(ANNOTATION_TAG, "ClassAnnotationName: " + classAnnotationName);
@@ -75,7 +78,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
             for (Method method : annotation.annotationType()
                 .getDeclaredMethods()) {
               String propKey = method.getName();
-              String propVal = (String) method.invoke(annotation, null);
+              Object propVal = method.invoke(annotation, null);
               Log.d(ANNOTATION_TAG, "Class Annotations Props: " + propKey
                   + ": " + propVal);
               classOptionValues.put(propKey, propVal);
@@ -129,13 +132,33 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
         }
         ClassDetails classDetails = new ClassDetails(className,
             classAnnotationOptionValues, fieldTypeDetailList);
-        classDetailsList.add(classDetails);
+        classDetailsMap.put(className, classDetails);
       }
+      	// Fill in details about inheritance hierarchies
+		for (String cName : eoClassNames)
+		{
+			Class subClass = Class.forName(classDetailsMap.get(cName)
+					.getClassName());
+			ClassDetails superClassDetails = classDetailsMap.get(subClass
+					.getSuperclass().getName());
+			if (superClassDetails != null)
+			{
+				superClassDetails.getSubClassDetails().add(
+						classDetailsMap.get(subClass.getName()));
+				Log.d(this.getClass().getName(), subClass.getName()
+						+ " extends " + superClassDetails.getClassName());
+			}
+		}
     } catch (XmlPullParserException e1) {
       e1.printStackTrace();
     } catch (IOException e1) {
       e1.printStackTrace();
     }
-    return classDetailsList;
+	catch (ClassNotFoundException e)
+	{
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+    return classDetailsMap.values();
   }
 }

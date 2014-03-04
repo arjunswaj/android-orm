@@ -15,8 +15,9 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 	public String generateCreateTableQuery(ClassDetails classDetails)
 	{
 		// TODO: Error Checking
-		String tableName = classDetails.getAnnotationOptionValues()
+		String tableName = (String) classDetails.getAnnotationOptionValues()
 				.get("Entity").get("name");
+		Log.d(this.getClass().getName(), "Table name is " + tableName);
 		StringBuilder createStmt = new StringBuilder("create table "
 				+ tableName + "(");
 

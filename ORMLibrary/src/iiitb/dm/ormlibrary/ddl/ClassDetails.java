@@ -1,5 +1,6 @@
 package iiitb.dm.ormlibrary.ddl;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +20,7 @@ public class ClassDetails {
    * Map of all the Annotation Names associated with Class (Key) and Map of all
    * the associated key/value pair (Value)
    */
-  private Map<String, Map<String, String>> annotationOptionValues;
+  private Map<String, Map<String, Object>> annotationOptionValues;
   /**
    * Field Details List
    */
@@ -31,12 +32,13 @@ public class ClassDetails {
   private List<ClassDetails> subClassDetails;
 
   public ClassDetails(String className,
-      Map<String, Map<String, String>> annotationOptionValues,
+      Map<String, Map<String, Object>> annotationOptionValues,
       List<FieldTypeDetails> fieldTypeDetails) {
     super();
     this.className = className;
     this.annotationOptionValues = annotationOptionValues;
     this.fieldTypeDetails = fieldTypeDetails;
+    subClassDetails = new LinkedList<ClassDetails>();
   }
 
   public String getClassName() {
@@ -47,12 +49,12 @@ public class ClassDetails {
     this.className = className;
   }
 
-  public Map<String, Map<String, String>> getAnnotationOptionValues() {
+  public Map<String, Map<String, Object>> getAnnotationOptionValues() {
     return annotationOptionValues;
   }
 
   public void setAnnotationOptionValues(
-      Map<String, Map<String, String>> annotationOptionValues) {
+      Map<String, Map<String, Object>> annotationOptionValues) {
     this.annotationOptionValues = annotationOptionValues;
   }
 

@@ -16,6 +16,7 @@ import iiitb.dm.ormlibrary.utils.Utils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 	Map<Class, String> scannedClassesTableMap;
 	ClassScanner scanner;
 
-    List<ClassDetails> classDetailsList = null;
+    private Collection<ClassDetails> classDetailsList = null;
 
 	AnnotationsScanner annotationsScanner = new AnnotationsScannerImpl();
 

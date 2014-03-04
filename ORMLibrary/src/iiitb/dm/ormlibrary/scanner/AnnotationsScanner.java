@@ -2,12 +2,14 @@ package iiitb.dm.ormlibrary.scanner;
 
 import iiitb.dm.ormlibrary.ddl.ClassDetails;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import android.content.Context;
 
 public interface AnnotationsScanner {
 
-  public List<ClassDetails> getEntityObjectDetails(Context context);
+  public Collection<ClassDetails> getEntityObjectDetails(Context context);
 
 }
