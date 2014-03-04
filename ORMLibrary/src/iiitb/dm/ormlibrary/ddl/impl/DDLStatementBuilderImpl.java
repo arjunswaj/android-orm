@@ -9,7 +9,7 @@ import android.util.Log;
 public class DDLStatementBuilderImpl implements DDLStatementBuilder
 {
 
-	private static final String DDL_TAG = "DDL Statement Builder";
+	private final String DDL_TAG = this.getClass().getName();
 
 	@Override
 	public String generateCreateTableQuery(ClassDetails classDetails)
@@ -17,10 +17,8 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 		// TODO: Error Checking
 		String tableName = (String) classDetails.getAnnotationOptionValues()
 				.get("Entity").get("name");
-		Log.d(this.getClass().getName(), "Table name is " + tableName);
-		StringBuilder createStmt = new StringBuilder("create table "
-				+ tableName + "(");
 
+		StringBuilder columnsDescription = new StringBuilder();
 		for (FieldTypeDetails fieldTypeDetail : classDetails
 				.getFieldTypeDetails())
 		{
@@ -29,15 +27,19 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 
 			String columnType = SQLColTypeEnumMap.get(
 					fieldTypeDetail.getFieldType().getSimpleName()).toString();
-			createStmt.append(columnName + " " + columnType + " ");
+			columnsDescription.append(columnName + " " + columnType + " ");
 
 			if (fieldTypeDetail.getAnnotationOptionValues().get("Id") == null)
-				createStmt.append(", ");
+				columnsDescription.append(", ");
 			else
-				createStmt.append("primary key ,");
+				columnsDescription.append("primary key autoincrement, ");
 		}
-		createStmt.replace(createStmt.length() - 2, createStmt.length(), ")");
-		Log.d(DDL_TAG, "generateCreateTableQuery() : " + createStmt);
-		return createStmt.toString();
+		columnsDescription.replace(columnsDescription.length() - 2,
+				columnsDescription.length(), "");
+
+		String createStmt = "create table " + tableName + "( "
+				+ columnsDescription + " )";
+		Log.d(DDL_TAG, createStmt);
+		return createStmt;
 	}
 }

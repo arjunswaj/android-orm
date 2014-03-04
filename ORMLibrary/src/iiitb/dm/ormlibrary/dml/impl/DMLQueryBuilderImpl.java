@@ -21,6 +21,8 @@ public class DMLQueryBuilderImpl implements DMLQueryBuilder {
 			
 		for(FieldValue fieldValue : fieldValues)
 		{
+			if (fieldValue.isId())
+				continue;
 			fields.append(fieldValue.getFieldName());
 			switch(fieldValue.getJavaFieldType())
 			{
