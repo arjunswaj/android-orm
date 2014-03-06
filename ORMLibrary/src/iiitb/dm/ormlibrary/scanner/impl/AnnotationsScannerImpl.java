@@ -12,10 +12,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -70,22 +68,19 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
           Class<?> classToInvestigate = Class.forName(className);
           classDetails = getEntityObjectDetails(classToInvestigate);
         } catch (ClassNotFoundException e) {
-          // Class not found!
+          e.printStackTrace();
         } catch (IllegalAccessException e) {          
-          // TODO Auto-generated catch block
           e.printStackTrace();
         } catch (IllegalArgumentException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         } catch (InvocationTargetException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         }
         classDetailsMap.put(className, classDetails);
       }
       // Fill in details about inheritance hierarchies
       for (String cName : eoClassNames) {
-        Class subClass = Class.forName(classDetailsMap.get(cName)
+        Class<?> subClass = Class.forName(classDetailsMap.get(cName)
             .getClassName());
         ClassDetails superClassDetails = classDetailsMap.get(subClass
             .getSuperclass().getName());

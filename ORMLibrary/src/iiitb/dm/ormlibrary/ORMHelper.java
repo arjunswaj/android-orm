@@ -4,12 +4,8 @@ import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.DDLStatementBuilder;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.ddl.impl.DDLStatementBuilderImpl;
-import iiitb.dm.ormlibrary.dml.DMLQueryBuilder;
-import iiitb.dm.ormlibrary.dml.impl.DMLQueryBuilderImpl;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
-
 import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
-
 import iiitb.dm.ormlibrary.utils.Utils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -38,8 +34,18 @@ import android.util.Log;
  */
 public class ORMHelper extends SQLiteOpenHelper {
 
+  private static final String INHERITANCE = "Inheritance";
+  private static final String STRATEGY = "strategy";
+  private static final String ENTITY = "Entity";
+  private static final String NAME = "name";
+  private static final String COLUMN = "Column";
+  private static final String DISCRIMINATOR_COLUMN = "DiscriminatorColumn";
+  private static final String DISCRIMINATOR_VALUE = "DiscriminatorValue";
+  private static final String VALUE = "value";
+  private static final String ID = "_id";
+  private static final String ID_CAPS = "ID";
+  private static final String SAVE_OBJECT_TAG = "SAVE_OBJECT";
   Context context;
-  private DMLQueryBuilder dmlQueryBuilder;
 
   private Collection<ClassDetails> classDetailsList = null;
 
@@ -49,7 +55,6 @@ public class ORMHelper extends SQLiteOpenHelper {
       int version) {
     super(context, name, factory, version);
     this.context = context;
-    dmlQueryBuilder = new DMLQueryBuilderImpl();
   }
 
   private String getEOPackage() throws NameNotFoundException {
@@ -61,20 +66,16 @@ public class ORMHelper extends SQLiteOpenHelper {
   }
 
   public void persist(Object obj) {
-
-    Class objClass = obj.getClass();
-    save(obj);
-    // String insertQuery = dmlQueryBuilder.generateInsertQuery(
-    // scannedClassesTableMap.get(objClass), fieldValues);
-    //
-    // getWritableDatabase().execSQL(insertQuery);
+    long genId = save(obj);
+    // TODO: put this id in the Obj by invoking set_id(genId)
   }
 
-  private int save(Object obj) {
-    int id = -1;
+  private long save(Object obj) {
+    long id = -1L;
     ClassDetails superClassDetails = null;
     ClassDetails subClassDetails = null;
     Class<?> myClass = obj.getClass();
+    // Build the Class Detail Hierarchy
     do {
       try {
         superClassDetails = annotationsScanner.getEntityObjectDetails(myClass);
@@ -93,13 +94,14 @@ public class ORMHelper extends SQLiteOpenHelper {
     } while (Object.class != (myClass = myClass.getSuperclass()));
 
     Map<String, Object> inheritanceOptions = superClassDetails
-        .getAnnotationOptionValues().get("Inheritance");
+        .getAnnotationOptionValues().get(INHERITANCE);
     if (null == inheritanceOptions) {
-      // Persist plain Object
-      long genId = saveObject(superClassDetails, obj, -1L);
+      // Has no Inheritance annotation, Persist it as a plain Object
+      id = saveObject(superClassDetails, obj, -1L);
     } else {
+      // Has Inheritance annotation. Awesome. Check the Strategy and persist.
       InheritanceType strategy = (InheritanceType) inheritanceOptions
-          .get("strategy");
+          .get(STRATEGY);
       switch (strategy) {
       case JOINED:
         saveObjectWithInheritanceUsingJoinedStrategy(superClassDetails, obj);
@@ -113,15 +115,26 @@ public class ORMHelper extends SQLiteOpenHelper {
 
       }
     }
-
     return id;
   }
 
+  /**
+   * Save the Object to DB
+   * 
+   * @param superClassDetails
+   *          class hierarchy
+   * @param obj
+   *          object to save
+   * @param id
+   *          ID of the object to be saved. -1L if needs to be ignored and se
+   *          the auto generated value
+   * @return
+   */
   private long saveObject(ClassDetails superClassDetails, Object obj, long id) {
     long genId = -1;
     try {
       String tableName = (String) superClassDetails.getAnnotationOptionValues()
-          .get("Entity").get("name");
+          .get(ENTITY).get(NAME);
 
       Class<?> objClass = Class.forName(superClassDetails.getClassName());
       ContentValues contentValues = new ContentValues();
@@ -132,33 +145,34 @@ public class ORMHelper extends SQLiteOpenHelper {
         Method getterMethod = objClass.getMethod(getterMethodName);
 
         String columnName = fieldTypeDetail.getAnnotationOptionValues()
-            .get("Column").get("name");
+            .get(COLUMN).get(NAME);
         String columnValue = getterMethod.invoke(obj).toString();
 
-        // Don't add the id, it has to be auto generated
-        if (!columnName.equals("_id") && !columnName.equals("ID")) {
+        // Don't add the id obtained from getter, it has to be auto generated
+        if (!columnName.equals(ID) && !columnName.equals(ID_CAPS)) {
           contentValues.put(columnName, columnValue);
-          Log.d(this.getClass().getName() + " Insert:", "Col: " + columnName
-              + ", Val: " + columnValue);
+          Log.d(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: " + columnValue);
         }
       }
 
+      // Put the Discriminator. The column is in Super class, value is in the
+      // Sub class
       Map<String, Object> discriminator = superClassDetails
-          .getAnnotationOptionValues().get("DiscriminatorColumn");
+          .getAnnotationOptionValues().get(DISCRIMINATOR_COLUMN);
       if (null != discriminator) {
-        String discriminatorColumn = (String) discriminator.get("name");
+        String discriminatorColumn = (String) discriminator.get(NAME);
         String discriminatorValue = (String) superClassDetails
             .getSubClassDetails().get(0).getAnnotationOptionValues()
-            .get("DiscriminatorValue").get("value");
+            .get(DISCRIMINATOR_VALUE).get(VALUE);
         contentValues.put(discriminatorColumn, discriminatorValue);
-        Log.d(this.getClass().getName() + " Insert:", "DiscriminatorCol: "
-            + discriminatorColumn + ", DiscriminatorVal: " + discriminatorValue);
+        Log.d(SAVE_OBJECT_TAG, "DiscriminatorCol: " + discriminatorColumn
+            + ", DiscriminatorVal: " + discriminatorValue);
       }
 
       if (-1L != id) {
-        contentValues.put("_id", id);
-        Log.d(this.getClass().getName() + " Insert:", "Col: _id " + ", Val: "
-            + id);
+        // Okay, add id only if explicitly passed
+        contentValues.put(ID, id);
+        Log.d(SAVE_OBJECT_TAG, "Col: _id " + ", Val: " + id);
       }
 
       genId = getWritableDatabase().insert(tableName, null, contentValues);
@@ -176,16 +190,25 @@ public class ORMHelper extends SQLiteOpenHelper {
     return genId;
   }
 
+  /**
+   * Save the Object with all the attributes in a single table
+   * 
+   * @param classDetails
+   *          class details Hierarchy
+   * @param obj
+   *          object to save
+   * @return generated id
+   */
   private long saveObjectWithInheritanceUsingTablePerClassStrategy(
       ClassDetails classDetails, Object obj) {
-    long genId = -1;
+    long genId = -1L;
     String tableName = null;
     ContentValues contentValues = new ContentValues();
     ClassDetails superClassDetails = classDetails;
     while (null != superClassDetails) {
       try {
         tableName = (String) superClassDetails.getAnnotationOptionValues()
-            .get("Entity").get("name");
+            .get(ENTITY).get(NAME);
         Class<?> objClass = Class.forName(superClassDetails.getClassName());
         for (FieldTypeDetails fieldTypeDetail : superClassDetails
             .getFieldTypeDetails()) {
@@ -194,14 +217,14 @@ public class ORMHelper extends SQLiteOpenHelper {
           Method getterMethod = objClass.getMethod(getterMethodName);
 
           String columnName = fieldTypeDetail.getAnnotationOptionValues()
-              .get("Column").get("name");
+              .get(COLUMN).get(NAME);
           String columnValue = getterMethod.invoke(obj).toString();
 
-          // Don't add the id, it has to be auto generated
-          if (!columnName.equals("_id") && !columnName.equals("ID")) {
+          // Don't add the id from getter, it has to be auto generated
+          if (!columnName.equals(ID) && !columnName.equals(ID_CAPS)) {
             contentValues.put(columnName, columnValue);
-            Log.d(this.getClass().getName() + " Insert:", "Col: " + columnName
-                + ", Val: " + columnValue);
+            Log.d(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
+                + columnValue);
           }
         }
       } catch (IllegalAccessException e) {
@@ -221,18 +244,33 @@ public class ORMHelper extends SQLiteOpenHelper {
       superClassDetails = (!subClassDetailsList.isEmpty()) ? subClassDetailsList
           .get(0) : null;
     }
+    // tableName will be the name of the Table given in the sub class object
     genId = getWritableDatabase().insert(tableName, null, contentValues);
     return genId;
   }
 
+  /**
+   * Need to persist the parameters in different tables maintaining FK
+   * references
+   * 
+   * @param classDetails
+   *          ClassDetails Hierarchy
+   * @param obj
+   *          object to persist
+   * @return generated id
+   */
   private long saveObjectWithInheritanceUsingJoinedStrategy(
       ClassDetails classDetails, Object obj) {
     long id = -1L;
     ClassDetails superClassDetails = classDetails;
+    // Persist the super class related attributes first, then go down the
+    // hierarchy
     while (null != superClassDetails) {
       id = saveObject(superClassDetails, obj, id);
       List<ClassDetails> subClassDetailsList = superClassDetails
           .getSubClassDetails();
+      // It'll be always 0, coz. the hierarchy was built using the obj, not the
+      // XML
       superClassDetails = (!subClassDetailsList.isEmpty()) ? subClassDetailsList
           .get(0) : null;
     }
