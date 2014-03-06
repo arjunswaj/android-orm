@@ -11,6 +11,7 @@ import iiitb.dm.ormlibrary.utils.Utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +49,7 @@ public class ORMHelper extends SQLiteOpenHelper {
   Context context;
 
   private Collection<ClassDetails> classDetailsList = null;
-
+  private Map<String, ClassDetails> mappingCache = new HashMap<String, ClassDetails>();
   AnnotationsScanner annotationsScanner = new AnnotationsScannerImpl();
 
   public ORMHelper(Context context, String name, CursorFactory factory,
@@ -72,27 +73,32 @@ public class ORMHelper extends SQLiteOpenHelper {
 
   private long save(Object obj) {
     long id = -1L;
-    ClassDetails superClassDetails = null;
-    ClassDetails subClassDetails = null;
     Class<?> myClass = obj.getClass();
-    // Build the Class Detail Hierarchy
-    do {
-      try {
-        superClassDetails = annotationsScanner.getEntityObjectDetails(myClass);
-        if (null != subClassDetails) {
-          superClassDetails.getSubClassDetails().add(subClassDetails);
+    ClassDetails superClassDetails = mappingCache.get(obj.getClass().getName());
+    ClassDetails subClassDetails = null;
+
+    if (null == superClassDetails) {
+      // Build the Class Detail Hierarchy
+      Log.e("CACHE MISS", "CACHE MISS");
+      do {
+        try {
+          superClassDetails = annotationsScanner
+              .getEntityObjectDetails(myClass);
+          if (null != subClassDetails) {
+            superClassDetails.getSubClassDetails().add(subClassDetails);
+          }
+          subClassDetails = superClassDetails;
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+          e.printStackTrace();
+        } catch (InvocationTargetException e) {
+          e.printStackTrace();
         }
-        subClassDetails = superClassDetails;
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (IllegalArgumentException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
-        e.printStackTrace();
-      }
 
-    } while (Object.class != (myClass = myClass.getSuperclass()));
-
+      } while (Object.class != (myClass = myClass.getSuperclass()));
+      mappingCache.put(obj.getClass().getName(), superClassDetails);
+    }
     Map<String, Object> inheritanceOptions = superClassDetails
         .getAnnotationOptionValues().get(INHERITANCE);
     if (null == inheritanceOptions) {

@@ -15,7 +15,7 @@ public class MainActivity extends Activity {
 
   private void testPersistence(ORMHelper ormHelper) {
     Course course = null;
-    for (int index = 0; index < 5; index += 1) {
+    for (int index = 0; index < 25; index += 1) {
       course = new Course();
       course.setCourseDescription("Course" + index);
       course.setCourseName("DM" + index);
@@ -24,7 +24,7 @@ public class MainActivity extends Activity {
     }
 
     Student student = null;
-    for (int index = 0; index < 5; index += 1) {
+    for (int index = 0; index < 25; index += 1) {
       student = new Student();
       student.setAddress("Address" + index);
       student.setAge(20 + index);
@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
         .execSQL(
             "CREATE TABLE FULL_TIME_EMPLOYEE( _id INTEGER, SALARY INTEGER, PENSION INTEGER )");
 
-    for (int index = 1; index < 5; index += 1) {
+    for (int index = 1; index < 25; index += 1) {
       PartTimeEmployee pte = new PartTimeEmployee();
       pte.setName("Tom " + index + " Hanks");
       pte.setHourlyRate(12 + index);
@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
         .execSQL(
             "CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
 
-    for (int index = 1; index < 5; index += 1) {
+    for (int index = 1; index < 25; index += 1) {
       Sportsman sportsman = new Sportsman();
       sportsman.setName("Vishwanathan " + index + " Anand");
       ormHelper.persist(sportsman);
