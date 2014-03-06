@@ -8,7 +8,7 @@ import javax.persistence.Id;
 public class Student {
 
   @Id
-  @Column(name = "ID")
+  @Column(name = "_id")
   private int _id;
   @Column(name = "AGE")
   private int age;
