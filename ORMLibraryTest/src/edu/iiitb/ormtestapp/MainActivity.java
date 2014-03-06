@@ -16,7 +16,7 @@ public class MainActivity extends Activity {
   private void testPersistence(ORMHelper ormHelper) {
     Course course = null;
     for (int index = 0; index < 5; index += 1) {
-      course = new Course();      
+      course = new Course();
       course.setCourseDescription("Course" + index);
       course.setCourseName("DM" + index);
       course.setCredits(5);
@@ -35,24 +35,47 @@ public class MainActivity extends Activity {
 
   private void testPersistenceOfInheritedObjectsWithJoinedStrategy(
       ORMHelper ormHelper) {
-    PartTimeEmployee pte = new PartTimeEmployee();
-    pte.setName("Tom Hanks");
-    pte.setHourlyRate(12);
-    ormHelper.persist(pte);
+    ormHelper
+        .getWritableDatabase()
+        .execSQL(
+            "CREATE TABLE EMPLOYEE( NAME TEXT, _id INTEGER primary key autoincrement, EMPLOYEE_TYPE TEXT )");
+    ormHelper.getWritableDatabase().execSQL(
+        "CREATE TABLE PART_TIME_EMPLOYEE( _id INTEGER, HOURLY_RATE REAL )");
+    ormHelper
+        .getWritableDatabase()
+        .execSQL(
+            "CREATE TABLE FULL_TIME_EMPLOYEE( _id INTEGER, SALARY INTEGER, PENSION INTEGER )");
 
-    FullTimeEmployee fte = new FullTimeEmployee();
-    fte.setName("Jerry Seinfeld");
-    fte.setSalary(1230);
-    ormHelper.persist(fte);
+    for (int index = 1; index < 5; index += 1) {
+      PartTimeEmployee pte = new PartTimeEmployee();
+      pte.setName("Tom " + index  + " Hanks");
+      pte.setHourlyRate(12 + index);
+      ormHelper.persist(pte);
+
+      FullTimeEmployee fte = new FullTimeEmployee();
+      fte.setName("Jerry " + index + " Seinfeld");
+      fte.setSalary(1230 + index);
+      fte.setPension(630 + index);
+      ormHelper.persist(fte);
+    }
   }
 
   private void testPersistenceOfInheritedObjectsWithTablePerClassStrategy(
       ORMHelper ormHelper) {
-    
-    ormHelper.getWritableDatabase().execSQL("CREATE TABLE SPORTSMAN( NAME TEXT, _id INTEGER primary key autoincrement )");
-    ormHelper.getWritableDatabase().execSQL("CREATE TABLE FOOTBALLER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, GOALS INTEGER )");
-    ormHelper.getWritableDatabase().execSQL("CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
-    
+
+    ormHelper
+        .getWritableDatabase()
+        .execSQL(
+            "CREATE TABLE SPORTSMAN( NAME TEXT, _id INTEGER primary key autoincrement )");
+    ormHelper
+        .getWritableDatabase()
+        .execSQL(
+            "CREATE TABLE FOOTBALLER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, GOALS INTEGER )");
+    ormHelper
+        .getWritableDatabase()
+        .execSQL(
+            "CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
+
     Sportsman sportsman = new Sportsman();
     sportsman.setName("Vishwanathan Anand");
     ormHelper.persist(sportsman);
@@ -77,8 +100,8 @@ public class MainActivity extends Activity {
     ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
         "testDB.sqlite", null, 1);
 
-     testPersistence(ormHelper);
-    // testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+    testPersistence(ormHelper);
+    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+    // testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
   }
 }

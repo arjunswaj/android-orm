@@ -2,14 +2,18 @@ package iiitb.dm.ormlibrary.scanner;
 
 import iiitb.dm.ormlibrary.ddl.ClassDetails;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 import android.content.Context;
 
 public interface AnnotationsScanner {
 
-  public Collection<ClassDetails> getEntityObjectDetails(Context context);
+  public ClassDetails getEntityObjectDetails(Class<?> classToInvestigate)
+      throws IllegalAccessException, IllegalArgumentException,
+      InvocationTargetException;
+
+  public Collection<ClassDetails> getEntityObjectCollectionDetails(
+      Context context);
 
 }
