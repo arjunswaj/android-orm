@@ -16,8 +16,7 @@ public class MainActivity extends Activity {
   private void testPersistence(ORMHelper ormHelper) {
     Course course = null;
     for (int index = 0; index < 5; index += 1) {
-      course = new Course();
-      course.set_id(index);
+      course = new Course();      
       course.setCourseDescription("Course" + index);
       course.setCourseName("DM" + index);
       course.setCredits(5);
@@ -27,7 +26,6 @@ public class MainActivity extends Activity {
     Student student = null;
     for (int index = 0; index < 5; index += 1) {
       student = new Student();
-      student.set_id(index);
       student.setAddress("Address" + index);
       student.setAge(20 + index);
       student.setName("Name" + index);
@@ -38,13 +36,11 @@ public class MainActivity extends Activity {
   private void testPersistenceOfInheritedObjectsWithJoinedStrategy(
       ORMHelper ormHelper) {
     PartTimeEmployee pte = new PartTimeEmployee();
-    pte.setId(1);
     pte.setName("Tom Hanks");
     pte.setHourlyRate(12);
     ormHelper.persist(pte);
 
     FullTimeEmployee fte = new FullTimeEmployee();
-    fte.setId(2);
     fte.setName("Jerry Seinfeld");
     fte.setSalary(1230);
     ormHelper.persist(fte);
@@ -52,20 +48,22 @@ public class MainActivity extends Activity {
 
   private void testPersistenceOfInheritedObjectsWithTablePerClassStrategy(
       ORMHelper ormHelper) {
+    
+    ormHelper.getWritableDatabase().execSQL("CREATE TABLE SPORTSMAN( NAME TEXT, _id INTEGER primary key autoincrement )");
+    ormHelper.getWritableDatabase().execSQL("CREATE TABLE FOOTBALLER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, GOALS INTEGER )");
+    ormHelper.getWritableDatabase().execSQL("CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
+    
     Sportsman sportsman = new Sportsman();
-    sportsman.setId(1);
     sportsman.setName("Vishwanathan Anand");
     ormHelper.persist(sportsman);
 
     Cricketer cricketer = new Cricketer();
-    cricketer.setId(1);
     cricketer.setName("Saurav Ganguly");
     cricketer.setAverage(42.28f);
     cricketer.setTeam("India");
     ormHelper.persist(cricketer);
 
     Footballer footballer = new Footballer();
-    footballer.setId(1);
     footballer.setName("David Beckham");
     footballer.setGoals(92);
     footballer.setTeam("England");
@@ -81,6 +79,6 @@ public class MainActivity extends Activity {
 
      testPersistence(ormHelper);
     // testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    // testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
   }
 }
