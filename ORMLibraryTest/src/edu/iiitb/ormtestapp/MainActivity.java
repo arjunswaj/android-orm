@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
 
     for (int index = 1; index < 5; index += 1) {
       PartTimeEmployee pte = new PartTimeEmployee();
-      pte.setName("Tom " + index  + " Hanks");
+      pte.setName("Tom " + index + " Hanks");
       pte.setHourlyRate(12 + index);
       ormHelper.persist(pte);
 
@@ -76,21 +76,23 @@ public class MainActivity extends Activity {
         .execSQL(
             "CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
 
-    Sportsman sportsman = new Sportsman();
-    sportsman.setName("Vishwanathan Anand");
-    ormHelper.persist(sportsman);
+    for (int index = 1; index < 5; index += 1) {
+      Sportsman sportsman = new Sportsman();
+      sportsman.setName("Vishwanathan " + index + " Anand");
+      ormHelper.persist(sportsman);
 
-    Cricketer cricketer = new Cricketer();
-    cricketer.setName("Saurav Ganguly");
-    cricketer.setAverage(42.28f);
-    cricketer.setTeam("India");
-    ormHelper.persist(cricketer);
+      Cricketer cricketer = new Cricketer();
+      cricketer.setName("Saurav " + index + " Ganguly");
+      cricketer.setAverage(42.28f + index);
+      cricketer.setTeam("India" + index);
+      ormHelper.persist(cricketer);
 
-    Footballer footballer = new Footballer();
-    footballer.setName("David Beckham");
-    footballer.setGoals(92);
-    footballer.setTeam("England");
-    ormHelper.persist(footballer);
+      Footballer footballer = new Footballer();
+      footballer.setName("David " + index + " Beckham");
+      footballer.setGoals(92 + index);
+      footballer.setTeam("England" + index);
+      ormHelper.persist(footballer);
+    }
   }
 
   @Override
@@ -102,6 +104,6 @@ public class MainActivity extends Activity {
 
     testPersistence(ormHelper);
     testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    // testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
   }
 }

@@ -176,13 +176,56 @@ public class ORMHelper extends SQLiteOpenHelper {
     return genId;
   }
 
-  private void saveObjectWithInheritanceUsingTablePerClassStrategy(
-      ClassDetails superClassDetails, Object obj) {
-    // TODO Auto-generated method stub
+  private long saveObjectWithInheritanceUsingTablePerClassStrategy(
+      ClassDetails classDetails, Object obj) {
+    long genId = -1;
+    String tableName = null;
+    ContentValues contentValues = new ContentValues();
+    ClassDetails superClassDetails = classDetails;
+    while (null != superClassDetails) {
+      try {
+        tableName = (String) superClassDetails.getAnnotationOptionValues()
+            .get("Entity").get("name");
+        Class<?> objClass = Class.forName(superClassDetails.getClassName());
+        for (FieldTypeDetails fieldTypeDetail : superClassDetails
+            .getFieldTypeDetails()) {
+          String getterMethodName = Utils.getGetterMethodName(fieldTypeDetail
+              .getFieldName());
+          Method getterMethod = objClass.getMethod(getterMethodName);
 
+          String columnName = fieldTypeDetail.getAnnotationOptionValues()
+              .get("Column").get("name");
+          String columnValue = getterMethod.invoke(obj).toString();
+
+          // Don't add the id, it has to be auto generated
+          if (!columnName.equals("_id") && !columnName.equals("ID")) {
+            contentValues.put(columnName, columnValue);
+            Log.d(this.getClass().getName() + " Insert:", "Col: " + columnName
+                + ", Val: " + columnValue);
+          }
+        }
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      } catch (IllegalArgumentException e) {
+        e.printStackTrace();
+      } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+      } catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      } catch (InvocationTargetException e) {
+        e.printStackTrace();
+      }
+
+      List<ClassDetails> subClassDetailsList = superClassDetails
+          .getSubClassDetails();
+      superClassDetails = (!subClassDetailsList.isEmpty()) ? subClassDetailsList
+          .get(0) : null;
+    }
+    genId = getWritableDatabase().insert(tableName, null, contentValues);
+    return genId;
   }
 
-  private void saveObjectWithInheritanceUsingJoinedStrategy(
+  private long saveObjectWithInheritanceUsingJoinedStrategy(
       ClassDetails classDetails, Object obj) {
     long id = -1L;
     ClassDetails superClassDetails = classDetails;
@@ -193,6 +236,7 @@ public class ORMHelper extends SQLiteOpenHelper {
       superClassDetails = (!subClassDetailsList.isEmpty()) ? subClassDetailsList
           .get(0) : null;
     }
+    return id;
   }
 
   @Override
