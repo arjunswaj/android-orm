@@ -103,25 +103,71 @@ public class ORMHelper extends SQLiteOpenHelper {
         .getAnnotationOptionValues().get(INHERITANCE);
     if (null == inheritanceOptions) {
       // Has no Inheritance annotation, Persist it as a plain Object
-      id = saveObject(superClassDetails, obj, -1L);
+      id = saveObject(superClassDetails, obj, -1L, null);
     } else {
       // Has Inheritance annotation. Awesome. Check the Strategy and persist.
-      InheritanceType strategy = (InheritanceType) inheritanceOptions
-          .get(STRATEGY);
-      switch (strategy) {
-      case JOINED:
-        saveObjectWithInheritanceUsingJoinedStrategy(superClassDetails, obj);
-        break;
-      case TABLE_PER_CLASS:
-        saveObjectWithInheritanceUsingTablePerClassStrategy(superClassDetails,
-            obj);
-        break;
-      default:
-        break;
-
-      }
+      id = saveObjectByInheritanceStrategy(superClassDetails, obj);
     }
     return id;
+  }
+
+  private long saveObjectByInheritanceStrategy(ClassDetails classDetails,
+      Object obj) {
+    long id = -1L;
+    ClassDetails superClassDetails = classDetails;
+    Map<String, String> kvp = new HashMap<String, String>();
+
+    while (null != superClassDetails) {
+      Map<String, Object> inheritanceOptions = superClassDetails
+          .getAnnotationOptionValues().get(INHERITANCE);
+      if (null == inheritanceOptions) {
+        id = saveObject(superClassDetails, obj, id, kvp);
+      } else {
+        InheritanceType strategy = (InheritanceType) inheritanceOptions
+            .get(STRATEGY);
+        switch (strategy) {
+        case JOINED:
+          // Save Object with KVPs
+          id = saveObject(superClassDetails, obj, id, kvp);
+          break;
+        case TABLE_PER_CLASS:
+          // Get the KVPs
+          populateKVPsOfTablePerClassStrategy(superClassDetails, obj, kvp);
+          if (obj.getClass().getName().equals(superClassDetails.getClassName())) {
+            String tableName = (String) superClassDetails.getAnnotationOptionValues()
+                .get(ENTITY).get(NAME);
+            id = saveTheKVPs(tableName, kvp, id);
+          }
+          break;
+        default:
+          break;
+        }
+      }
+      List<ClassDetails> subClassDetailsList = superClassDetails
+          .getSubClassDetails();
+      superClassDetails = (!subClassDetailsList.isEmpty()) ? subClassDetailsList
+          .get(0) : null;
+    }
+    return id;
+  }
+
+  private long saveTheKVPs(String tableName, Map<String, String> kvp, long id) {
+    long genId = -1;
+    ContentValues contentValues = new ContentValues();
+
+    if (null != kvp) {
+      for (String key : kvp.keySet()) {
+        contentValues.put(key, kvp.get(key));
+      }
+      kvp.clear();
+    }
+
+    if (-1L != id) {
+      contentValues.put(ID, id);
+      Log.d(SAVE_OBJECT_TAG, "Col: _id " + ", Val: " + id);
+    }
+    genId = getWritableDatabase().insert(tableName, null, contentValues);
+    return genId;
   }
 
   /**
@@ -134,9 +180,12 @@ public class ORMHelper extends SQLiteOpenHelper {
    * @param id
    *          ID of the object to be saved. -1L if needs to be ignored and se
    *          the auto generated value
+   * @param kvp
+   *          Additional Key Value Pairs to be persisted
    * @return
    */
-  private long saveObject(ClassDetails superClassDetails, Object obj, long id) {
+  private long saveObject(ClassDetails superClassDetails, Object obj, long id,
+      Map<String, String> kvp) {
     long genId = -1;
     try {
       String tableName = (String) superClassDetails.getAnnotationOptionValues()
@@ -165,7 +214,8 @@ public class ORMHelper extends SQLiteOpenHelper {
       // Sub class
       Map<String, Object> discriminator = superClassDetails
           .getAnnotationOptionValues().get(DISCRIMINATOR_COLUMN);
-      if (null != discriminator) {
+      if (null != discriminator
+          && !superClassDetails.getSubClassDetails().isEmpty()) {
         String discriminatorColumn = (String) discriminator.get(NAME);
         String discriminatorValue = (String) superClassDetails
             .getSubClassDetails().get(0).getAnnotationOptionValues()
@@ -173,6 +223,14 @@ public class ORMHelper extends SQLiteOpenHelper {
         contentValues.put(discriminatorColumn, discriminatorValue);
         Log.d(SAVE_OBJECT_TAG, "DiscriminatorCol: " + discriminatorColumn
             + ", DiscriminatorVal: " + discriminatorValue);
+      }
+
+      // Save additional KVPs
+      if (null != kvp) {
+        for (String key : kvp.keySet()) {
+          contentValues.put(key, kvp.get(key));
+        }
+        kvp.clear();
       }
 
       if (-1L != id) {
@@ -196,91 +254,39 @@ public class ORMHelper extends SQLiteOpenHelper {
     return genId;
   }
 
-  /**
-   * Save the Object with all the attributes in a single table
-   * 
-   * @param classDetails
-   *          class details Hierarchy
-   * @param obj
-   *          object to save
-   * @return generated id
-   */
-  private long saveObjectWithInheritanceUsingTablePerClassStrategy(
-      ClassDetails classDetails, Object obj) {
-    long genId = -1L;
-    String tableName = null;
-    ContentValues contentValues = new ContentValues();
-    ClassDetails superClassDetails = classDetails;
-    while (null != superClassDetails) {
-      try {
-        tableName = (String) superClassDetails.getAnnotationOptionValues()
-            .get(ENTITY).get(NAME);
-        Class<?> objClass = Class.forName(superClassDetails.getClassName());
-        for (FieldTypeDetails fieldTypeDetail : superClassDetails
-            .getFieldTypeDetails()) {
-          String getterMethodName = Utils.getGetterMethodName(fieldTypeDetail
-              .getFieldName());
-          Method getterMethod = objClass.getMethod(getterMethodName);
+  private void populateKVPsOfTablePerClassStrategy(ClassDetails classDetails,
+      Object obj, Map<String, String> kvp) {
+    Class<?> objClass;
+    try {
+      objClass = Class.forName(classDetails.getClassName());
 
-          String columnName = fieldTypeDetail.getAnnotationOptionValues()
-              .get(COLUMN).get(NAME);
-          String columnValue = getterMethod.invoke(obj).toString();
+      for (FieldTypeDetails fieldTypeDetail : classDetails
+          .getFieldTypeDetails()) {
+        String getterMethodName = Utils.getGetterMethodName(fieldTypeDetail
+            .getFieldName());
+        Method getterMethod = objClass.getMethod(getterMethodName);
 
-          // Don't add the id from getter, it has to be auto generated
-          if (!columnName.equals(ID) && !columnName.equals(ID_CAPS)) {
-            contentValues.put(columnName, columnValue);
-            Log.d(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
-                + columnValue);
-          }
+        String columnName = fieldTypeDetail.getAnnotationOptionValues()
+            .get(COLUMN).get(NAME);
+        String columnValue = getterMethod.invoke(obj).toString();
+
+        // Don't add the id from getter, it has to be auto generated
+        if (!columnName.equals(ID) && !columnName.equals(ID_CAPS)) {
+          kvp.put(columnName, columnValue);
+          Log.d(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: " + columnValue);
         }
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (IllegalArgumentException e) {
-        e.printStackTrace();
-      } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-      } catch (NoSuchMethodException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
-        e.printStackTrace();
       }
-
-      List<ClassDetails> subClassDetailsList = superClassDetails
-          .getSubClassDetails();
-      superClassDetails = (!subClassDetailsList.isEmpty()) ? subClassDetailsList
-          .get(0) : null;
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    } catch (NoSuchMethodException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
     }
-    // tableName will be the name of the Table given in the sub class object
-    genId = getWritableDatabase().insert(tableName, null, contentValues);
-    return genId;
-  }
-
-  /**
-   * Need to persist the parameters in different tables maintaining FK
-   * references
-   * 
-   * @param classDetails
-   *          ClassDetails Hierarchy
-   * @param obj
-   *          object to persist
-   * @return generated id
-   */
-  private long saveObjectWithInheritanceUsingJoinedStrategy(
-      ClassDetails classDetails, Object obj) {
-    long id = -1L;
-    ClassDetails superClassDetails = classDetails;
-    // Persist the super class related attributes first, then go down the
-    // hierarchy
-    while (null != superClassDetails) {
-      id = saveObject(superClassDetails, obj, id);
-      List<ClassDetails> subClassDetailsList = superClassDetails
-          .getSubClassDetails();
-      // It'll be always 0, coz. the hierarchy was built using the obj, not the
-      // XML
-      superClassDetails = (!subClassDetailsList.isEmpty()) ? subClassDetailsList
-          .get(0) : null;
-    }
-    return id;
   }
 
   @Override

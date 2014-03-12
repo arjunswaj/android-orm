@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <EntityObjects>
+
     <EntityObject>edu.iiitb.ormtestapp.eo.Student</EntityObject>
-    <EntityObject>edu.iiitb.ormtestapp.eo.Course</EntityObject> 
-<!--     <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.Employee</EntityObject>  -->
-<!--     <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.FullTimeEmployee</EntityObject>  -->
-<!--     <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.PartTimeEmployee</EntityObject>      -->
-<!--     <EntityObject>edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Sportsman</EntityObject>  -->
-<!--     <EntityObject>edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Cricketer</EntityObject> -->
-<!--     <EntityObject>edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Footballer</EntityObject> -->
+    <EntityObject>edu.iiitb.ormtestapp.eo.Course</EntityObject>
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.Employee</EntityObject> -->
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.FullTimeEmployee</EntityObject> -->
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.Intern</EntityObject> -->
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.joined.eo.PartTimeEmployee</EntityObject> -->
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Sportsman</EntityObject> -->
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Cricketer</EntityObject> -->
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Footballer</EntityObject> -->
+
+
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.mixed.eo.Ford</EntityObject> -->
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.mixed.eo.Car</EntityObject> -->
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.mixed.eo.Vehicle</EntityObject> -->
+
+
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.mixed.eo.Minister</EntityObject> -->
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.mixed.eo.PrimeMinister</EntityObject> -->
+    <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.mixed.eo.CabinetMinister</EntityObject> -->
+
 </EntityObjects>
