@@ -111,6 +111,12 @@ public class ORMHelper extends SQLiteOpenHelper {
     return id;
   }
 
+  /**
+   * Saves the Object with Inheritance
+   * @param classDetails Class Details
+   * @param obj Object to be saved
+   * @return generated id
+   */
   private long saveObjectByInheritanceStrategy(ClassDetails classDetails,
       Object obj) {
     long id = -1L;
@@ -151,6 +157,13 @@ public class ORMHelper extends SQLiteOpenHelper {
     return id;
   }
 
+  /**
+   * Save the KVPs in the table. Used for Table per class design
+   * @param tableName table name
+   * @param kvp KVPs
+   * @param id id of the record
+   * @return generated id
+   */
   private long saveTheKVPs(String tableName, Map<String, String> kvp, long id) {
     long genId = -1;
     ContentValues contentValues = new ContentValues();
@@ -254,6 +267,12 @@ public class ORMHelper extends SQLiteOpenHelper {
     return genId;
   }
 
+  /**
+   * Populating the KVPs of Table per class strategy
+   * @param classDetails class details
+   * @param obj object to be saved
+   * @param kvp KVPs
+   */
   private void populateKVPsOfTablePerClassStrategy(ClassDetails classDetails,
       Object obj, Map<String, String> kvp) {
     Class<?> objClass;
