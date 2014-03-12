@@ -26,4 +26,5 @@ proguard/
 *.iml
 *.ipr
 *.iws
-.idea/
+.idea/ORMLibrary/bin
+ORMLibraryTest/bin
