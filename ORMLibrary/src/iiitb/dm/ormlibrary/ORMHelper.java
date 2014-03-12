@@ -40,6 +40,9 @@ public class ORMHelper extends SQLiteOpenHelper {
   private static final String ENTITY = "Entity";
   private static final String NAME = "name";
   private static final String COLUMN = "Column";
+  private static final String ONE_TO_ONE = "OneToOne";
+  private static final String ONE_TO_MANY = "OneToMany";
+  private static final String JOIN_COLUMN = "JoinColumn";
   private static final String DISCRIMINATOR_COLUMN = "DiscriminatorColumn";
   private static final String DISCRIMINATOR_VALUE = "DiscriminatorValue";
   private static final String VALUE = "value";
@@ -67,23 +70,20 @@ public class ORMHelper extends SQLiteOpenHelper {
   }
 
   public void persist(Object obj) {
-    long genId = save(obj);
+    long genId = save(obj, -1L, null);
     // TODO: put this id in the Obj by invoking set_id(genId)
   }
 
-  private long save(Object obj) {
-    long id = -1L;
-    Class<?> myClass = obj.getClass();
-    ClassDetails superClassDetails = mappingCache.get(obj.getClass().getName());
+  private ClassDetails fetchClassDetailsMapping(Object obj) {
+    Class<?> objClass = obj.getClass();
     ClassDetails subClassDetails = null;
-
+    ClassDetails superClassDetails = mappingCache.get(obj.getClass().getName());
     if (null == superClassDetails) {
-      // Build the Class Detail Hierarchy
-      Log.e("CACHE MISS", "CACHE MISS");
+      Log.e("CACHE MISS", "CACHE MISS for " + objClass.getName());
       do {
         try {
           superClassDetails = annotationsScanner
-              .getEntityObjectDetails(myClass);
+              .getEntityObjectDetails(objClass);
           if (null != subClassDetails) {
             superClassDetails.getSubClassDetails().add(subClassDetails);
           }
@@ -96,32 +96,43 @@ public class ORMHelper extends SQLiteOpenHelper {
           e.printStackTrace();
         }
 
-      } while (Object.class != (myClass = myClass.getSuperclass()));
+      } while (Object.class != (objClass = objClass.getSuperclass()));
       mappingCache.put(obj.getClass().getName(), superClassDetails);
     }
-    Map<String, Object> inheritanceOptions = superClassDetails
+    return superClassDetails;
+  }
+
+  private long save(Object obj, long id, Map<String, String> passedKVPs) {
+    ClassDetails classDetails = fetchClassDetailsMapping(obj);
+    Map<String, Object> inheritanceOptions = classDetails
         .getAnnotationOptionValues().get(INHERITANCE);
     if (null == inheritanceOptions) {
       // Has no Inheritance annotation, Persist it as a plain Object
-      id = saveObject(superClassDetails, obj, -1L, null);
+      id = saveObject(classDetails, obj, id, passedKVPs);
     } else {
       // Has Inheritance annotation. Awesome. Check the Strategy and persist.
-      id = saveObjectByInheritanceStrategy(superClassDetails, obj);
+      id = saveObjectByInheritanceStrategy(classDetails, obj, passedKVPs);
     }
     return id;
   }
 
   /**
    * Saves the Object with Inheritance
-   * @param classDetails Class Details
-   * @param obj Object to be saved
+   * 
+   * @param classDetails
+   *          Class Details
+   * @param obj
+   *          Object to be saved
    * @return generated id
    */
   private long saveObjectByInheritanceStrategy(ClassDetails classDetails,
-      Object obj) {
+      Object obj, Map<String, String> passedKVPs) {
     long id = -1L;
     ClassDetails superClassDetails = classDetails;
     Map<String, String> kvp = new HashMap<String, String>();
+    if (null != passedKVPs) {
+      kvp.putAll(passedKVPs);
+    }
 
     while (null != superClassDetails) {
       Map<String, Object> inheritanceOptions = superClassDetails
@@ -140,8 +151,8 @@ public class ORMHelper extends SQLiteOpenHelper {
           // Get the KVPs
           populateKVPsOfTablePerClassStrategy(superClassDetails, obj, kvp);
           if (obj.getClass().getName().equals(superClassDetails.getClassName())) {
-            String tableName = (String) superClassDetails.getAnnotationOptionValues()
-                .get(ENTITY).get(NAME);
+            String tableName = (String) superClassDetails
+                .getAnnotationOptionValues().get(ENTITY).get(NAME);
             id = saveTheKVPs(tableName, kvp, id);
           }
           break;
@@ -159,9 +170,13 @@ public class ORMHelper extends SQLiteOpenHelper {
 
   /**
    * Save the KVPs in the table. Used for Table per class design
-   * @param tableName table name
-   * @param kvp KVPs
-   * @param id id of the record
+   * 
+   * @param tableName
+   *          table name
+   * @param kvp
+   *          KVPs
+   * @param id
+   *          id of the record
    * @return generated id
    */
   private long saveTheKVPs(String tableName, Map<String, String> kvp, long id) {
@@ -212,14 +227,17 @@ public class ORMHelper extends SQLiteOpenHelper {
             .getFieldName());
         Method getterMethod = objClass.getMethod(getterMethodName);
 
-        String columnName = fieldTypeDetail.getAnnotationOptionValues()
-            .get(COLUMN).get(NAME);
-        String columnValue = getterMethod.invoke(obj).toString();
+        if (null != fieldTypeDetail.getAnnotationOptionValues().get(COLUMN)) {
+          String columnName = fieldTypeDetail.getAnnotationOptionValues()
+              .get(COLUMN).get(NAME);
+          String columnValue = getterMethod.invoke(obj).toString();
 
-        // Don't add the id obtained from getter, it has to be auto generated
-        if (!columnName.equals(ID) && !columnName.equals(ID_CAPS)) {
-          contentValues.put(columnName, columnValue);
-          Log.d(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: " + columnValue);
+          // Don't add the id obtained from getter, it has to be auto generated
+          if (!columnName.equals(ID) && !columnName.equals(ID_CAPS)) {
+            contentValues.put(columnName, columnValue);
+            Log.d(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
+                + columnValue);
+          }
         }
       }
 
@@ -253,6 +271,33 @@ public class ORMHelper extends SQLiteOpenHelper {
       }
 
       genId = getWritableDatabase().insert(tableName, null, contentValues);
+
+      // Save Composed Objects
+      for (FieldTypeDetails fieldTypeDetail : superClassDetails
+          .getFieldTypeDetails()) {
+        String getterMethodName = Utils.getGetterMethodName(fieldTypeDetail
+            .getFieldName());
+        Method getterMethod = objClass.getMethod(getterMethodName);
+        if (null != fieldTypeDetail.getAnnotationOptionValues().get(ONE_TO_ONE)) {
+          Object composedObject = getterMethod.invoke(obj);
+          String joinColumnName = fieldTypeDetail.getAnnotationOptionValues()
+              .get(JOIN_COLUMN).get(NAME);
+          Map<String, String> newKVPs = new HashMap<String, String>();
+          newKVPs.put(joinColumnName, String.valueOf(genId));
+          long saveId = save(composedObject, -1L, newKVPs);
+        } else if (null != fieldTypeDetail.getAnnotationOptionValues().get(
+            ONE_TO_MANY)) {
+          Collection<Object> composedObjectCollection = (Collection<Object>) getterMethod
+              .invoke(obj);
+          String joinColumnName = fieldTypeDetail.getAnnotationOptionValues()
+              .get(JOIN_COLUMN).get(NAME);
+          Map<String, String> newKVPs = new HashMap<String, String>();          
+          for (Object composedObject : composedObjectCollection) {
+            newKVPs.put(joinColumnName, String.valueOf(genId));
+            long saveId = save(composedObject, -1L, newKVPs);
+          }
+        }
+      }
     } catch (IllegalAccessException e) {
       e.printStackTrace();
     } catch (IllegalArgumentException e) {
@@ -269,9 +314,13 @@ public class ORMHelper extends SQLiteOpenHelper {
 
   /**
    * Populating the KVPs of Table per class strategy
-   * @param classDetails class details
-   * @param obj object to be saved
-   * @param kvp KVPs
+   * 
+   * @param classDetails
+   *          class details
+   * @param obj
+   *          object to be saved
+   * @param kvp
+   *          KVPs
    */
   private void populateKVPsOfTablePerClassStrategy(ClassDetails classDetails,
       Object obj, Map<String, String> kvp) {

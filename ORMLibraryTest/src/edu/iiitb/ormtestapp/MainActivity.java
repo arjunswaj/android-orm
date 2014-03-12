@@ -1,5 +1,11 @@
 package edu.iiitb.ormtestapp;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import edu.iiitb.ormtestapp.composition.eo.Capital;
+import edu.iiitb.ormtestapp.composition.eo.Country;
+import edu.iiitb.ormtestapp.composition.eo.State;
 import edu.iiitb.ormtestapp.eo.Course;
 import edu.iiitb.ormtestapp.eo.Student;
 import edu.iiitb.ormtestapp.inheritance.joined.eo.FullTimeEmployee;
@@ -154,24 +160,56 @@ public class MainActivity extends Activity {
         .getWritableDatabase()
         .execSQL(
             "CREATE TABLE PRIME_MINISTER( AGE INTEGER, _id INTEGER primary key autoincrement )");
-    
+
     for (int index = 1; index < 25; index += 1) {
       Minister minister = new Minister();
       minister.setState("Karnataka" + index);
       ormHelper.persist(minister);
-      
+
       CabinetMinister cabinetMinister = new CabinetMinister();
       cabinetMinister.setPortfolio("Home " + index + " Minister");
       cabinetMinister.setSalary(10000 + index);
       cabinetMinister.setState("Punjab " + index);
       ormHelper.persist(cabinetMinister);
-      
+
       PrimeMinister pm = new PrimeMinister();
       pm.setAge(62 + index);
       pm.setPortfolio("Prime " + index + " Minister");
       pm.setSalary(15000 + index);
       pm.setState("Gujarat " + index);
-      ormHelper.persist(pm);     
+      ormHelper.persist(pm);
+    }
+  }
+
+  private void testPersistenceOfComposition(ORMHelper ormHelper) {
+    ormHelper
+        .getWritableDatabase()
+        .execSQL(
+            "CREATE TABLE COUNTRY( NAME TEXT, _id INTEGER primary key autoincrement )");
+    ormHelper
+        .getWritableDatabase()
+        .execSQL(
+            "CREATE TABLE CAPITAL( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )");
+    ormHelper
+    .getWritableDatabase()
+    .execSQL(
+        "CREATE TABLE STATES( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )");
+    for (int index = 1; index < 25; index += 1) {
+      Country country = new Country();
+      country.setName("India " + index);
+
+      Capital capital = new Capital();
+      capital.setName("New " + index + " Delhi");
+
+      Collection<State> states = new ArrayList<State>();
+      for (int stateIndex = 0; stateIndex < 5; stateIndex += 1) {
+        State state = new State();
+        state.setName(index + " Karnataka " + stateIndex);
+        states.add(state);
+      }
+      country.setStates(states);
+      country.setCapital(capital);
+      ormHelper.persist(country);
     }
   }
 
@@ -186,6 +224,7 @@ public class MainActivity extends Activity {
     testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
     testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
     testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+    testPersistenceOfComposition(ormHelper);
   }
 
 }
