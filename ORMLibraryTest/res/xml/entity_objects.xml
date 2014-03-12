@@ -21,4 +21,6 @@
     <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.mixed.eo.PrimeMinister</EntityObject> -->
     <!-- <EntityObject>edu.iiitb.ormtestapp.inheritance.mixed.eo.CabinetMinister</EntityObject> -->
 
+<!-- 	<EntityObject>edu.iiitb.ormtestapp.composition.eo.Country</EntityObject> -->
+<!-- 	<EntityObject>edu.iiitb.ormtestapp.composition.eo.Capital</EntityObject> -->
 </EntityObjects>
