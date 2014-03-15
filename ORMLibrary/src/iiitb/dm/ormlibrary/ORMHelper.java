@@ -4,6 +4,8 @@ import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.DDLStatementBuilder;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.ddl.impl.DDLStatementBuilderImpl;
+import iiitb.dm.ormlibrary.query.Criteria;
+import iiitb.dm.ormlibrary.query.impl.CriteriaImpl;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
 import iiitb.dm.ormlibrary.utils.Utils;
@@ -74,6 +76,16 @@ public class ORMHelper extends SQLiteOpenHelper {
     // TODO: put this id in the Obj by invoking set_id(genId)
   }
 
+  /**
+   * Create Criteria
+   * @param entity entity object
+   * @return Criteria Instance
+   */
+  public Criteria createCriteria(Class<?> entity) {
+    return new CriteriaImpl(entity.getName(), getReadableDatabase());
+  }
+  
+  
   private ClassDetails fetchClassDetailsMapping(Object obj) {
     Class<?> objClass = obj.getClass();
     ClassDetails subClassDetails = null;
