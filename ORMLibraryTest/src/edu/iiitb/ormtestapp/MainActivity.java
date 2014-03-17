@@ -20,8 +20,11 @@ import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Cricketer;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Footballer;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Sportsman;
 import iiitb.dm.ormlibrary.ORMHelper;
+import iiitb.dm.ormlibrary.query.Criteria;
 import android.app.Activity;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
 
 public class MainActivity extends Activity {
 
@@ -47,20 +50,20 @@ public class MainActivity extends Activity {
 
   private void testPersistenceOfInheritedObjectsWithJoinedStrategy(
       ORMHelper ormHelper) {
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE EMPLOYEE( NAME TEXT, _id INTEGER primary key autoincrement, EMPLOYEE_TYPE TEXT )");
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE PART_TIME_EMPLOYEE( _id INTEGER, HOURLY_RATE REAL, PART_TIME_EMPLOYEE_TYPE TEXT )");
-    ormHelper.getWritableDatabase().execSQL(
-        "CREATE TABLE INTERN( _id INTEGER, STIPEND REAL )");
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE FULL_TIME_EMPLOYEE( _id INTEGER, SALARY INTEGER, PENSION INTEGER )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE EMPLOYEE( NAME TEXT, _id INTEGER primary key autoincrement, EMPLOYEE_TYPE TEXT )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE PART_TIME_EMPLOYEE( _id INTEGER, HOURLY_RATE REAL, PART_TIME_EMPLOYEE_TYPE TEXT )");
+    // ormHelper.getWritableDatabase().execSQL(
+    // "CREATE TABLE INTERN( _id INTEGER, STIPEND REAL )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE FULL_TIME_EMPLOYEE( _id INTEGER, SALARY INTEGER, PENSION INTEGER )");
 
     for (int index = 1; index < 25; index += 1) {
       Intern intern = new Intern();
@@ -85,18 +88,18 @@ public class MainActivity extends Activity {
   private void testPersistenceOfInheritedObjectsWithTablePerClassStrategy(
       ORMHelper ormHelper) {
 
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE SPORTSMAN( NAME TEXT, _id INTEGER primary key autoincrement )");
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE FOOTBALLER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, GOALS INTEGER )");
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE SPORTSMAN( NAME TEXT, _id INTEGER primary key autoincrement )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE FOOTBALLER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, GOALS INTEGER )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
 
     for (int index = 1; index < 25; index += 1) {
       Sportsman sportsman = new Sportsman();
@@ -119,18 +122,18 @@ public class MainActivity extends Activity {
 
   private void testPersistenceOfInheritedObjectsWithMixedStrategy(
       ORMHelper ormHelper) {
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE VEHICLE( MFG_YEAR INTEGER, _id INTEGER primary key autoincrement, VEHICLE_TYPE TEXT )");
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE CAR( COLOR TEXT, _id INTEGER primary key autoincrement, HORSE_POWER INTEGER )");
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE FORD( COLOR TEXT, _id INTEGER primary key autoincrement, HORSE_POWER INTEGER, MODEL TEXT )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE VEHICLE( MFG_YEAR INTEGER, _id INTEGER primary key autoincrement, VEHICLE_TYPE TEXT )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE CAR( COLOR TEXT, _id INTEGER primary key autoincrement, HORSE_POWER INTEGER )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE FORD( COLOR TEXT, _id INTEGER primary key autoincrement, HORSE_POWER INTEGER, MODEL TEXT )");
 
     for (int index = 1; index < 25; index += 1) {
 
@@ -148,18 +151,18 @@ public class MainActivity extends Activity {
       ormHelper.persist(ford);
     }
 
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE MINISTER( STATE TEXT, _id INTEGER primary key autoincrement )");
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE CABINET_MINISTER( STATE TEXT, _id INTEGER primary key autoincrement, PORTFOLIO TEXT, SALARY REAL, MINISTER_TYPE TEXT )");
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE PRIME_MINISTER( AGE INTEGER, _id INTEGER primary key autoincrement )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE MINISTER( STATE TEXT, _id INTEGER primary key autoincrement )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE CABINET_MINISTER( STATE TEXT, _id INTEGER primary key autoincrement, PORTFOLIO TEXT, SALARY REAL, MINISTER_TYPE TEXT )");
+    // ormHelper
+    // .getWritableDatabase()
+    // .execSQL(
+    // "CREATE TABLE PRIME_MINISTER( AGE INTEGER, _id INTEGER primary key autoincrement )");
 
     for (int index = 1; index < 25; index += 1) {
       Minister minister = new Minister();
@@ -191,9 +194,9 @@ public class MainActivity extends Activity {
         .execSQL(
             "CREATE TABLE CAPITAL( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )");
     ormHelper
-    .getWritableDatabase()
-    .execSQL(
-        "CREATE TABLE STATES( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )");
+        .getWritableDatabase()
+        .execSQL(
+            "CREATE TABLE STATES( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )");
     for (int index = 1; index < 25; index += 1) {
       Country country = new Country();
       country.setName("India " + index);
@@ -213,6 +216,25 @@ public class MainActivity extends Activity {
     }
   }
 
+  private void testQueryByCursor(ORMHelper ormHelper) {
+    Criteria criteria = ormHelper.createCriteria(Footballer.class);
+
+    Cursor cursor = criteria.cursor();
+    if (cursor.moveToFirst()) {
+      do {
+        long id = cursor.getLong(cursor.getColumnIndex("_id"));
+        String name = cursor.getString(cursor.getColumnIndex("NAME"));
+        int goals = cursor
+            .getInt(cursor.getColumnIndex("GOALS"));
+        String team = cursor.getString(cursor.getColumnIndex("TEAM"));
+
+        Log.d("QUERY BY CURSOR", "id: " + id + ", name: " + name
+            + ", goals: " + goals + ", team: " + team);
+      } while (cursor.moveToNext());
+    }
+    cursor.close();
+  }
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -220,11 +242,13 @@ public class MainActivity extends Activity {
     ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
         "testDB.sqlite", null, 1);
 
-    testPersistence(ormHelper);
-    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
-    testPersistenceOfComposition(ormHelper);
+//    testPersistence(ormHelper);
+//    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+//    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+//    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+//    testPersistenceOfComposition(ormHelper);
+
+    testQueryByCursor(ormHelper);
   }
 
 }
