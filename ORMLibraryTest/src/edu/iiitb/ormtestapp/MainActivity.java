@@ -242,11 +242,11 @@ public class MainActivity extends Activity {
     ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
         "testDB.sqlite", null, 1);
 
-//    testPersistence(ormHelper);
-//    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-//    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
-//    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
-//    testPersistenceOfComposition(ormHelper);
+    testPersistence(ormHelper);
+    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+    testPersistenceOfComposition(ormHelper);
 
     testQueryByCursor(ormHelper);
   }
