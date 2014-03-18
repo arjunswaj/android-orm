@@ -7,5 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(value = ElementType.FIELD)
 @Retention(value = RetentionPolicy.RUNTIME)
-public @interface OneToOne {
+public @interface JoinColumns {
+	JoinColumn[] value();
+
 }
