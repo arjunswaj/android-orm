@@ -1,5 +1,9 @@
 package iiitb.dm.ormlibrary.ddl;
 
+import java.util.Map;
+
+import javax.persistence.InheritanceType;
+
 /**
  * DDLQueryBuilder Interface
  * 
@@ -15,5 +19,5 @@ public interface DDLStatementBuilder {
 	   *          class Details
 	   * @return SQL Query
 	   */
-	  public String generateCreateTableQuery(ClassDetails classDetails);
+	public String generateCreateTableQuery(ClassDetails classDetails, ClassDetails superClassDetails);
 }

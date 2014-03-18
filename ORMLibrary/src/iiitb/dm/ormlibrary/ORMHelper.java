@@ -370,18 +370,45 @@ public class ORMHelper extends SQLiteOpenHelper {
   }
 
   @Override
-  public void onCreate(SQLiteDatabase db) {
-    Log.d(this.getClass().getName() + ".onCreate()", "Creating tables");
-    classDetailsList = annotationsScanner
-        .getEntityObjectCollectionDetails(this.context);
-    for (ClassDetails classDetails : classDetailsList) {
-      DDLStatementBuilder ddlStatementBuilder = new DDLStatementBuilderImpl();
-      String stmt = ddlStatementBuilder.generateCreateTableQuery(classDetails);
-      Log.d(this.getClass().getName() + ".onCreate()", stmt);
-      db.execSQL(stmt);
-    }
-  }
+	public void onCreate(SQLiteDatabase db) {
+		Log.d(this.getClass().getName() + ".onCreate()", "Creating tables");
+		classDetailsList = annotationsScanner
+				.getEntityObjectCollectionDetails(this.context);
+		db.execSQL("pragma foreign_keys = on;");
+		for(ClassDetails classDetails : classDetailsList)
+		{
+		
+			try {
+				Log.d("ORM Helper OnCreate", Class.forName(classDetails.getClassName()).getSuperclass() + " " + Object.class);
+				if(Object.class == Class.forName(classDetails.getClassName()).getSuperclass())
+				{
+					createTablesForHeirarchy(db, classDetails, null);
+				}
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 
+	}
+
+
+	private void createTablesForHeirarchy(SQLiteDatabase db, ClassDetails classDetails,  ClassDetails superClassDetails)
+	{
+		// Create table for this class
+		DDLStatementBuilder ddlStatementBuilder = new DDLStatementBuilderImpl();
+		String stmt;
+		stmt = ddlStatementBuilder.generateCreateTableQuery(classDetails, superClassDetails);
+		Log.d("CreateTablesForHeirarchy", stmt);
+		db.execSQL(stmt);
+
+		// Create Tables for all the sub classes recursively
+		for(ClassDetails subClassDetails : classDetails.getSubClassDetails())
+		{
+			createTablesForHeirarchy(db, subClassDetails, classDetails);
+		}
+		
+
+	}
   @Override
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     // TODO Auto-generated method stub

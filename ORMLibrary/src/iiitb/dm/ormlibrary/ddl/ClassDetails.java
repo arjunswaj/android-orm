@@ -25,6 +25,8 @@ public class ClassDetails {
    * Field Details List
    */
   private List<FieldTypeDetails> fieldTypeDetails;
+  
+  private String columnsDescription;
 
   /**
    * List of all the Sub Classes
@@ -40,6 +42,14 @@ public class ClassDetails {
     this.fieldTypeDetails = fieldTypeDetails;
     subClassDetails = new LinkedList<ClassDetails>();
   }
+  
+  public String getColumnsDescription() {
+		return columnsDescription;
+	}
+
+	public void setColumnsDescription(String columnsDescription) {
+		this.columnsDescription = columnsDescription;
+	}
 
   public String getClassName() {
     return className;
