@@ -187,11 +187,11 @@ public class MainActivity extends Activity {
     ormHelper
         .getWritableDatabase()
         .execSQL(
-            "CREATE TABLE COUNTRY( NAME TEXT, _id INTEGER primary key autoincrement )");
+            "CREATE TABLE COUNTRY( NAME TEXT, _id INTEGER primary key autoincrement, CAPITAL_ID INTEGER )");
     ormHelper
         .getWritableDatabase()
         .execSQL(
-            "CREATE TABLE CAPITAL( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )");
+            "CREATE TABLE CAPITAL( NAME TEXT, _id INTEGER primary key autoincrement )");
     ormHelper
         .getWritableDatabase()
         .execSQL(
@@ -253,10 +253,10 @@ public class MainActivity extends Activity {
         "testDB.sqlite", null, 1);
 
     testPersistence(ormHelper);
-    // testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    // testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
-    // testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
-    // testPersistenceOfComposition(ormHelper);
+    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+    testPersistenceOfComposition(ormHelper);
 
     testQueryByCursor(ormHelper);
   }

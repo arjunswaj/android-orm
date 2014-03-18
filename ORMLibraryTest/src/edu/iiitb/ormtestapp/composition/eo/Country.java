@@ -17,7 +17,7 @@ public class Country {
   @Column(name = "NAME")
   private String name;
   @OneToOne
-  @JoinColumn(name = "COUNTRY_ID")
+  @JoinColumn(name = "CAPITAL_ID")
   private Capital capital;
   @OneToMany
   @JoinColumn(name = "COUNTRY_ID")

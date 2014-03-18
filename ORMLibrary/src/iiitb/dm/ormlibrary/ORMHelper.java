@@ -250,6 +250,16 @@ public class ORMHelper extends SQLiteOpenHelper {
             Log.d(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
                 + columnValue);
           }
+        } else if (null != fieldTypeDetail.getAnnotationOptionValues().get(ONE_TO_ONE)) {
+          // Handle 1-1 Composition here
+          Object composedObject = getterMethod.invoke(obj);
+          String joinColumnName = fieldTypeDetail.getAnnotationOptionValues()
+              .get(JOIN_COLUMN).get(NAME);          
+          long saveId = save(composedObject, -1L, null);
+          if (null == kvp) {
+            kvp = new  HashMap<String, String>();            
+          }
+          kvp.put(joinColumnName, String.valueOf(saveId));          
         }
       }
 
@@ -284,20 +294,13 @@ public class ORMHelper extends SQLiteOpenHelper {
 
       genId = getWritableDatabase().insert(tableName, null, contentValues);
 
-      // Save Composed Objects
+      // Save 1-Many and other Composed Objects
       for (FieldTypeDetails fieldTypeDetail : superClassDetails
           .getFieldTypeDetails()) {
         String getterMethodName = Utils.getGetterMethodName(fieldTypeDetail
             .getFieldName());
         Method getterMethod = objClass.getMethod(getterMethodName);
-        if (null != fieldTypeDetail.getAnnotationOptionValues().get(ONE_TO_ONE)) {
-          Object composedObject = getterMethod.invoke(obj);
-          String joinColumnName = fieldTypeDetail.getAnnotationOptionValues()
-              .get(JOIN_COLUMN).get(NAME);
-          Map<String, String> newKVPs = new HashMap<String, String>();
-          newKVPs.put(joinColumnName, String.valueOf(genId));
-          long saveId = save(composedObject, -1L, newKVPs);
-        } else if (null != fieldTypeDetail.getAnnotationOptionValues().get(
+        if (null != fieldTypeDetail.getAnnotationOptionValues().get(
             ONE_TO_MANY)) {
           Collection<Object> composedObjectCollection = (Collection<Object>) getterMethod
               .invoke(obj);
@@ -306,7 +309,7 @@ public class ORMHelper extends SQLiteOpenHelper {
           Map<String, String> newKVPs = new HashMap<String, String>();          
           for (Object composedObject : composedObjectCollection) {
             newKVPs.put(joinColumnName, String.valueOf(genId));
-            long saveId = save(composedObject, -1L, newKVPs);
+            long saveId = save(composedObject, -1L, null);
           }
         }
       }
