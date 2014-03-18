@@ -7,7 +7,8 @@ import java.lang.annotation.Target;
 
 @Target(value = ElementType.FIELD)
 @Retention(value = RetentionPolicy.RUNTIME)
-public @interface ManyToMany {
-	String mappedBy() default "";
+public @interface JoinTable {
+	JoinColumn[] joinColumns();
+	JoinColumn[] inverseJoinColumns();
 
 }
