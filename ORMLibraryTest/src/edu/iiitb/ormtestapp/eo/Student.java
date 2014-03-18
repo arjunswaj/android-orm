@@ -16,6 +16,21 @@ public class Student {
   private String name;
   @Column(name = "ADDRESS")
   private String address;
+  @Column(name = "CGPA")
+  private float cgpa;
+  @Column(name = "COLLEGE")
+  private String college;
+
+  
+  public Student(int age, String name, String address, float cgpa,
+      String college) {
+    super();
+    this.age = age;
+    this.name = name;
+    this.address = address;
+    this.cgpa = cgpa;
+    this.college = college;
+  }
 
   public int get_id() {
     return _id;
@@ -47,6 +62,22 @@ public class Student {
 
   public void setAddress(String address) {
     this.address = address;
+  }
+
+  public float getCgpa() {
+    return cgpa;
+  }
+
+  public void setCgpa(float cgpa) {
+    this.cgpa = cgpa;
+  }
+
+  public String getCollege() {
+    return college;
+  }
+
+  public void setCollege(String college) {
+    this.college = college;
   }
 
 }

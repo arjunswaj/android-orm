@@ -21,6 +21,7 @@ import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Footballer;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Sportsman;
 import iiitb.dm.ormlibrary.ORMHelper;
 import iiitb.dm.ormlibrary.query.Criteria;
+import iiitb.dm.ormlibrary.query.criterion.Restrictions;
 import android.app.Activity;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -40,10 +41,8 @@ public class MainActivity extends Activity {
 
     Student student = null;
     for (int index = 0; index < 25; index += 1) {
-      student = new Student();
-      student.setAddress("Address" + index);
-      student.setAge(20 + index);
-      student.setName("Name" + index);
+      student = new Student(21 + (index % 3), "Name " + (index % 5), "Address "
+          + (index % 9), 1.0f + (float) (index / 8), "IIIT-B " + (index % 4));
       ormHelper.persist(student);
     }
   }
@@ -217,19 +216,30 @@ public class MainActivity extends Activity {
   }
 
   private void testQueryByCursor(ORMHelper ormHelper) {
-    Criteria criteria = ormHelper.createCriteria(Footballer.class);
+    Criteria criteria = ormHelper
+        .createCriteria(Student.class)
+        .add(Restrictions.like("NAME", "Name%"))
+        .add(
+            Restrictions.and(Restrictions.gt("CGPA", 1.0),
+                Restrictions.lt("CGPA", 4.0)))
+        .add(
+            Restrictions.or(Restrictions.eq("AGE", 23),
+                Restrictions.like("COLLEGE", "IIIT-B 0")))
+        .add(Restrictions.eq("ADDRESS", "Address 5"));
 
     Cursor cursor = criteria.cursor();
     if (cursor.moveToFirst()) {
       do {
         long id = cursor.getLong(cursor.getColumnIndex("_id"));
         String name = cursor.getString(cursor.getColumnIndex("NAME"));
-        int goals = cursor
-            .getInt(cursor.getColumnIndex("GOALS"));
-        String team = cursor.getString(cursor.getColumnIndex("TEAM"));
+        int age = cursor.getInt(cursor.getColumnIndex("AGE"));
+        String address = cursor.getString(cursor.getColumnIndex("ADDRESS"));
+        float cgpa = cursor.getFloat(cursor.getColumnIndex("CGPA"));
+        String college = cursor.getString(cursor.getColumnIndex("COLLEGE"));
 
-        Log.d("QUERY BY CURSOR", "id: " + id + ", name: " + name
-            + ", goals: " + goals + ", team: " + team);
+        Log.d("QUERY BY CURSOR", "id: " + id + ", name: " + name + ", age: "
+            + age + ", address: " + address + ", cgpa: " + cgpa + ", college: "
+            + college);
       } while (cursor.moveToNext());
     }
     cursor.close();
@@ -243,10 +253,10 @@ public class MainActivity extends Activity {
         "testDB.sqlite", null, 1);
 
     testPersistence(ormHelper);
-    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
-    testPersistenceOfComposition(ormHelper);
+    // testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+    // testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+    // testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+    // testPersistenceOfComposition(ormHelper);
 
     testQueryByCursor(ormHelper);
   }

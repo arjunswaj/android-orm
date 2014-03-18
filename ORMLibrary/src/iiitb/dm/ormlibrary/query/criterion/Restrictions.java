@@ -7,82 +7,90 @@ import iiitb.dm.ormlibrary.query.Criterion;
 
 public class Restrictions {
   /**
-   * Don't initialize Restrictions. Use the Static APIs
+   * Don't initialize Restrictions. Use the public static APIs
    */
 
   private Restrictions() {
 
   }
 
-  static Criterion allEq(Map propertyNameValues) {
+  public static Criterion allEq(Map propertyNameValues) {
     return null;
   }
 
-  static LogicalExpression and(Criterion lhs, Criterion rhs) {
+  public static LogicalExpression and(Criterion lhs, Criterion rhs) {
+    return new LogicalExpression(lhs, rhs, "AND");
+  }
+
+  public static Criterion between(String propertyName, Object lo, Object hi) {
     return null;
   }
 
-  static Criterion between(String propertyName, Object lo, Object hi) {
-    return null;
+  public static SimpleExpression eq(String propertyName, Object value) {
+    return new SimpleExpression(propertyName, value, "=");
   }
 
-  static SimpleExpression eq(String propertyName, Object value) {
-    return null;
-  }
-
-  static PropertyExpression eqProperty(String propertyName,
+  public static PropertyExpression eqProperty(String propertyName,
       String otherPropertyName) {
     return null;
   }
 
-  static Criterion idEq(Object value) {
+  public static Criterion idEq(Object value) {
     return null;
   }
 
-  static Criterion in(String propertyName, Collection values) {
+  public static Criterion in(String propertyName, Collection values) {
     return null;
   }
 
-  static Criterion in(String propertyName, Object[] values) {
+  public static Criterion in(String propertyName, Object[] values) {
     return null;
   }
 
-  static SimpleExpression le(String propertyName, Object value) {
-    return null;
+  public static SimpleExpression le(String propertyName, Object value) {
+    return new SimpleExpression(propertyName, value, "<=");
   }
 
-  static PropertyExpression leProperty(String propertyName,
+  public static SimpleExpression ge(String propertyName, Object value) {
+    return new SimpleExpression(propertyName, value, ">=");
+  }
+  
+  public static PropertyExpression leProperty(String propertyName,
       String otherPropertyName) {
     return null;
   }
 
-  static SimpleExpression like(String propertyName, Object value) {
-    return null;
+  public static SimpleExpression like(String propertyName, Object value) {
+    return new SimpleExpression(propertyName, value, "like");
   }
 
-  static SimpleExpression lt(String propertyName, Object value) {
-    return null;
+  public static SimpleExpression gt(String propertyName, Object value) {
+    return new SimpleExpression(propertyName, value, ">");
+  }
+  
+  public static SimpleExpression lt(String propertyName, Object value) {
+    return new SimpleExpression(propertyName, value, "<");
   }
 
-  static PropertyExpression ltProperty(String propertyName,
+  public static PropertyExpression ltProperty(String propertyName,
       String otherPropertyName) {
     return null;
   }
 
-  static SimpleExpression ne(String propertyName, Object value) {
+  public static SimpleExpression ne(String propertyName, Object value) {
     return null;
   }
 
-  static PropertyExpression neProperty(String propertyName,
+  public static PropertyExpression neProperty(String propertyName,
       String otherPropertyName) {
     return null;
   }
 
-  static Criterion not(Criterion expression) {
+  public static Criterion not(Criterion expression) {
     return null;
   }
 
-  static LogicalExpression or(Criterion lhs, Criterion rhs) {
-    return null;
+  public static LogicalExpression or(Criterion lhs, Criterion rhs) {
+    return new LogicalExpression(lhs, rhs, "OR");
   }
 }

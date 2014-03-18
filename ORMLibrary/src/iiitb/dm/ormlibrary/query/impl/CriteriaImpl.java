@@ -1,5 +1,6 @@
 package iiitb.dm.ormlibrary.query.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -8,7 +9,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.Criterion;
+import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
 import iiitb.dm.ormlibrary.query.criterion.Order;
+import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
 import iiitb.dm.ormlibrary.query.Projection;
 
 public class CriteriaImpl implements Criteria {
@@ -18,6 +21,7 @@ public class CriteriaImpl implements Criteria {
   private String[] columns;
   private String selection;
   private String[] selectionArgs;
+  private List<String> selectionArgsList = new ArrayList<String>();
   private String groupBy;
   private String having;
   private String orderBy;
@@ -38,8 +42,50 @@ public class CriteriaImpl implements Criteria {
 
   @Override
   public Criteria add(Criterion criterion) {
-    // TODO Auto-generated method stub
-    return null;
+    addCriteria(criterion);
+    return this;
+  }
+
+  private void addCriteria(Criterion criterion) {
+    if (criterion instanceof SimpleExpression) {
+      extractSimpleExpression((SimpleExpression) criterion);
+    } else if (criterion instanceof LogicalExpression) {
+      extractLogicalExpression((LogicalExpression) criterion);
+    }
+  }
+
+  private void extractSimpleExpression(SimpleExpression se) {
+    if (null == selection) {
+      selection = "(" + se.getPropertyName() + " " + se.getOp() + " ?) ";
+    } else {
+      selection += "AND (" + se.getPropertyName() + " " + se.getOp() + " ?) ";
+    }
+    selectionArgsList.add(se.getValue().toString());
+  }
+
+  private void addCriteriaFromLogicalExpression(Criterion criterion) {
+    if (criterion instanceof SimpleExpression) {
+      extractSimpleExpressionFromLogicalExpression((SimpleExpression) criterion);
+    } else if (criterion instanceof LogicalExpression) {
+      extractLogicalExpression((LogicalExpression) criterion);
+    }
+  }
+
+  private void extractSimpleExpressionFromLogicalExpression(SimpleExpression se) {
+    selection += "(" + se.getPropertyName() + " " + se.getOp() + " ?) ";
+    selectionArgsList.add(se.getValue().toString());
+  }
+
+  private void extractLogicalExpression(LogicalExpression le) {
+    if (null == selection) {
+      selection = "(";
+    } else {
+      selection += "AND (";
+    }
+    addCriteriaFromLogicalExpression(le.getLhs());
+    selection += le.getOp() + " ";
+    addCriteriaFromLogicalExpression(le.getRhs());
+    selection += ") ";
   }
 
   @Override
@@ -50,8 +96,29 @@ public class CriteriaImpl implements Criteria {
 
   @Override
   public List list() {
-    // TODO Auto-generated method stub
-    return null;
+    List result = new ArrayList();
+    Cursor cursor = null;
+    try {
+      Class<?> eoClass = Class.forName(entityOrClassName);
+      Entity entity = eoClass.getAnnotation(Entity.class);
+      table = entity.name();
+      cursor = sqliteDatabase.query(distinct, table, columns, selection,
+          selectionArgs, groupBy, having, orderBy, limit);
+      if (cursor.moveToFirst()) {
+        do {
+          Object eo = eoClass.newInstance();
+
+          result.add(eo);
+        } while (cursor.moveToNext());
+      }
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    } catch (InstantiationException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    }
+    return result;
   }
 
   @Override
@@ -67,6 +134,14 @@ public class CriteriaImpl implements Criteria {
       Class<?> eoClass = Class.forName(entityOrClassName);
       Entity entity = eoClass.getAnnotation(Entity.class);
       table = entity.name();
+      if (!selectionArgsList.isEmpty()) {
+        selectionArgs = new String[selectionArgsList.size()];
+        int index = 0;
+        for (String val : selectionArgsList) {
+          selectionArgs[index] = val;
+          index += 1;
+        }
+      }
       cursor = sqliteDatabase.query(distinct, table, columns, selection,
           selectionArgs, groupBy, having, orderBy, limit);
     } catch (ClassNotFoundException e) {
