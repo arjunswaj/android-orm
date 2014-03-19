@@ -1,18 +1,17 @@
 package iiitb.dm.ormlibrary.ddl.impl;
 
-import java.lang.reflect.ParameterizedType;
+import iiitb.dm.ormlibrary.ddl.ClassDetails;
+import iiitb.dm.ormlibrary.ddl.DDLStatementBuilder;
+import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
+import iiitb.dm.ormlibrary.utils.Constants;
+import iiitb.dm.ormlibrary.utils.SQLColTypeEnumMap;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.persistence.InheritanceType;
 
-import iiitb.dm.ormlibrary.ddl.ClassDetails;
-import iiitb.dm.ormlibrary.ddl.DDLStatementBuilder;
-import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
-import iiitb.dm.ormlibrary.utils.SQLColTypeEnumMap;
-import iiitb.dm.ormlibrary.utils.Utils;
 import android.util.Log;
 
 public class DDLStatementBuilderImpl implements DDLStatementBuilder
@@ -31,7 +30,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 	public String generateCreateTableQuery(ClassDetails classDetails) throws MappingException
 	{ 
 		String tableName = (String) classDetails.getAnnotationOptionValues()
-				.get("Entity").get("name");
+				.get(Constants.ENTITY).get(Constants.NAME);
 
 		List<ColumnDescription> columnsDescription = new ArrayList<ColumnDescription>();
 		StringBuilder foreignKeyConstraint = new StringBuilder();
@@ -51,45 +50,45 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 		{
 			Log.d(DDL_TAG, " " + classDetails.getClassName() + " " +fieldTypeDetail.getFieldName() );
 			columnConstraints = new ArrayList<String>();
-			if(fieldTypeDetail.getAnnotationOptionValues().get("OneToOne") != null)
+			if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE) != null)
 			{
 				// If this is the owner class
-				if(fieldTypeDetail.getAnnotationOptionValues().get("OneToOne").get("mappedBy") == "")
+				if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE).get(Constants.MAPPED_BY) == "")
 				{
-					if(fieldTypeDetail.getAnnotationOptionValues().get("JoinColumn") != null)
+					if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN) != null)
 					{
-						columnName = fieldTypeDetail.getAnnotationOptionValues().get("JoinColumn").get("name");
-						String referencedColumnName = fieldTypeDetail.getAnnotationOptionValues().get("JoinColumn").get("referencedColumnName");
+						columnName = fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
+						String referencedColumnName = fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.REFERENCED_COLUMN_NAME);
 						if(referencedColumnName.equals(""))
 						{
 							foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
 									+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
-									.get("Entity").get("name") + "(_id ) ");
+									.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
 							Log.d(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
 							columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), "_id");
 						}
 						else{
 							foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
 									+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
-									.get("Entity").get("name") + "(" + referencedColumnName + ")");
+									.get(Constants.ENTITY).get(Constants.NAME) + "(" + referencedColumnName + ")");
 							columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(),
 									referencedColumnName);
 						}
 					}
 					else
-						throw new MappingException("@JoinColumn missing on " + fieldTypeDetail.getFieldName() + " in " + classDetails.getClassName());
+						throw new MappingException("@" + Constants.JOIN_COLUMN + " missing on " + fieldTypeDetail.getFieldName() + " in " + classDetails.getClassName());
 				}
 			}
-			else if(fieldTypeDetail.getAnnotationOptionValues().get("OneToMany") != null)
+			else if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_MANY) != null)
 			{
 				
 			}
-			else if(fieldTypeDetail.getAnnotationOptionValues().get("ManyToOne") != null)
+			else if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.MANY_TO_ONE) != null)
 			{
-				columnName = fieldTypeDetail.getAnnotationOptionValues().get("JoinColumn").get("name");
+				columnName = fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
 				foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
 						+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
-						.get("Entity").get("name") + "(_id ) ");
+						.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
 				Log.d(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
 				columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), "_id");
 			}
@@ -97,7 +96,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 		else{
 
 			columnName = fieldTypeDetail.getAnnotationOptionValues()
-					.get("Column").get("name");
+					.get(Constants.COLUMN).get(Constants.NAME);
 
 			columnType = SQLColTypeEnumMap.get(
 					fieldTypeDetail.getFieldType().getSimpleName()).toString();
@@ -120,11 +119,11 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 	}
 
 	// Add a discriminator column if this class's inheritance strategy is JOINED.
-	if(classDetails.getAnnotationOptionValues().get("Inheritance") != null){
-		switch((InheritanceType)classDetails.getAnnotationOptionValues().get("Inheritance").get("strategy"))
+	if(classDetails.getAnnotationOptionValues().get(Constants.INHERITANCE) != null){
+		switch((InheritanceType)classDetails.getAnnotationOptionValues().get(Constants.INHERITANCE).get(Constants.STRATEGY))
 		{
 		case JOINED:
-			columnName = (String)classDetails.getAnnotationOptionValues().get("DiscriminatorColumn").get("name");
+			columnName = (String)classDetails.getAnnotationOptionValues().get("DiscriminatorColumn").get(Constants.NAME);
 			columnType = "TEXT";
 			columnConstraints = new ArrayList<String>();
 			if(columnNameExists(columnName, columnsDescription))
@@ -140,12 +139,12 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 
 
 	// Depending on this class's super class, either add foreign key or columns of super class.
-	if(superClassDetails != null && superClassDetails.getAnnotationOptionValues().get("Inheritance") != null){
-		switch((InheritanceType)superClassDetails.getAnnotationOptionValues().get("Inheritance").get("strategy"))
+	if(superClassDetails != null && superClassDetails.getAnnotationOptionValues().get(Constants.INHERITANCE) != null){
+		switch((InheritanceType)superClassDetails.getAnnotationOptionValues().get(Constants.INHERITANCE).get(Constants.STRATEGY))
 		{
 		case JOINED:
 			foreignKeyConstraint.append(" , FOREIGN KEY(_id) REFERENCES " 
-					+ superClassDetails.getAnnotationOptionValues().get("Entity").get("name")
+					+ superClassDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME)
 					+ "(_id)");
 			columnName = "_id";
 			columnType = "INTEGER";
@@ -178,8 +177,8 @@ private String getColumnType(List<FieldTypeDetails> fieldTypeDetailsList, String
 	String type = null;
 	for(FieldTypeDetails fieldTypeDetails: fieldTypeDetailsList)
 	{
-		if(fieldTypeDetails.getAnnotationOptionValues().get("Column") != null
-				&& fieldTypeDetails.getAnnotationOptionValues().get("Column").get("name").equals(columnName))
+		if(fieldTypeDetails.getAnnotationOptionValues().get(Constants.COLUMN) != null
+				&& fieldTypeDetails.getAnnotationOptionValues().get(Constants.COLUMN).get(Constants.NAME).equals(columnName))
 			type = SQLColTypeEnumMap.get(fieldTypeDetails.getFieldType().getSimpleName()).toString();
 	}
 
