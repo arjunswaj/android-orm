@@ -1,5 +1,7 @@
 package iiitb.dm.ormlibrary.ddl;
 
+import iiitb.dm.ormlibrary.ddl.impl.MappingException;
+
 import java.util.Map;
 
 import javax.persistence.InheritanceType;
@@ -18,6 +20,7 @@ public interface DDLStatementBuilder {
 	   * @param classDetails
 	   *          class Details
 	   * @return SQL Query
+	 * @throws MappingException 
 	   */
-	public String generateCreateTableQuery(ClassDetails classDetails, ClassDetails superClassDetails);
+	public String generateCreateTableQuery(ClassDetails classDetails) throws MappingException;
 }

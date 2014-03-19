@@ -8,5 +8,6 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.FIELD)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface JoinColumn {
-  String name();
+  String name() default "";
+  String referencedColumnName() default "";
 }

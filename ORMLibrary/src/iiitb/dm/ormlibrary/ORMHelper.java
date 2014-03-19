@@ -4,6 +4,7 @@ import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.DDLStatementBuilder;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.ddl.impl.DDLStatementBuilderImpl;
+import iiitb.dm.ormlibrary.ddl.impl.MappingException;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.impl.CriteriaImpl;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
@@ -14,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +58,7 @@ public class ORMHelper extends SQLiteOpenHelper {
   private Collection<ClassDetails> classDetailsList = null;
   private Map<String, ClassDetails> mappingCache = new HashMap<String, ClassDetails>();
   AnnotationsScanner annotationsScanner = new AnnotationsScannerImpl();
+  private DDLStatementBuilder ddlStatementBuilder;
 
   public ORMHelper(Context context, String name, CursorFactory factory,
       int version) {
@@ -375,17 +378,24 @@ public class ORMHelper extends SQLiteOpenHelper {
   @Override
 	public void onCreate(SQLiteDatabase db) {
 		Log.d(this.getClass().getName() + ".onCreate()", "Creating tables");
-		classDetailsList = annotationsScanner
+		Map<String, ClassDetails> classDetailsMap = annotationsScanner
 				.getEntityObjectCollectionDetails(this.context);
-		db.execSQL("pragma foreign_keys = on;");
-		for(ClassDetails classDetails : classDetailsList)
-		{
 		
+
+		ddlStatementBuilder = new DDLStatementBuilderImpl(classDetailsMap);
+		db.execSQL("pragma foreign_keys = on;");
+
+		Iterator iterator = classDetailsMap.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry pairs = (Map.Entry) iterator.next();
+			ClassDetails classDetails = (ClassDetails) pairs.getValue();
 			try {
-				Log.d("ORM Helper OnCreate", Class.forName(classDetails.getClassName()).getSuperclass() + " " + Object.class);
-				if(Object.class == Class.forName(classDetails.getClassName()).getSuperclass())
-				{
-					createTablesForHeirarchy(db, classDetails, null);
+				Log.d("ORM Helper OnCreate",
+						Class.forName(classDetails.getClassName())
+								.getSuperclass() + " " + Object.class);
+				if (Object.class == Class.forName(classDetails.getClassName())
+						.getSuperclass()) {
+					createTablesForHeirarchy(db, classDetails);
 				}
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
@@ -394,22 +404,24 @@ public class ORMHelper extends SQLiteOpenHelper {
 
 	}
 
-
-	private void createTablesForHeirarchy(SQLiteDatabase db, ClassDetails classDetails,  ClassDetails superClassDetails)
-	{
+	private void createTablesForHeirarchy(SQLiteDatabase db,
+			ClassDetails classDetails) {
 		// Create table for this class
-		DDLStatementBuilder ddlStatementBuilder = new DDLStatementBuilderImpl();
 		String stmt;
-		stmt = ddlStatementBuilder.generateCreateTableQuery(classDetails, superClassDetails);
-		Log.d("CreateTablesForHeirarchy", stmt);
-		db.execSQL(stmt);
+		try{
+			stmt = ddlStatementBuilder.generateCreateTableQuery(classDetails);
+			Log.d("CreateTablesForHeirarchy", stmt);
+			db.execSQL(stmt);
+		}
+		catch(MappingException ex)
+		{
+			Log.e("Mapping Exception", ex.getMessage());
+		}
 
 		// Create Tables for all the sub classes recursively
-		for(ClassDetails subClassDetails : classDetails.getSubClassDetails())
-		{
-			createTablesForHeirarchy(db, subClassDetails, classDetails);
+		for (ClassDetails subClassDetails : classDetails.getSubClassDetails()) {
+			createTablesForHeirarchy(db, subClassDetails);
 		}
-		
 
 	}
   @Override

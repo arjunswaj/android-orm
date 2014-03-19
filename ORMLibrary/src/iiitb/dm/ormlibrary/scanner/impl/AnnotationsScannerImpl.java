@@ -55,7 +55,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
   }
 
   @Override
-  public Collection<ClassDetails> getEntityObjectCollectionDetails(
+  public Map<String, ClassDetails> getEntityObjectCollectionDetails(
       Context context) {
     Map<String, ClassDetails> classDetailsMap = new HashMap<String, ClassDetails>();
     List<String> eoClassNames;
@@ -99,7 +99,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    return classDetailsMap.values();
+    return classDetailsMap;
   }
 
   @Override

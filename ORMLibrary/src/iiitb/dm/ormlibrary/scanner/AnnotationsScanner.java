@@ -4,6 +4,7 @@ import iiitb.dm.ormlibrary.ddl.ClassDetails;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.Map;
 
 import android.content.Context;
 
@@ -13,7 +14,7 @@ public interface AnnotationsScanner {
       throws IllegalAccessException, IllegalArgumentException,
       InvocationTargetException;
 
-  public Collection<ClassDetails> getEntityObjectCollectionDetails(
+  public Map<String, ClassDetails> getEntityObjectCollectionDetails(
       Context context);
 
 }
