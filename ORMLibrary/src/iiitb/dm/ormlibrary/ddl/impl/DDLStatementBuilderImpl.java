@@ -6,11 +6,15 @@ import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.utils.Constants;
 import iiitb.dm.ormlibrary.utils.SQLColTypeEnumMap;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
 
 import android.util.Log;
 
@@ -27,8 +31,10 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 	}
 
 	@Override
-	public String generateCreateTableQuery(ClassDetails classDetails) throws MappingException
+	public Collection<String> generateCreateTableStmts(ClassDetails classDetails) throws MappingException
 	{ 
+		Collection<String> createStmts = new LinkedList<String>();
+		
 		String tableName = (String) classDetails.getAnnotationOptionValues()
 				.get(Constants.ENTITY).get(Constants.NAME);
 
@@ -57,8 +63,8 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 				{
 					if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN) != null)
 					{
-						columnName = fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
-						String referencedColumnName = fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.REFERENCED_COLUMN_NAME);
+						columnName = (String) fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
+						String referencedColumnName = (String) fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.REFERENCED_COLUMN_NAME);
 						if(referencedColumnName.equals(""))
 						{
 							foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
@@ -83,9 +89,24 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 			{
 				
 			}
+			else if (fieldTypeDetail.getAnnotationOptionValues().get(
+					Constants.MANY_TO_MANY) != null)
+			{
+				// Get the generic type of the collection. Prior validation for 
+				// a 'Collection' is assumed??
+				// TODO
+				ParameterizedType pType = (ParameterizedType) fieldTypeDetail
+						.getFieldGenericType();
+				Class<?> ownedClass = (Class<?>) pType.getActualTypeArguments()[0];
+
+				ClassDetails ownedClassDetails = classDetailsMap.get(ownedClass
+						.getName());
+				createStmts.add(generateJoinTableCreateStmt(classDetails,
+						ownedClassDetails, fieldTypeDetail));
+			}
 			else if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.MANY_TO_ONE) != null)
 			{
-				columnName = fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
+				columnName = (String) fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
 				foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
 						+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 						.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
@@ -95,7 +116,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 
 		else{
 
-			columnName = fieldTypeDetail.getAnnotationOptionValues()
+			columnName = (String) fieldTypeDetail.getAnnotationOptionValues()
 					.get(Constants.COLUMN).get(Constants.NAME);
 
 			columnType = SQLColTypeEnumMap.get(
@@ -168,7 +189,8 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 	String createStmt = "CREATE TABLE " + tableName + "( "
 			+ columnsDescriptionString + superClassColumnDescription + foreignKeyConstraint.toString() +  " )";
 	Log.d(DDL_TAG, createStmt);
-	return createStmt;
+	createStmts.add(createStmt);
+	return createStmts;
 }
 
 
@@ -211,6 +233,76 @@ private String generateColumnDescriptionString(List<ColumnDescription> columnsDe
 
 }
 
+	/**
+	 * Generates the join table for the m:n relation 
+	 * 
+	 * @param owner The ClassDetails object of the owner class
+	 * @param owned The ClassDetails object of the owner class
+	 * @param mappedField The field containing the mapping details of the m:n 
+	 * relation in the owner class
+	 * @return SQL statement for creation of the join table
+	 */
+	// TODO : Error checking to be done.Can error checking be seperated from the
+    // table creation logic?
+	private String generateJoinTableCreateStmt(ClassDetails owner,
+			ClassDetails owned, FieldTypeDetails mappedField)
+	{
+		// owner table
+		String ownerTableName = (String) owner.getAnnotationOptionValues()
+				.get(Constants.ENTITY).get(Constants.NAME);
 
+		// owned table
+		String ownedTableName = (String) owned.getAnnotationOptionValues()
+				.get(Constants.ENTITY).get(Constants.NAME);
+
+		// join table name
+		// TODO: If the JPA specifications(conventions?) are to be followed
+		// is @JoinTable really required??
+		String joinTableName = (String) mappedField.getAnnotationOptionValues()
+				.get(Constants.JOIN_TABLE).get(Constants.NAME);
+
+		JoinColumn[] joinColumns = (JoinColumn[]) mappedField
+				.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
+				.get(Constants.JOIN_COLUMNS);
+		// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
+		// as we neither support multiple join columns and the name of the
+		// primary is standardised?(_id)
+		String joinColumnName = joinColumns[0].name();
+		FieldTypeDetails joinColumnFieldTypeDetails = owner
+				.getFieldTypeDetailsByColumnName(joinColumnName); // assuming
+																	// validation
+																	// is done
+		String joinColumnType = SQLColTypeEnumMap.get(
+				joinColumnFieldTypeDetails.getFieldType().getSimpleName())
+				.toString();
+
+		JoinColumn[] inverseJoinColumns = (JoinColumn[]) mappedField
+				.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
+				.get(Constants.INVERSE_JOIN_COLUMNS);
+		// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
+		// as we neither support multiple join columns and the name of the
+		// primary is standardised?(_id)
+		String inverseJoinColumnName = inverseJoinColumns[0].name();
+		FieldTypeDetails inverseJoinColumnFieldTypeDetails = owned
+				.getFieldTypeDetailsByColumnName(inverseJoinColumnName); // assuming
+																			// validation
+																			// is
+																			// done
+		String inverseJoinColumnType = SQLColTypeEnumMap.get(
+				inverseJoinColumnFieldTypeDetails.getFieldType()
+						.getSimpleName()).toString();
+
+		// TODO: can kumudini's ColumnDescription infrastructure be used??
+		String createStmt = "create table " + joinTableName + "("
+				+ (ownerTableName + "_" + joinColumnName) + " "
+				+ joinColumnType + " references " + ownerTableName + "("
+				+ joinColumnName + "), "
+				+ (ownedTableName + "_" + inverseJoinColumnName) + " "
+				+ inverseJoinColumnType + " references " + ownedTableName + "("
+				+ inverseJoinColumnName + "))";
+		Log.d(DDL_TAG, createStmt);
+
+		return createStmt;
+	}
 
 }

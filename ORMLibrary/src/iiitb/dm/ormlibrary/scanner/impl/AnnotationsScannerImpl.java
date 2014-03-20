@@ -10,7 +10,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,10 +133,10 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
       Log.d(ANNOTATION_TAG, "FieldName: " + field.getName());
       Annotation[] fieldAnnotations = field.getAnnotations();
 
-      Map<String, Map<String, String>> fieldAnnotationOptionValues = new HashMap<String, Map<String, String>>();
+      Map<String, Map<String, Object>> fieldAnnotationOptionValues = new HashMap<String, Map<String, Object>>();
 
       for (Annotation annotation : fieldAnnotations) {
-        Map<String, String> fieldOptionValues = new HashMap<String, String>();
+        Map<String, Object> fieldOptionValues = new HashMap<String, Object>();
         String fieldAnnotationName = annotation.annotationType()
             .getSimpleName();
         Log.d(ANNOTATION_TAG, "fieldAnnotationName: " + fieldAnnotationName);
@@ -145,7 +144,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
         // All the Key/Value Props
         for (Method method : annotation.annotationType().getDeclaredMethods()) {
           String propKey = method.getName();
-          String propVal = (String) method.invoke(annotation, null);
+          Object propVal = method.invoke(annotation, null);
           Log.d(ANNOTATION_TAG, "Field Annotations Props: " + propKey + ": "
               + propVal);
           fieldOptionValues.put(propKey, propVal);
@@ -155,6 +154,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 
       fieldTypeDetail.setFieldName(field.getName());
       fieldTypeDetail.setFieldType(field.getType());
+      fieldTypeDetail.setFieldGenericType(field.getGenericType());
       fieldTypeDetail.setAnnotationOptionValues(fieldAnnotationOptionValues);
       fieldTypeDetailList.add(fieldTypeDetail);
     }

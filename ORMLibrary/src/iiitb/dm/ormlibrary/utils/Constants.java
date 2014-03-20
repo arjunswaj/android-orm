@@ -15,7 +15,11 @@ public class Constants
 	public static final String VALUE = "value";
 	public static final String ID = "_id";
 	public static final String ID_CAPS = "ID";
-	public static final Object MAPPED_BY = "mappedBy";
-	public static final Object REFERENCED_COLUMN_NAME = "referencedColumnName";
-	public static final Object MANY_TO_ONE = "ManyToOne";
+	public static final String MAPPED_BY = "mappedBy";
+	public static final String REFERENCED_COLUMN_NAME = "referencedColumnName";
+	public static final String MANY_TO_ONE = "ManyToOne";
+	public static final String MANY_TO_MANY = "ManyToMany";
+	public static final String JOIN_TABLE = "JoinTable";
+	public static final String JOIN_COLUMNS = "joinColumns";
+	public static final String INVERSE_JOIN_COLUMNS = "inverseJoinColumns";
 }

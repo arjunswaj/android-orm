@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -231,7 +232,7 @@ public class ORMHelper extends SQLiteOpenHelper {
         Method getterMethod = objClass.getMethod(getterMethodName);
 
         if (null != fieldTypeDetail.getAnnotationOptionValues().get(Constants.COLUMN)) {
-          String columnName = fieldTypeDetail.getAnnotationOptionValues()
+          String columnName = (String) fieldTypeDetail.getAnnotationOptionValues()
               .get(Constants.COLUMN).get(Constants.NAME);
           String columnValue = getterMethod.invoke(obj).toString();
 
@@ -244,7 +245,7 @@ public class ORMHelper extends SQLiteOpenHelper {
         } else if (null != fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE)) {
           // Handle 1-1 Composition here
           Object composedObject = getterMethod.invoke(obj);
-          String joinColumnName = fieldTypeDetail.getAnnotationOptionValues()
+          String joinColumnName = (String) fieldTypeDetail.getAnnotationOptionValues()
               .get(Constants.JOIN_COLUMN).get(Constants.NAME);          
           long saveId = save(composedObject, -1L, null);
           if (null == kvp) {
@@ -295,7 +296,7 @@ public class ORMHelper extends SQLiteOpenHelper {
         		Constants.ONE_TO_MANY)) {
           Collection<Object> composedObjectCollection = (Collection<Object>) getterMethod
               .invoke(obj);
-          String joinColumnName = fieldTypeDetail.getAnnotationOptionValues()
+          String joinColumnName = (String) fieldTypeDetail.getAnnotationOptionValues()
               .get(Constants.JOIN_COLUMN).get(Constants.NAME);
           Map<String, String> newKVPs = new HashMap<String, String>();          
           for (Object composedObject : composedObjectCollection) {
@@ -340,7 +341,7 @@ public class ORMHelper extends SQLiteOpenHelper {
             .getFieldName());
         Method getterMethod = objClass.getMethod(getterMethodName);
 
-        String columnName = fieldTypeDetail.getAnnotationOptionValues()
+        String columnName = (String) fieldTypeDetail.getAnnotationOptionValues()
             .get(Constants.COLUMN).get(Constants.NAME);
         String columnValue = getterMethod.invoke(obj).toString();
 
@@ -392,14 +393,28 @@ public class ORMHelper extends SQLiteOpenHelper {
 
 	}
 
+  /**
+   * When an entity class has subclasses inheriting from it, this method
+   * creates tables for the entire hierarchy of the entity class in consideration
+   * and all its subclasses. 
+   * 
+   * TODO : Talk with kumudini and shift the check for a superclass to inside
+   *        function. - Abhijith
+   * @param db
+   * @param classDetails
+   */
 	private void createTablesForHeirarchy(SQLiteDatabase db,
 			ClassDetails classDetails) {
-		// Create table for this class
-		String stmt;
+		// Create table/s for this class
+		Collection<String> stmts = new LinkedList<String>();
 		try{
-			stmt = ddlStatementBuilder.generateCreateTableQuery(classDetails);
-			Log.d("CreateTablesForHeirarchy", stmt);
-			db.execSQL(stmt);
+			stmts = ddlStatementBuilder
+					.generateCreateTableStmts(classDetails);
+			for (String stmt : stmts)
+			{
+				Log.d("CreateTablesForHeirarchy", stmt);
+				db.execSQL(stmt);
+			}
 		}
 		catch(MappingException ex)
 		{

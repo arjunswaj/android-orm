@@ -1,5 +1,6 @@
 package iiitb.dm.ormlibrary.ddl;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 
 /**
@@ -19,10 +20,14 @@ public class FieldTypeDetails {
    */
   private Class<?> fieldType;
   /**
+   * Generic type of the Field
+   */
+  private Type fieldGenericType;
+  /**
    * Map of Annotation Name and the key/value pair of all the options associated
    * with it
    */
-  private Map<String, Map<String, String>> annotationOptionValues;
+  private Map<String, Map<String, Object>> annotationOptionValues;
 
   /**
    * Default Constructor
@@ -32,7 +37,7 @@ public class FieldTypeDetails {
   }
 
   public FieldTypeDetails(String fieldName, Class<?> fieldType,
-      Map<String, Map<String, String>> annotationOptionValues) {
+      Map<String, Map<String, Object>> annotationOptionValues) {
     super();
     this.fieldName = fieldName;
     this.fieldType = fieldType;
@@ -55,13 +60,23 @@ public class FieldTypeDetails {
     this.fieldType = fieldType;
   }
 
-  public Map<String, Map<String, String>> getAnnotationOptionValues() {
+  public Map<String, Map<String, Object>> getAnnotationOptionValues() {
     return annotationOptionValues;
   }
 
   public void setAnnotationOptionValues(
-      Map<String, Map<String, String>> annotationOptionValues) {
+      Map<String, Map<String, Object>> annotationOptionValues) {
     this.annotationOptionValues = annotationOptionValues;
+  }
+  
+  public Type getFieldGenericType()
+  {
+  	return fieldGenericType;
+  }
+
+  public void setFieldGenericType(Type fieldGenericType)
+  {
+  	this.fieldGenericType = fieldGenericType;
   }
 
 }

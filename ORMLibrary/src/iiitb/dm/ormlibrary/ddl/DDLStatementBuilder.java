@@ -2,6 +2,7 @@ package iiitb.dm.ormlibrary.ddl;
 
 import iiitb.dm.ormlibrary.ddl.impl.MappingException;
 
+import java.util.Collection;
 import java.util.Map;
 
 import javax.persistence.InheritanceType;
@@ -22,5 +23,5 @@ public interface DDLStatementBuilder {
 	   * @return SQL Query
 	 * @throws MappingException 
 	   */
-	public String generateCreateTableQuery(ClassDetails classDetails) throws MappingException;
+	public Collection<String> generateCreateTableStmts(ClassDetails classDetails) throws MappingException;
 }

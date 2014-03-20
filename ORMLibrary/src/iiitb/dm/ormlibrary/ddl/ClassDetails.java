@@ -1,8 +1,12 @@
 package iiitb.dm.ormlibrary.ddl;
 
+import iiitb.dm.ormlibrary.utils.Constants;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import android.util.Log;
 
 /**
  * ClassDetails captured from Reflection
@@ -84,4 +88,18 @@ public class ClassDetails {
     this.subClassDetails = subClassDetails;
   }
 
+	public FieldTypeDetails getFieldTypeDetailsByColumnName(String columnName)
+	{
+		for (FieldTypeDetails fieldTypeDetails : getFieldTypeDetails())
+		{
+			Map<String, Object> fieldAnnotationOptionValues = fieldTypeDetails
+					.getAnnotationOptionValues().get(Constants.COLUMN);
+			if (fieldAnnotationOptionValues == null)
+				continue;
+			if (columnName == (String) fieldAnnotationOptionValues
+					.get(Constants.NAME))
+				return fieldTypeDetails;
+		}
+		return null;
+	}
 }
