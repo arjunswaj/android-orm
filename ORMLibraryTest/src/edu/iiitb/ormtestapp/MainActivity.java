@@ -66,7 +66,7 @@ public class MainActivity extends Activity {
     // .execSQL(
     // "CREATE TABLE FULL_TIME_EMPLOYEE( _id INTEGER, SALARY INTEGER, PENSION INTEGER )");
 
-    for (int index = 1; index < 25; index += 1) {
+    for (int index = 1; index < 5; index += 1) {
       Intern intern = new Intern();
       intern.setName("Ron " + index + " Clyde");
       intern.setHourlyRate(20 + index);
@@ -102,7 +102,7 @@ public class MainActivity extends Activity {
     // .execSQL(
     // "CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
 
-    for (int index = 1; index < 25; index += 1) {
+    for (int index = 1; index < 5; index += 1) {
       Sportsman sportsman = new Sportsman();
       sportsman.setName("Vishwanathan " + index + " Anand");
       ormHelper.persist(sportsman);
@@ -136,7 +136,7 @@ public class MainActivity extends Activity {
     // .execSQL(
     // "CREATE TABLE FORD( COLOR TEXT, _id INTEGER primary key autoincrement, HORSE_POWER INTEGER, MODEL TEXT )");
 
-    for (int index = 1; index < 25; index += 1) {
+    for (int index = 1; index < 5; index += 1) {
 
       Car car = new Car();
       car.setColor("Red " + index);
@@ -165,7 +165,7 @@ public class MainActivity extends Activity {
     // .execSQL(
     // "CREATE TABLE PRIME_MINISTER( AGE INTEGER, _id INTEGER primary key autoincrement )");
 
-    for (int index = 1; index < 25; index += 1) {
+    for (int index = 1; index < 5; index += 1) {
       Minister minister = new Minister();
       minister.setState("Karnataka" + index);
       ormHelper.persist(minister);
@@ -198,7 +198,7 @@ public class MainActivity extends Activity {
         .getWritableDatabase()
         .execSQL(
             "CREATE TABLE STATES( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )");*/
-    for (int index = 1; index < 25; index += 1) {
+    for (int index = 1; index < 5; index += 1) {
       Country country = new Country();
       country.setName("India " + index);
 
@@ -220,13 +220,14 @@ public class MainActivity extends Activity {
   private void testManyToManyPersistance(ORMHelper ormHelper)
   {
 	    Person person = new Person();
-	    person.setName("Leslie Lambert");
+	    person.setName("Leslie Lamport");
 	    Collection<Patent> patents = new ArrayList<Patent>();
 	    for (int index = 1; index < 5; index += 1)
 	    {
 	    	Patent patent = new Patent();
 	    	patent.setTitle("Latex" + index);
 	    	patent.setTitle("Distributed Computing Algo" + index);
+	    	patents.add(patent);
 	    }
 	    person.setPatents(patents);
 	    ormHelper.persist(person);

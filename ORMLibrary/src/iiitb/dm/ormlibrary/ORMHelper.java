@@ -354,7 +354,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 								+ inverseJoinColumnName,
 								save(composedObject, -1L, null));
 						getWritableDatabase().insert(joinTableName, null,
-								contentValues);
+						    joinTableContentValues);
 					}
 
         }
