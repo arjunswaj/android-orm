@@ -1,5 +1,9 @@
 package iiitb.dm.ormlibrary.ddl;
 
+import iiitb.dm.ormlibrary.utils.Constants;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +36,23 @@ public class ClassDetails {
    * List of all the Sub Classes
    */
   private List<ClassDetails> subClassDetails;
+  
+  
+  /**
+   * Map from relationship type to list of classes to which this 
+   * class is related, is owner and doesn't contain reference.
+   */
+  private Map<String, List<String>> ownedRelations;
 
-  public ClassDetails(String className,
+  public Map<String, List<String>> getOwnedRelations() {
+	return ownedRelations;
+}
+
+public void setOwnedRelations(Map<String, List<String>> ownedRelations) {
+	this.ownedRelations = ownedRelations;
+}
+
+public ClassDetails(String className,
       Map<String, Map<String, Object>> annotationOptionValues,
       List<FieldTypeDetails> fieldTypeDetails) {
     super();
@@ -41,6 +60,11 @@ public class ClassDetails {
     this.annotationOptionValues = annotationOptionValues;
     this.fieldTypeDetails = fieldTypeDetails;
     subClassDetails = new LinkedList<ClassDetails>();
+    ownedRelations = new HashMap<String,List<String>>();
+    ownedRelations.put(Constants.ONE_TO_MANY, new ArrayList<String>());
+    ownedRelations.put(Constants.MANY_TO_ONE, new ArrayList<String>());
+    ownedRelations.put(Constants.MANY_TO_MANY, new ArrayList<String>());
+    ownedRelations.put(Constants.ONE_TO_ONE, new ArrayList<String>());
   }
   
   public String getColumnsDescription() {
