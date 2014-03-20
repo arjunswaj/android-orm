@@ -184,7 +184,7 @@ public class MainActivity extends Activity {
   }
 
   private void testPersistenceOfComposition(ORMHelper ormHelper) {
-    ormHelper
+    /*ormHelper
         .getWritableDatabase()
         .execSQL(
             "CREATE TABLE COUNTRY( NAME TEXT, _id INTEGER primary key autoincrement, CAPITAL_ID INTEGER )");
@@ -195,7 +195,7 @@ public class MainActivity extends Activity {
     ormHelper
         .getWritableDatabase()
         .execSQL(
-            "CREATE TABLE STATES( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )");
+            "CREATE TABLE STATES( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )");*/
     for (int index = 1; index < 25; index += 1) {
       Country country = new Country();
       country.setName("India " + index);
@@ -209,7 +209,7 @@ public class MainActivity extends Activity {
         state.setName(index + " Karnataka " + stateIndex);
         states.add(state);
       }
-      country.setStates(states);
+      //country.setStates(states);
       country.setCapital(capital);
       ormHelper.persist(country);
     }
