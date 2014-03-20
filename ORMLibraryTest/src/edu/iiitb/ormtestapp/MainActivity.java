@@ -211,7 +211,7 @@ public class MainActivity extends Activity {
         state.setName(index + " Karnataka " + stateIndex);
         states.add(state);
       }
-      //country.setStates(states);
+      country.setStates(states);
       country.setCapital(capital);
       ormHelper.persist(country);
     }
