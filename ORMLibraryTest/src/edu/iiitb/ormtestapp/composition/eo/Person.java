@@ -59,7 +59,7 @@ public class Person
 		return patents;
 	}
 
-	public void setDog(Collection<Patent> patents)
+	public void setPatents(Collection<Patent> patents)
 	{
 		this.patents = patents;
 	}

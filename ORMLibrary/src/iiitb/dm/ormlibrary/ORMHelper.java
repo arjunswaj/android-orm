@@ -14,20 +14,20 @@ import iiitb.dm.ormlibrary.utils.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -44,7 +44,6 @@ public class ORMHelper extends SQLiteOpenHelper {
   private static final String SAVE_OBJECT_TAG = "SAVE_OBJECT";
   Context context;
 
-  private Collection<ClassDetails> classDetailsList = null;
   private Map<String, ClassDetails> mappingCache = new HashMap<String, ClassDetails>();
   AnnotationsScanner annotationsScanner = new AnnotationsScannerImpl();
   private DDLStatementBuilder ddlStatementBuilder;
@@ -53,14 +52,6 @@ public class ORMHelper extends SQLiteOpenHelper {
       int version) {
     super(context, name, factory, version);
     this.context = context;
-  }
-
-  private String getEOPackage() throws NameNotFoundException {
-    ApplicationInfo ai = context.getPackageManager().getApplicationInfo(
-        context.getPackageName(), PackageManager.GET_META_DATA);
-    String ormPackage = (String) ai.metaData.get("ormPackage");
-    context.getResources();
-    return ormPackage;
   }
 
   public void persist(Object obj) {
@@ -78,6 +69,15 @@ public class ORMHelper extends SQLiteOpenHelper {
   }
   
   
+  /**
+   * Gets the ClassDetails object corressponding to the specified object.
+   * Does caching to ensure that the scanning itself is done only once.
+   * 
+   * TODO: Can the map created while creating tables be leveraged here??
+   * 
+   * @param obj
+   * @return
+   */
   private ClassDetails fetchClassDetailsMapping(Object obj) {
     Class<?> objClass = obj.getClass();
     ClassDetails subClassDetails = null;
@@ -301,8 +301,62 @@ public class ORMHelper extends SQLiteOpenHelper {
           Map<String, String> newKVPs = new HashMap<String, String>();          
           for (Object composedObject : composedObjectCollection) {
             newKVPs.put(joinColumnName, String.valueOf(genId));
+            // TODO : Make use of these newKVP's when bidirectional is implemented
             long saveId = save(composedObject, -1L, null);
           }
+        }
+        else if (null != fieldTypeDetail.getAnnotationOptionValues().get(Constants.MANY_TO_MANY))
+        {
+					Collection<Object> composedObjectCollection = (Collection<Object>) getterMethod
+							.invoke(obj);
+				
+					JoinColumn[] joinColumns = (JoinColumn[]) fieldTypeDetail
+							.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
+							.get(Constants.JOIN_COLUMNS);
+					// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
+					// as we neither support multiple join columns and the name of the
+					// primary is standardised?(_id)
+					String joinColumnName = joinColumns[0].name();
+
+					JoinColumn[] inverseJoinColumns = (JoinColumn[]) fieldTypeDetail
+							.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
+							.get(Constants.INVERSE_JOIN_COLUMNS);
+					// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
+					// as we neither support multiple join columns and the name of the
+					// primary is standardised?(_id)
+					String inverseJoinColumnName = inverseJoinColumns[0].name();
+					
+					ParameterizedType pType = (ParameterizedType) fieldTypeDetail
+							.getFieldGenericType();
+					Class<?> ownedClass = (Class<?>) pType
+							.getActualTypeArguments()[0];
+					// TODO: Scanning once again. 
+					// Need to have another field called compositionClassDetails
+					// which has information about all comoposed objects in the
+					// owner class
+					ClassDetails ownedClassDetails = annotationsScanner
+							.getEntityObjectCollectionDetails(context)
+							.get(ownedClass.getName());					
+										
+					String ownedTableName = (String) ownedClassDetails
+							.getAnnotationOptionValues().get(Constants.ENTITY)
+							.get(Constants.NAME);
+
+					String joinTableName = (String) fieldTypeDetail.getAnnotationOptionValues()
+							.get(Constants.JOIN_TABLE).get(Constants.NAME);
+
+					for (Object composedObject : composedObjectCollection)
+					{
+						ContentValues joinTableContentValues = new ContentValues();
+						joinTableContentValues.put(tableName + "_"
+								+ joinColumnName, genId);
+						joinTableContentValues.put(ownedTableName + "_"
+								+ inverseJoinColumnName,
+								save(composedObject, -1L, null));
+						getWritableDatabase().insert(joinTableName, null,
+								contentValues);
+					}
+
         }
       }
     } catch (IllegalAccessException e) {
@@ -374,9 +428,9 @@ public class ORMHelper extends SQLiteOpenHelper {
 		ddlStatementBuilder = new DDLStatementBuilderImpl(classDetailsMap);
 		db.execSQL("pragma foreign_keys = on;");
 
-		Iterator iterator = classDetailsMap.entrySet().iterator();
+		Iterator<Entry<String, ClassDetails>> iterator = classDetailsMap.entrySet().iterator();
 		while (iterator.hasNext()) {
-			Map.Entry pairs = (Map.Entry) iterator.next();
+			Map.Entry<String, ClassDetails> pairs = (Map.Entry<String, ClassDetails>) iterator.next();
 			ClassDetails classDetails = (ClassDetails) pairs.getValue();
 			try {
 				Log.d("ORM Helper OnCreate",

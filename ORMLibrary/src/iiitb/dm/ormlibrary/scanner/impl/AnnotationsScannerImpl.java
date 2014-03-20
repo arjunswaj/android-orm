@@ -2,7 +2,6 @@ package iiitb.dm.ormlibrary.scanner.impl;
 
 import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
-import iiitb.dm.ormlibrary.ddl.impl.MappingException;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 import iiitb.dm.ormlibrary.utils.Constants;
 
@@ -96,12 +95,10 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 
 			// Fill in Details about Relationships.
 			for (String cName : eoClassNames) {
-				Class<?> subClass = Class.forName(classDetailsMap.get(cName)
-						.getClassName());
 				ClassDetails classDetails = classDetailsMap.get(cName);
 				for(FieldTypeDetails fieldTypeDetails : classDetails.getFieldTypeDetails())
 				{
-					if(fieldTypeDetails.getAnnotationOptionValues().get("OneToMany") != null)
+					if(fieldTypeDetails.getAnnotationOptionValues().get(Constants.ONE_TO_MANY) != null)
 					{
 
 						ParameterizedType genericType = null;
@@ -132,7 +129,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 								if(relatedFieldTypeDetails.getFieldName()
 										.equals(fieldTypeDetails.getAnnotationOptionValues()
 												.get(Constants.ONE_TO_MANY).get(Constants.MAPPED_BY))
-												&& relatedFieldTypeDetails.getAnnotationOptionValues().get("ManyToOne") != null)
+												&& relatedFieldTypeDetails.getAnnotationOptionValues().get(Constants.MANY_TO_ONE) != null)
 								{
 									bidirectional = true;
 									break;
@@ -141,7 +138,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 							}
 						}
 						if(bidirectional == false)
-							relatedClassDetails.getOwnedRelations().get("ManyToOne").add(cName);
+							relatedClassDetails.getOwnedRelations().get(Constants.MANY_TO_ONE).add(cName);
 
 					}
 				}

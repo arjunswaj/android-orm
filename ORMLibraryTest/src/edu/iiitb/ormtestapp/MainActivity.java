@@ -5,6 +5,8 @@ import java.util.Collection;
 
 import edu.iiitb.ormtestapp.composition.eo.Capital;
 import edu.iiitb.ormtestapp.composition.eo.Country;
+import edu.iiitb.ormtestapp.composition.eo.Patent;
+import edu.iiitb.ormtestapp.composition.eo.Person;
 import edu.iiitb.ormtestapp.composition.eo.State;
 import edu.iiitb.ormtestapp.eo.Course;
 import edu.iiitb.ormtestapp.eo.Student;
@@ -215,6 +217,21 @@ public class MainActivity extends Activity {
     }
   }
 
+  private void testManyToManyPersistance(ORMHelper ormHelper)
+  {
+	    Person person = new Person();
+	    person.setName("Leslie Lambert");
+	    Collection<Patent> patents = new ArrayList<Patent>();
+	    for (int index = 1; index < 5; index += 1)
+	    {
+	    	Patent patent = new Patent();
+	    	patent.setTitle("Latex" + index);
+	    	patent.setTitle("Distributed Computing Algo" + index);
+	    }
+	    person.setPatents(patents);
+	    ormHelper.persist(person);
+  }
+  
   private void testQueryByCursor(ORMHelper ormHelper) {
     Criteria criteria = ormHelper
         .createCriteria(Student.class)
@@ -257,8 +274,10 @@ public class MainActivity extends Activity {
     testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
     testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
     testPersistenceOfComposition(ormHelper);
+    testManyToManyPersistance(ormHelper);
 
     testQueryByCursor(ormHelper);
+    
   }
 
 }
