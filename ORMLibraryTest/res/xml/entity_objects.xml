@@ -22,6 +22,7 @@
 
  	<EntityObject>edu.iiitb.ormtestapp.composition.eo.Country</EntityObject>
  	<EntityObject>edu.iiitb.ormtestapp.composition.eo.Capital</EntityObject>
+ 	<EntityObject>edu.iiitb.ormtestapp.composition.eo.State</EntityObject>
 
  	<EntityObject>edu.iiitb.ormtestapp.composition.eo.Person</EntityObject>
  	<EntityObject>edu.iiitb.ormtestapp.composition.eo.Patent</EntityObject>

@@ -19,10 +19,10 @@ public class Country {
   @OneToOne
   @JoinColumn(name = "CAPITAL_ID")
   private Capital capital;
-/*  @OneToMany
+  @OneToMany
   @JoinColumn(name = "COUNTRY_ID")
   private Collection<State> states;
-*/
+
   public int getId() {
     return id;
   }
@@ -46,7 +46,7 @@ public class Country {
   public void setCapital(Capital capital) {
     this.capital = capital;
   }
-/*
+
   public Collection<State> getStates() {
     return states;
   }
@@ -54,5 +54,5 @@ public class Country {
   public void setStates(Collection<State> states) {
     this.states = states;
   }
-*/
+
 }

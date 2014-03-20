@@ -55,6 +55,8 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 				.getFieldTypeDetails())
 		{
 			Log.d(DDL_TAG, " " + classDetails.getClassName() + " " +fieldTypeDetail.getFieldName() );
+			columnName = "";
+			columnType= "";
 			columnConstraints = new ArrayList<String>();
 			if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE) != null)
 			{
