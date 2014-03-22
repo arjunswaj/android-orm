@@ -23,6 +23,8 @@ import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Footballer;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Sportsman;
 import iiitb.dm.ormlibrary.ORMHelper;
 import iiitb.dm.ormlibrary.query.Criteria;
+import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
+import iiitb.dm.ormlibrary.query.criterion.Projections;
 import iiitb.dm.ormlibrary.query.criterion.Restrictions;
 import android.app.Activity;
 import android.database.Cursor;
@@ -186,18 +188,15 @@ public class MainActivity extends Activity {
   }
 
   private void testPersistenceOfComposition(ORMHelper ormHelper) {
-    /*ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE COUNTRY( NAME TEXT, _id INTEGER primary key autoincrement, CAPITAL_ID INTEGER )");
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE CAPITAL( NAME TEXT, _id INTEGER primary key autoincrement )");
-    ormHelper
-        .getWritableDatabase()
-        .execSQL(
-            "CREATE TABLE STATES( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )");*/
+    /*
+     * ormHelper .getWritableDatabase() .execSQL(
+     * "CREATE TABLE COUNTRY( NAME TEXT, _id INTEGER primary key autoincrement, CAPITAL_ID INTEGER )"
+     * ); ormHelper .getWritableDatabase() .execSQL(
+     * "CREATE TABLE CAPITAL( NAME TEXT, _id INTEGER primary key autoincrement )"
+     * ); ormHelper .getWritableDatabase() .execSQL(
+     * "CREATE TABLE STATES( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )"
+     * );
+     */
     for (int index = 1; index < 5; index += 1) {
       Country country = new Country();
       country.setName("India " + index);
@@ -217,22 +216,20 @@ public class MainActivity extends Activity {
     }
   }
 
-  private void testManyToManyPersistance(ORMHelper ormHelper)
-  {
-	    Person person = new Person();
-	    person.setName("Leslie Lamport");
-	    Collection<Patent> patents = new ArrayList<Patent>();
-	    for (int index = 1; index < 5; index += 1)
-	    {
-	    	Patent patent = new Patent();
-	    	patent.setTitle("Latex" + index);
-	    	patent.setTitle("Distributed Computing Algo" + index);
-	    	patents.add(patent);
-	    }
-	    person.setPatents(patents);
-	    ormHelper.persist(person);
+  private void testManyToManyPersistance(ORMHelper ormHelper) {
+    Person person = new Person();
+    person.setName("Leslie Lamport");
+    Collection<Patent> patents = new ArrayList<Patent>();
+    for (int index = 1; index < 5; index += 1) {
+      Patent patent = new Patent();
+      patent.setTitle("Latex" + index);
+      patent.setTitle("Distributed Computing Algo" + index);
+      patents.add(patent);
+    }
+    person.setPatents(patents);
+    ormHelper.persist(person);
   }
-  
+
   private void testQueryByCursor(ORMHelper ormHelper) {
     Criteria criteria = ormHelper
         .createCriteria(Student.class)
@@ -243,7 +240,14 @@ public class MainActivity extends Activity {
         .add(
             Restrictions.or(Restrictions.eq("AGE", 23),
                 Restrictions.like("COLLEGE", "IIIT-B 0")))
-        .add(Restrictions.eq("ADDRESS", "Address 5"));
+        .add(Restrictions.eq("ADDRESS", "Address 5"))
+        .setProjection(
+            Projections.projectionList().add(Projections.property("_id"))
+                .add(Projections.property("NAME"))
+                .add(Projections.property("AGE"))
+                .add(Projections.property("ADDRESS"))
+                .add(Projections.property("CGPA"))
+                .add(Projections.property("COLLEGE")));
 
     Cursor cursor = criteria.cursor();
     if (cursor.moveToFirst()) {
@@ -271,14 +275,14 @@ public class MainActivity extends Activity {
         "testDB.sqlite", null, 1);
 
     testPersistence(ormHelper);
-    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
-    testPersistenceOfComposition(ormHelper);
-    testManyToManyPersistance(ormHelper);
+    // testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+    // testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+    // testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+    // testPersistenceOfComposition(ormHelper);
+    // testManyToManyPersistance(ormHelper);
 
     testQueryByCursor(ormHelper);
-    
+
   }
 
 }

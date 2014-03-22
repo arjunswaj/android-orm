@@ -7,10 +7,13 @@ import javax.persistence.Entity;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.Criterion;
 import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
 import iiitb.dm.ormlibrary.query.criterion.Order;
+import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
+import iiitb.dm.ormlibrary.query.criterion.PropertyProjection;
 import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
 import iiitb.dm.ormlibrary.query.Projection;
 
@@ -26,6 +29,7 @@ public class CriteriaImpl implements Criteria {
   private String having;
   private String orderBy;
   private String limit;
+  private ProjectionList projectionList;
   /**
    * sqliteDatabase
    */
@@ -122,9 +126,9 @@ public class CriteriaImpl implements Criteria {
   }
 
   @Override
-  public Criteria setProjection(Projection projection) {
-    // TODO Auto-generated method stub
-    return null;
+  public Criteria setProjection(ProjectionList projectionList) {
+    this.projectionList = projectionList;
+    return this;
   }
 
   @Override
@@ -142,8 +146,30 @@ public class CriteriaImpl implements Criteria {
           index += 1;
         }
       }
-      cursor = sqliteDatabase.query(distinct, table, columns, selection,
-          selectionArgs, groupBy, having, orderBy, limit);
+      StringBuilder sb = new StringBuilder();
+      sb.append("SELECT ");
+      if (null == this.projectionList) {
+        sb.append("* ");
+      } else {
+        String comma = "";
+        for (Projection projection : projectionList.getElements()) {
+          if (projection instanceof PropertyProjection) {
+            PropertyProjection propertyProjection = (PropertyProjection) projection;
+            sb.append(comma).append(propertyProjection.getPropertyName());
+          }
+          comma = ", ";
+        }
+        sb.append(" ");
+      }      
+      sb.append("FROM ");
+      sb.append(table).append(" ");
+      sb.append("WHERE ").append(selection);
+      sb.append(";");
+      // cursor = sqliteDatabase.query(distinct, table, columns, selection,
+      // selectionArgs, groupBy, having, orderBy, limit);
+      String sql = sb.toString();
+      Log.d("Generated SQL", sql);
+      cursor = sqliteDatabase.rawQuery(sql, selectionArgs);
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
     }
