@@ -4,6 +4,7 @@ import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 import iiitb.dm.ormlibrary.utils.Constants;
+import iiitb.dm.ormlibrary.utils.RelationshipType;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -139,7 +140,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 							}
 						}
 						if(bidirectional == false)
-							relatedClassDetails.getOwnedRelations().get(Constants.MANY_TO_ONE).add(classDetails);
+							relatedClassDetails.getOwnedRelations().get(RelationshipType.MANY_TO_ONE).add(classDetails);
 
 					}
 				}

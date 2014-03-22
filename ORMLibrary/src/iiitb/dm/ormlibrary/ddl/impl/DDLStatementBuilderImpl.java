@@ -4,6 +4,7 @@ import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.DDLStatementBuilder;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.utils.Constants;
+import iiitb.dm.ormlibrary.utils.RelationshipType;
 import iiitb.dm.ormlibrary.utils.SQLColTypeEnumMap;
 
 import java.lang.reflect.ParameterizedType;
@@ -140,7 +141,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 		}
 
 		// Scan through owned Relations and create columns and foreign key constraints
-		for(ClassDetails relatedClassDetails : classDetails.getOwnedRelations().get(Constants.MANY_TO_ONE))
+		for(ClassDetails relatedClassDetails : classDetails.getOwnedRelations().get(RelationshipType.MANY_TO_ONE))
 		{
 			columnName = "";
 			columnType = "";
