@@ -73,7 +73,6 @@ public class ORMHelper extends SQLiteOpenHelper {
    * Gets the ClassDetails object corressponding to the specified object.
    * Does caching to ensure that the scanning itself is done only once.
    * 
-   * TODO: Can the map created while creating tables be leveraged here??
    * 
    * @param obj
    * @return
@@ -305,58 +304,59 @@ public class ORMHelper extends SQLiteOpenHelper {
             long saveId = save(composedObject, -1L, null);
           }
         }
-        else if (null != fieldTypeDetail.getAnnotationOptionValues().get(Constants.MANY_TO_MANY))
+        else if (fieldTypeDetail.getAnnotationOptionValues()
+        		.get(Constants.MANY_TO_MANY) != null)
         {
-					Collection<Object> composedObjectCollection = (Collection<Object>) getterMethod
-							.invoke(obj);
+        	Collection<Object> composedObjectCollection = 
+        			(Collection<Object>) getterMethod.invoke(obj);
 				
-					JoinColumn[] joinColumns = (JoinColumn[]) fieldTypeDetail
-							.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
-							.get(Constants.JOIN_COLUMNS);
-					// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
-					// as we neither support multiple join columns and the name of the
-					// primary is standardised?(_id)
-					String joinColumnName = joinColumns[0].name();
+			JoinColumn[] joinColumns = (JoinColumn[]) fieldTypeDetail
+				.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
+				.get(Constants.JOIN_COLUMNS);
+			// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
+			// as we neither support multiple join columns and the name of the
+			// primary is standardised?(_id)
+			String joinColumnName = joinColumns[0].name();
 
-					JoinColumn[] inverseJoinColumns = (JoinColumn[]) fieldTypeDetail
-							.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
-							.get(Constants.INVERSE_JOIN_COLUMNS);
-					// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
-					// as we neither support multiple join columns and the name of the
-					// primary is standardised?(_id)
-					String inverseJoinColumnName = inverseJoinColumns[0].name();
+			JoinColumn[] inverseJoinColumns = (JoinColumn[]) fieldTypeDetail
+					.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
+					.get(Constants.INVERSE_JOIN_COLUMNS);
+			// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
+			// as we neither support multiple join columns and the name of the
+			// primary is standardised?(_id)
+			String inverseJoinColumnName = inverseJoinColumns[0].name();
 					
-					ParameterizedType pType = (ParameterizedType) fieldTypeDetail
-							.getFieldGenericType();
-					Class<?> ownedClass = (Class<?>) pType
-							.getActualTypeArguments()[0];
-					// TODO: Scanning once again. 
-					// Need to have another field called compositionClassDetails
-					// which has information about all comoposed objects in the
-					// owner class
-					ClassDetails ownedClassDetails = annotationsScanner
-							.getEntityObjectCollectionDetails(context)
-							.get(ownedClass.getName());					
+			ParameterizedType pType = (ParameterizedType) fieldTypeDetail
+					.getFieldGenericType();
+			Class<?> ownedClass = (Class<?>) pType
+					.getActualTypeArguments()[0];
+			// TODO: Scanning once again. 
+			// Need to have another field called compositionClassDetails
+			// which has information about all comoposed objects in the
+			// owner class
+			ClassDetails ownedClassDetails = annotationsScanner
+					.getEntityObjectCollectionDetails(context)
+					.get(ownedClass.getName());					
 										
-					String ownedTableName = (String) ownedClassDetails
-							.getAnnotationOptionValues().get(Constants.ENTITY)
-							.get(Constants.NAME);
+			String ownedTableName = (String) ownedClassDetails
+					.getAnnotationOptionValues().get(Constants.ENTITY)
+					.get(Constants.NAME);
 
-					String joinTableName = (String) fieldTypeDetail.getAnnotationOptionValues()
-							.get(Constants.JOIN_TABLE).get(Constants.NAME);
+			String joinTableName = (String) fieldTypeDetail
+					.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
+					.get(Constants.NAME);
 
-					for (Object composedObject : composedObjectCollection)
-					{
-						ContentValues joinTableContentValues = new ContentValues();
-						joinTableContentValues.put(tableName + "_"
-								+ joinColumnName, genId);
-						joinTableContentValues.put(ownedTableName + "_"
-								+ inverseJoinColumnName,
-								save(composedObject, -1L, null));
-						getWritableDatabase().insert(joinTableName, null,
-						    joinTableContentValues);
-					}
-
+			for (Object composedObject : composedObjectCollection)
+			{
+				ContentValues joinTableContentValues = new ContentValues();
+				joinTableContentValues.put(tableName + "_"
+						+ joinColumnName, genId);
+				joinTableContentValues.put(ownedTableName + "_"
+						+ inverseJoinColumnName,
+						save(composedObject, -1L, null));
+				getWritableDatabase().insert(joinTableName, null,
+				    joinTableContentValues);
+			}
         }
       }
     } catch (IllegalAccessException e) {

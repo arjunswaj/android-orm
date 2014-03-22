@@ -79,6 +79,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 				}
 				classDetailsMap.put(className, classDetails);
 			}
+			
 			// Fill in details about inheritance hierarchies
 			for (String cName : eoClassNames) {
 				Class<?> subClass = Class.forName(classDetailsMap.get(cName)
@@ -100,7 +101,6 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 				{
 					if(fieldTypeDetails.getAnnotationOptionValues().get(Constants.ONE_TO_MANY) != null)
 					{
-
 						ParameterizedType genericType = null;
 						try {
 							genericType = (ParameterizedType)Class.forName(classDetails.getClassName())
@@ -119,9 +119,11 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 						}
 						Class<?> relatedClass = (Class<?>)genericType.getActualTypeArguments()[0];
 						ClassDetails relatedClassDetails = classDetailsMap.get(relatedClass.getName());
+						
+						// Assume that this class is the owner of the one-to-many
+						//   relationship initially
+ 						// Then check if related class contains a reference back to this class.
 						boolean bidirectional = false;
-
-						// Check if related class contains a reference back to this class.
 						if(fieldTypeDetails.getAnnotationOptionValues().get(Constants.ONE_TO_MANY).get(Constants.MAPPED_BY) != "")
 						{
 							for(FieldTypeDetails relatedFieldTypeDetails : relatedClassDetails.getFieldTypeDetails())
@@ -134,11 +136,10 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 									bidirectional = true;
 									break;
 								}
-
 							}
 						}
 						if(bidirectional == false)
-							relatedClassDetails.getOwnedRelations().get(Constants.MANY_TO_ONE).add(cName);
+							relatedClassDetails.getOwnedRelations().get(Constants.MANY_TO_ONE).add(classDetails);
 
 					}
 				}

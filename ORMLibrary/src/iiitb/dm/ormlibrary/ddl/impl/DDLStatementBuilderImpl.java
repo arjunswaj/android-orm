@@ -24,7 +24,6 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 	private final String DDL_TAG = "DDL STATEMENT BUILDER";
 	private Map<String, ClassDetails> classDetailsMap;
 
-
 	public DDLStatementBuilderImpl(Map<String, ClassDetails> classDetailsMap)
 	{
 		this.classDetailsMap = classDetailsMap;
@@ -141,9 +140,8 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 		}
 
 		// Scan through owned Relations and create columns and foreign key constraints
-		for(String className : classDetails.getOwnedRelations().get(Constants.MANY_TO_ONE))
+		for(ClassDetails relatedClassDetails : classDetails.getOwnedRelations().get(Constants.MANY_TO_ONE))
 		{
-			ClassDetails relatedClassDetails = classDetailsMap.get(className);
 			columnName = "";
 			columnType = "";
 			for(FieldTypeDetails fieldTypeDetails : relatedClassDetails.getFieldTypeDetails())

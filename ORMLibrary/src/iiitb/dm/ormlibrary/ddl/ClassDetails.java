@@ -1,6 +1,7 @@
 package iiitb.dm.ormlibrary.ddl;
 
 import iiitb.dm.ormlibrary.utils.Constants;
+import iiitb.dm.ormlibrary.utils.RelationshipType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,18 +38,21 @@ public class ClassDetails {
    */
   private List<ClassDetails> subClassDetails;
   
-  
   /**
    * Map from relationship type to list of classes to which this 
    * class is related, is owner and doesn't contain reference.
+   * 
+   * Note: A relationship type means one of one-to-one, one-to-many, 
+   * many-to-one or many-to-many.
+   * TODO: Can an enum be created for the type of the key of the map below?
    */
-  private Map<String, List<String>> ownedRelations;
+  private Map<RelationshipType, List<ClassDetails>> ownedRelations;
 
-  public Map<String, List<String>> getOwnedRelations() {
+  public Map<RelationshipType, List<ClassDetails>> getOwnedRelations() {
 	return ownedRelations;
 }
 
-public void setOwnedRelations(Map<String, List<String>> ownedRelations) {
+public void setOwnedRelations(Map<RelationshipType, List<ClassDetails>> ownedRelations) {
 	this.ownedRelations = ownedRelations;
 }
 
@@ -60,11 +64,11 @@ public ClassDetails(String className,
     this.annotationOptionValues = annotationOptionValues;
     this.fieldTypeDetails = fieldTypeDetails;
     subClassDetails = new LinkedList<ClassDetails>();
-    ownedRelations = new HashMap<String,List<String>>();
-    ownedRelations.put(Constants.ONE_TO_MANY, new ArrayList<String>());
-    ownedRelations.put(Constants.MANY_TO_ONE, new ArrayList<String>());
-    ownedRelations.put(Constants.MANY_TO_MANY, new ArrayList<String>());
-    ownedRelations.put(Constants.ONE_TO_ONE, new ArrayList<String>());
+    ownedRelations = new HashMap<RelationshipType,List<ClassDetails>>();
+    ownedRelations.put(RelationshipType.ONE_TO_MANY, new ArrayList<ClassDetails>());
+    ownedRelations.put(RelationshipType.MANY_TO_ONE, new ArrayList<ClassDetails>());
+    ownedRelations.put(RelationshipType.MANY_TO_MANY, new ArrayList<ClassDetails>());
+    ownedRelations.put(RelationshipType.ONE_TO_ONE, new ArrayList<ClassDetails>());
   }
   
   public String getColumnsDescription() {
