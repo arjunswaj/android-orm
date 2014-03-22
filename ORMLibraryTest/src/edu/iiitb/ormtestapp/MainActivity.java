@@ -275,11 +275,11 @@ public class MainActivity extends Activity {
         "testDB.sqlite", null, 1);
 
     testPersistence(ormHelper);
-    // testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    // testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
-    // testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
-    // testPersistenceOfComposition(ormHelper);
-    // testManyToManyPersistance(ormHelper);
+    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+    testPersistenceOfComposition(ormHelper);
+    testManyToManyPersistance(ormHelper);
 
     testQueryByCursor(ormHelper);
 
