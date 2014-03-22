@@ -1,6 +1,7 @@
 package iiitb.dm.ormlibrary.query;
 
 import iiitb.dm.ormlibrary.query.criterion.Order;
+import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
 
 import java.util.List;
 
@@ -15,6 +16,6 @@ public interface Criteria {
 
   Cursor cursor();
   
-  Criteria setProjection(Projection projection);
+  Criteria setProjection(ProjectionList projectionList);
   
 }
