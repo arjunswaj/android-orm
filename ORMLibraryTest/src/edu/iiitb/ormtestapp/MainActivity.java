@@ -248,6 +248,15 @@ public class MainActivity extends Activity {
           + student.getAge() + ", address: " + student.getAddress() + ", cgpa: " + student.getCgpa() + ", college: "
           + student.getCollege());
     }
+    
+    criteria = ormHelper
+        .createCriteria(Intern.class);
+    List<Intern> internList = criteria.list();
+    for(Intern intern: internList) {
+      Log.d("QUERY BY LIST", "id: " + intern.getId() + 
+          ", stipend: " + intern.getStipend() + ", hourly rate: " 
+          + intern.getHourlyRate() + ", name: "+ intern.getName());
+    }
   }
   
   @Override
