@@ -2,6 +2,7 @@ package edu.iiitb.ormtestapp;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import edu.iiitb.ormtestapp.composition.eo.Capital;
 import edu.iiitb.ormtestapp.composition.eo.Country;
@@ -267,6 +268,25 @@ public class MainActivity extends Activity {
     cursor.close();
   }
 
+  private void testQueryByList(ORMHelper ormHelper) {
+    Criteria criteria = ormHelper
+        .createCriteria(Student.class)
+        .add(Restrictions.like("NAME", "Name%"))
+        .add(
+            Restrictions.and(Restrictions.gt("CGPA", 1.0),
+                Restrictions.lt("CGPA", 4.0)))
+        .add(
+            Restrictions.or(Restrictions.eq("AGE", 23),
+                Restrictions.like("COLLEGE", "IIIT-B 0")))
+        .add(Restrictions.eq("ADDRESS", "Address 5"));
+    List<Student> studentList = criteria.list();
+    for(Student student: studentList) {
+      Log.d("QUERY BY LIST", "id: " + student.get_id() + ", name: " + student.getName() + ", age: "
+          + student.getAge() + ", address: " + student.getAddress() + ", cgpa: " + student.getCgpa() + ", college: "
+          + student.getCollege());
+    }
+  }
+  
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -275,14 +295,16 @@ public class MainActivity extends Activity {
         "testDB.sqlite", null, 1);
 
     testPersistence(ormHelper);
-    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
-    testPersistenceOfComposition(ormHelper);
-    testManyToManyPersistance(ormHelper);
-
-    testQueryByCursor(ormHelper);
-
+//    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+//    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+//    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+//    testPersistenceOfComposition(ormHelper);
+//    testManyToManyPersistance(ormHelper);
+//
+//    testQueryByCursor(ormHelper);
+    testQueryByList(ormHelper);
+        
   }
+  
 
 }

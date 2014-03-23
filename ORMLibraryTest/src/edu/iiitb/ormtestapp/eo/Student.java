@@ -21,7 +21,9 @@ public class Student {
   @Column(name = "COLLEGE")
   private String college;
 
-  
+  public Student() {
+    
+  }
   public Student(int age, String name, String address, float cgpa,
       String college) {
     super();

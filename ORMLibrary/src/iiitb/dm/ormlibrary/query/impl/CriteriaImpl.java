@@ -1,13 +1,20 @@
 package iiitb.dm.ormlibrary.query.impl;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.Entity;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import iiitb.dm.ormlibrary.ddl.ClassDetails;
+import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.Criterion;
 import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
@@ -16,6 +23,10 @@ import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
 import iiitb.dm.ormlibrary.query.criterion.PropertyProjection;
 import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
 import iiitb.dm.ormlibrary.query.Projection;
+import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
+import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
+import iiitb.dm.ormlibrary.utils.Constants;
+import iiitb.dm.ormlibrary.utils.Utils;
 
 public class CriteriaImpl implements Criteria {
 
@@ -30,6 +41,7 @@ public class CriteriaImpl implements Criteria {
   private String orderBy;
   private String limit;
   private ProjectionList projectionList;
+  private AnnotationsScanner annotationsScanner = new AnnotationsScannerImpl();
   /**
    * sqliteDatabase
    */
@@ -104,22 +116,91 @@ public class CriteriaImpl implements Criteria {
     Cursor cursor = null;
     try {
       Class<?> eoClass = Class.forName(entityOrClassName);
-      Entity entity = eoClass.getAnnotation(Entity.class);
-      table = entity.name();
-      cursor = sqliteDatabase.query(distinct, table, columns, selection,
-          selectionArgs, groupBy, having, orderBy, limit);
+      ClassDetails classDetails = annotationsScanner
+          .getEntityObjectDetails(eoClass);
+      if (!selectionArgsList.isEmpty()) {
+        selectionArgs = new String[selectionArgsList.size()];
+        int index = 0;
+        for (String val : selectionArgsList) {
+          selectionArgs[index] = val;
+          index += 1;
+        }
+      }
+      String tableName = (String) classDetails.getAnnotationOptionValues()
+          .get(Constants.ENTITY).get(Constants.NAME);
+      Map<FieldTypeDetails, String> colFieldMap = new HashMap<FieldTypeDetails, String>();
+      StringBuilder sb = new StringBuilder();
+      sb.append("SELECT ");
+      String comma = "";
+      for (FieldTypeDetails ftd : classDetails.getFieldTypeDetails()) {
+        String col = (String) ftd.getAnnotationOptionValues()
+            .get(Constants.COLUMN).get(Constants.NAME);
+        String asCol = tableName + "_" + col;
+        colFieldMap.put(ftd, asCol);
+        sb.append(comma).append(col).append(" AS ").append(asCol);
+        comma = ", ";
+      }
+      sb.append(" FROM ").append(tableName).append(" ");
+      sb.append("WHERE ").append(selection);
+      sb.append(";");
+      String sql = sb.toString();
+      Log.d("Generated SQL", sql);
+      cursor = sqliteDatabase.rawQuery(sql, selectionArgs);
       if (cursor.moveToFirst()) {
         do {
           Object eo = eoClass.newInstance();
-
+          for (Entry<FieldTypeDetails, String> colField: colFieldMap.entrySet()) {
+            String field = colField.getKey().getFieldName();
+            String setterMethodName = Utils.getSetterMethodName(field);
+            
+            String fieldType = colField.getKey().getFieldType().getSimpleName();
+            String colName = colField.getValue();            
+            if (fieldType.equals("String")) {                            
+              Method setterMethod = eoClass.getMethod(setterMethodName, String.class);
+              String args = cursor.getString(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);              
+            } else if (fieldType.equals("Float")) {              
+              Method setterMethod = eoClass.getMethod(setterMethodName, Float.class);
+              float args = cursor.getFloat(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);     
+            } else if (fieldType.equals("float")) {              
+              Method setterMethod = eoClass.getMethod(setterMethodName, float.class);
+              float args = cursor.getFloat(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);     
+            } else if (fieldType.equals("Integer")) {              
+              Method setterMethod = eoClass.getMethod(setterMethodName, Integer.class);
+              int args = cursor.getInt(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);     
+            } else if (fieldType.equals("int")) {              
+              Method setterMethod = eoClass.getMethod(setterMethodName, int.class);
+              int args = cursor.getInt(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);     
+            } else if (fieldType.equals("Long")) {              
+              Method setterMethod = eoClass.getMethod(setterMethodName, Long.class);
+              long args = cursor.getLong(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);     
+            } else if (fieldType.equals("long")) {              
+              Method setterMethod = eoClass.getMethod(setterMethodName, long.class);
+              long args = cursor.getLong(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);     
+            } 
+                        
+          }
           result.add(eo);
         } while (cursor.moveToNext());
+        cursor.close();
       }
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
     } catch (InstantiationException e) {
       e.printStackTrace();
     } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    } catch (NoSuchMethodException e) {
       e.printStackTrace();
     }
     return result;
@@ -160,7 +241,7 @@ public class CriteriaImpl implements Criteria {
           comma = ", ";
         }
         sb.append(" ");
-      }      
+      }
       sb.append("FROM ");
       sb.append(table).append(" ");
       sb.append("WHERE ").append(selection);

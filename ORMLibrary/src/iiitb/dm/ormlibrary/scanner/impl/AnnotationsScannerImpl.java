@@ -42,14 +42,14 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 		List<String> eoNames = new ArrayList<String>();
 		while (eventType != XmlPullParser.END_DOCUMENT) {
 			if (eventType == XmlPullParser.START_DOCUMENT) {
-				// Log.d(XML_TAG, "We don't need this for now.");
+				// Log.v(XML_TAG, "We don't need this for now.");
 			} else if (eventType == XmlPullParser.START_TAG) {
-				// Log.d(XML_TAG, "We don't need this for now.");
+				// Log.v(XML_TAG, "We don't need this for now.");
 			} else if (eventType == XmlPullParser.END_TAG) {
-				// Log.d(XML_TAG, "We don't need this for now.");
+				// Log.v(XML_TAG, "We don't need this for now.");
 			} else if (eventType == XmlPullParser.TEXT) {
 				eoNames.add(xpp.getText());
-				Log.d(XML_TAG, "ClassName: " + xpp.getText());
+				Log.v(XML_TAG, "ClassName: " + xpp.getText());
 			}
 			eventType = xpp.next();
 		}
@@ -90,7 +90,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 				if (superClassDetails != null) {
 					superClassDetails.getSubClassDetails().add(
 							classDetailsMap.get(subClass.getName()));
-					Log.d(this.getClass().getName(), subClass.getName() + " extends "
+					Log.v(this.getClass().getName(), subClass.getName() + " extends "
 							+ superClassDetails.getClassName());
 				}
 			}
@@ -168,13 +168,13 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 		for (Annotation annotation : classAnnotations) {
 			Map<String, Object> classOptionValues = new HashMap<String, Object>();
 			String classAnnotationName = annotation.annotationType().getSimpleName();
-			Log.d(ANNOTATION_TAG, "ClassAnnotationName: " + classAnnotationName);
+			Log.v(ANNOTATION_TAG, "ClassAnnotationName: " + classAnnotationName);
 
 			// All the Key/Value Props
 			for (Method method : annotation.annotationType().getDeclaredMethods()) {
 				String propKey = method.getName();
 				Object propVal = method.invoke(annotation, null);
-				Log.d(ANNOTATION_TAG, "Class Annotations Props: " + propKey + ": "
+				Log.v(ANNOTATION_TAG, "Class Annotations Props: " + propKey + ": "
 						+ propVal);
 				classOptionValues.put(propKey, propVal);
 			}
@@ -186,7 +186,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 
 		for (Field field : fields) {
 			FieldTypeDetails fieldTypeDetail = new FieldTypeDetails();
-			Log.d(ANNOTATION_TAG, "FieldName: " + field.getName());
+			Log.v(ANNOTATION_TAG, "FieldName: " + field.getName());
 			Annotation[] fieldAnnotations = field.getAnnotations();
 
       Map<String, Map<String, Object>> fieldAnnotationOptionValues = new HashMap<String, Map<String, Object>>();
@@ -195,13 +195,13 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
         Map<String, Object> fieldOptionValues = new HashMap<String, Object>();
         String fieldAnnotationName = annotation.annotationType()
             .getSimpleName();
-        Log.d(ANNOTATION_TAG, "fieldAnnotationName: " + fieldAnnotationName);
+        Log.v(ANNOTATION_TAG, "fieldAnnotationName: " + fieldAnnotationName);
 
         // All the Key/Value Props
         for (Method method : annotation.annotationType().getDeclaredMethods()) {
           String propKey = method.getName();
           Object propVal = method.invoke(annotation, null);
-          Log.d(ANNOTATION_TAG, "Field Annotations Props: " + propKey + ": "
+          Log.v(ANNOTATION_TAG, "Field Annotations Props: " + propKey + ": "
               + propVal);
           fieldOptionValues.put(propKey, propVal);
         }
