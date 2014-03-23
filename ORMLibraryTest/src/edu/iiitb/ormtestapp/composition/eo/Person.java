@@ -21,7 +21,7 @@ public class Person
 	private String name;
 
 	@ManyToMany
-	@JoinTable(name = "PERSON_PATENT", joinColumns = @JoinColumn(name = "_id"), inverseJoinColumns = @JoinColumn(name = "_id"))
+	@JoinTable(name = "PERSON_PATENT", joinColumns = @JoinColumn(name = "PERSON_ID"), inverseJoinColumns = @JoinColumn(name = "PATENT_ID"))
 	private Collection<Patent> patents;
 
 	public Person(String name)

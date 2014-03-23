@@ -120,11 +120,9 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 						}
 						Class<?> relatedClass = (Class<?>)genericType.getActualTypeArguments()[0];
 						ClassDetails relatedClassDetails = classDetailsMap.get(relatedClass.getName());
-						
-						// Assume that this class is the owner of the one-to-many
-						//   relationship initially
- 						// Then check if related class contains a reference back to this class.
 						boolean bidirectional = false;
+						
+ 						// Then check if related class contains a reference back to this class.
 						if(fieldTypeDetails.getAnnotationOptionValues().get(Constants.ONE_TO_MANY).get(Constants.MAPPED_BY) != "")
 						{
 							for(FieldTypeDetails relatedFieldTypeDetails : relatedClassDetails.getFieldTypeDetails())
@@ -139,6 +137,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 								}
 							}
 						}
+						// Don't add if bidirectional(ManyToOne) as foreign key constraint will be created as a part of regular table creation
 						if(bidirectional == false)
 							relatedClassDetails.getOwnedRelations().get(RelationshipType.MANY_TO_ONE).add(classDetails);
 

@@ -313,17 +313,13 @@ public class ORMHelper extends SQLiteOpenHelper {
 			JoinColumn[] joinColumns = (JoinColumn[]) fieldTypeDetail
 				.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
 				.get(Constants.JOIN_COLUMNS);
-			// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
-			// as we neither support multiple join columns and the name of the
-			// primary is standardised?(_id)
+			// TODO: What about multiple join columns?
 			String joinColumnName = joinColumns[0].name();
 
 			JoinColumn[] inverseJoinColumns = (JoinColumn[]) fieldTypeDetail
 					.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
 					.get(Constants.INVERSE_JOIN_COLUMNS);
-			// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
-			// as we neither support multiple join columns and the name of the
-			// primary is standardised?(_id)
+			// TODO: What about multiple join columns?
 			String inverseJoinColumnName = inverseJoinColumns[0].name();
 					
 			ParameterizedType pType = (ParameterizedType) fieldTypeDetail
@@ -349,13 +345,13 @@ public class ORMHelper extends SQLiteOpenHelper {
 			for (Object composedObject : composedObjectCollection)
 			{
 				ContentValues joinTableContentValues = new ContentValues();
-				joinTableContentValues.put(tableName + "_"
-						+ joinColumnName, genId);
-				joinTableContentValues.put(ownedTableName + "_"
-						+ inverseJoinColumnName,
+				joinTableContentValues.put(joinColumnName, genId);
+				joinTableContentValues.put(inverseJoinColumnName,
 						save(composedObject, -1L, null));
-				getWritableDatabase().insert(joinTableName, null,
-				    joinTableContentValues);
+				if (getWritableDatabase().insert(joinTableName, null,
+				    joinTableContentValues) == -1)
+					Log.e(SAVE_OBJECT_TAG, "Error inserting into database");
+					
 			}
         }
       }

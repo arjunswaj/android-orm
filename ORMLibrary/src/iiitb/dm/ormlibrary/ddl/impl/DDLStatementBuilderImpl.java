@@ -73,7 +73,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 									+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 									.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
 							Log.d(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
-							columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), "_id");
+							columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID);
 						}
 						else{
 							foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
@@ -98,7 +98,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 						+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 						.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
 				Log.d(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
-				columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), "_id");
+				columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID);
 			}
 			else if (fieldTypeDetail.getAnnotationOptionValues().get(
 					Constants.MANY_TO_MANY) != null)
@@ -166,7 +166,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 						if((Class<?>)genericType.getActualTypeArguments()[0] == Class.forName(classDetails.getClassName()))
 						{
 							columnName = (String) fieldTypeDetails.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
-							columnType = getColumnType(relatedClassDetails.getFieldTypeDetails(), "_id");
+							columnType = getColumnType(relatedClassDetails.getFieldTypeDetails(), Constants.ID);
 							columnConstraints = new ArrayList<String>();
 							foreignKeyConstraint.append(" , FOREIGN KEY(" + columnName + ") REFERENCES " 
 									+ relatedClassDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME)
@@ -243,6 +243,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 	}
 
 
+	// TODO: Can be replaced with ClassDetails.getFieldTypeDetailsByColumnName(String columnName)
 	private String getColumnType(List<FieldTypeDetails> fieldTypeDetailsList, String columnName)
 	{
 		String type = null;
@@ -282,11 +283,12 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 
 	}
 
+	// TODO: Need to fix the owner-owned symantics here
 	/**
 	 * Generates the join table for the m:n relation 
 	 * 
-	 * @param owner The ClassDetails object of the owner class
-	 * @param owned The ClassDetails object of the owner class
+	 * @param m The ClassDetails object of the owner class
+	 * @param n The ClassDetails object of the owned class
 	 * @param mappedField The field containing the mapping details of the m:n 
 	 * relation in the owner class
 	 * @return SQL statement for creation of the join table
@@ -304,21 +306,17 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 		String ownedTableName = (String) owned.getAnnotationOptionValues()
 				.get(Constants.ENTITY).get(Constants.NAME);
 
-		// join table name
-		// TODO: If the JPA specifications(conventions?) are to be followed
-		// is @JoinTable really required??
+		// Join table name
 		String joinTableName = (String) mappedField.getAnnotationOptionValues()
 				.get(Constants.JOIN_TABLE).get(Constants.NAME);
 
 		JoinColumn[] joinColumns = (JoinColumn[]) mappedField
 				.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
 				.get(Constants.JOIN_COLUMNS);
-		// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
-		// as we neither support multiple join columns and the name of the
-		// primary is standardised?(_id)
+		// TODO: What about multiple join columns?
 		String joinColumnName = joinColumns[0].name();
 		FieldTypeDetails joinColumnFieldTypeDetails = owner
-				.getFieldTypeDetailsByColumnName(joinColumnName); // assuming
+				.getFieldTypeDetailsByColumnName(Constants.ID); // assuming
 																	// validation
 																	// is done
 		String joinColumnType = SQLColTypeEnumMap.get(
@@ -328,12 +326,10 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 		JoinColumn[] inverseJoinColumns = (JoinColumn[]) mappedField
 				.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
 				.get(Constants.INVERSE_JOIN_COLUMNS);
-		// TODO: What about multiple join columns? Isn't @JOIN_COLUMNS redundant
-		// as we neither support multiple join columns and the name of the
-		// primary is standardised?(_id)
+		// TODO: What about multiple join columns?
 		String inverseJoinColumnName = inverseJoinColumns[0].name();
 		FieldTypeDetails inverseJoinColumnFieldTypeDetails = owned
-				.getFieldTypeDetailsByColumnName(inverseJoinColumnName); // assuming
+				.getFieldTypeDetailsByColumnName(Constants.ID); // assuming
 																			// validation
 																			// is
 																			// done
@@ -341,14 +337,13 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 				inverseJoinColumnFieldTypeDetails.getFieldType()
 						.getSimpleName()).toString();
 
-		// TODO: can kumudini's ColumnDescription infrastructure be used??
 		String createStmt = "create table " + joinTableName + "("
-				+ (ownerTableName + "_" + joinColumnName) + " "
+				+ joinColumnName + " "
 				+ joinColumnType + " references " + ownerTableName + "("
-				+ joinColumnName + "), "
-				+ (ownedTableName + "_" + inverseJoinColumnName) + " "
+				+ Constants.ID + "), "
+				+ inverseJoinColumnName + " "
 				+ inverseJoinColumnType + " references " + ownedTableName + "("
-				+ inverseJoinColumnName + "))";
+				+ Constants.ID + "))";
 		Log.d(DDL_TAG, createStmt);
 
 		return createStmt;

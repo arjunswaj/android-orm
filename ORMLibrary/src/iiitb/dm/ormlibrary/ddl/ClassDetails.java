@@ -40,11 +40,7 @@ public class ClassDetails {
   
   /**
    * Map from relationship type to list of classes to which this 
-   * class is related, is owner and doesn't contain reference.
-   * 
-   * Note: A relationship type means one of one-to-one, one-to-many, 
-   * many-to-one or many-to-many.
-   * TODO: Can an enum be created for the type of the key of the map below?
+   * class is related, is owner and doesn't contain reference. 
    */
   private Map<RelationshipType, List<ClassDetails>> ownedRelations;
 
