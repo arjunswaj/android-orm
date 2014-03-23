@@ -13,15 +13,15 @@ import javax.persistence.InheritanceType;
 public abstract class Employee {
   @Id
   @Column(name = "_id")
-  private int id;
+  private long id;
   @Column(name = "NAME")
   private String name;
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 

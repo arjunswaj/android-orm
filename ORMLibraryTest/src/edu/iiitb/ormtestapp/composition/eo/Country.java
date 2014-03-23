@@ -13,7 +13,7 @@ import javax.persistence.OneToOne;
 public class Country {
   @Id
   @Column(name = "_id")
-  private int id;
+  private long id;
   @Column(name = "NAME")
   private String name;
   @OneToOne
@@ -23,11 +23,11 @@ public class Country {
   @JoinColumn(name = "COUNTRY_ID")
   private Collection<State> states;
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 

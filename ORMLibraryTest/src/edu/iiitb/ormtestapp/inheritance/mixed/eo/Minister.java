@@ -11,15 +11,15 @@ import javax.persistence.InheritanceType;
 public class Minister {
   @Id
   @Column(name = "_id")
-  private int id;
+  private long id;
   @Column(name = "STATE")
   private String state;
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 

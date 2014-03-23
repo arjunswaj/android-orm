@@ -9,7 +9,7 @@ public class Course {
 
   @Id
   @Column(name = "_id")
-  private int _id;
+  private long id;
   @Column(name = "CREDITS")
   private int credits;
   @Column(name = "COURSE_NAME")
@@ -17,12 +17,12 @@ public class Course {
   @Column(name = "COURSE_DESCRIPTION")
   private String courseDescription;
 
-  public int get_id() {
-    return _id;
+  public long getId() {
+    return id;
   }
 
-  public void set_id(int _id) {
-    this._id = _id;
+  public void setId(long id) {
+    this.id = id;
   }
 
   public int getCredits() {

@@ -56,7 +56,21 @@ public class ORMHelper extends SQLiteOpenHelper {
 
   public void persist(Object obj) {
     long genId = save(obj, -1L, null);
-    // TODO: put this id in the Obj by invoking set_id(genId)
+    Method setterMethod;
+    try {
+      setterMethod = obj.getClass().getMethod("setId", long.class);
+      setterMethod.invoke(obj, genId);
+    } catch (NoSuchMethodException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    }
+    Log.d(SAVE_OBJECT_TAG, "Saved: " + obj.getClass().getSimpleName()
+        + " Generated Id: " + genId);
   }
 
   /**

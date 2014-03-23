@@ -230,44 +230,7 @@ public class MainActivity extends Activity {
     person.setPatents(patents);
     ormHelper.persist(person);
   }
-
-  private void testQueryByCursor(ORMHelper ormHelper) {
-    Criteria criteria = ormHelper
-        .createCriteria(Student.class)
-        .add(Restrictions.like("NAME", "Name%"))
-        .add(
-            Restrictions.and(Restrictions.gt("CGPA", 1.0),
-                Restrictions.lt("CGPA", 4.0)))
-        .add(
-            Restrictions.or(Restrictions.eq("AGE", 23),
-                Restrictions.like("COLLEGE", "IIIT-B 0")))
-        .add(Restrictions.eq("ADDRESS", "Address 5"))
-        .setProjection(
-            Projections.projectionList().add(Projections.property("_id"))
-                .add(Projections.property("NAME"))
-                .add(Projections.property("AGE"))
-                .add(Projections.property("ADDRESS"))
-                .add(Projections.property("CGPA"))
-                .add(Projections.property("COLLEGE")));
-
-    Cursor cursor = criteria.cursor();
-    if (cursor.moveToFirst()) {
-      do {
-        long id = cursor.getLong(cursor.getColumnIndex("_id"));
-        String name = cursor.getString(cursor.getColumnIndex("NAME"));
-        int age = cursor.getInt(cursor.getColumnIndex("AGE"));
-        String address = cursor.getString(cursor.getColumnIndex("ADDRESS"));
-        float cgpa = cursor.getFloat(cursor.getColumnIndex("CGPA"));
-        String college = cursor.getString(cursor.getColumnIndex("COLLEGE"));
-
-        Log.d("QUERY BY CURSOR", "id: " + id + ", name: " + name + ", age: "
-            + age + ", address: " + address + ", cgpa: " + cgpa + ", college: "
-            + college);
-      } while (cursor.moveToNext());
-    }
-    cursor.close();
-  }
-
+ 
   private void testQueryByList(ORMHelper ormHelper) {
     Criteria criteria = ormHelper
         .createCriteria(Student.class)
@@ -281,7 +244,7 @@ public class MainActivity extends Activity {
         .add(Restrictions.eq("ADDRESS", "Address 5"));
     List<Student> studentList = criteria.list();
     for(Student student: studentList) {
-      Log.d("QUERY BY LIST", "id: " + student.get_id() + ", name: " + student.getName() + ", age: "
+      Log.d("QUERY BY LIST", "id: " + student.getId() + ", name: " + student.getName() + ", age: "
           + student.getAge() + ", address: " + student.getAddress() + ", cgpa: " + student.getCgpa() + ", college: "
           + student.getCollege());
     }
@@ -295,13 +258,12 @@ public class MainActivity extends Activity {
         "testDB.sqlite", null, 1);
 
     testPersistence(ormHelper);
-//    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-//    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
-//    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
-//    testPersistenceOfComposition(ormHelper);
-//    testManyToManyPersistance(ormHelper);
-//
-//    testQueryByCursor(ormHelper);
+    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+    testPersistenceOfComposition(ormHelper);
+    testManyToManyPersistance(ormHelper);
+    
     testQueryByList(ormHelper);
         
   }
