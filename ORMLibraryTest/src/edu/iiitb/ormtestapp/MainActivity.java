@@ -2,6 +2,7 @@ package edu.iiitb.ormtestapp;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import edu.iiitb.ormtestapp.composition.eo.Capital;
 import edu.iiitb.ormtestapp.composition.eo.Country;
@@ -229,8 +230,8 @@ public class MainActivity extends Activity {
     person.setPatents(patents);
     ormHelper.persist(person);
   }
-
-  private void testQueryByCursor(ORMHelper ormHelper) {
+ 
+  private void testQueryByList(ORMHelper ormHelper) {
     Criteria criteria = ormHelper
         .createCriteria(Student.class)
         .add(Restrictions.like("NAME", "Name%"))
@@ -240,33 +241,64 @@ public class MainActivity extends Activity {
         .add(
             Restrictions.or(Restrictions.eq("AGE", 23),
                 Restrictions.like("COLLEGE", "IIIT-B 0")))
-        .add(Restrictions.eq("ADDRESS", "Address 5"))
-        .setProjection(
-            Projections.projectionList().add(Projections.property("_id"))
-                .add(Projections.property("NAME"))
-                .add(Projections.property("AGE"))
-                .add(Projections.property("ADDRESS"))
-                .add(Projections.property("CGPA"))
-                .add(Projections.property("COLLEGE")));
-
-    Cursor cursor = criteria.cursor();
-    if (cursor.moveToFirst()) {
-      do {
-        long id = cursor.getLong(cursor.getColumnIndex("_id"));
-        String name = cursor.getString(cursor.getColumnIndex("NAME"));
-        int age = cursor.getInt(cursor.getColumnIndex("AGE"));
-        String address = cursor.getString(cursor.getColumnIndex("ADDRESS"));
-        float cgpa = cursor.getFloat(cursor.getColumnIndex("CGPA"));
-        String college = cursor.getString(cursor.getColumnIndex("COLLEGE"));
-
-        Log.d("QUERY BY CURSOR", "id: " + id + ", name: " + name + ", age: "
-            + age + ", address: " + address + ", cgpa: " + cgpa + ", college: "
-            + college);
-      } while (cursor.moveToNext());
+        .add(Restrictions.eq("ADDRESS", "Address 5"));
+    List<Student> studentList = criteria.list();
+    for(Student student: studentList) {
+      Log.d("QUERY BY LIST", "id: " + student.getId() + ", name: " + student.getName() + ", age: "
+          + student.getAge() + ", address: " + student.getAddress() + ", cgpa: " + student.getCgpa() + ", college: "
+          + student.getCollege());
     }
-    cursor.close();
+    
+    criteria = ormHelper
+        .createCriteria(Intern.class);
+    List<Intern> internList = criteria.add(
+        Restrictions.and(Restrictions.ge("stipend", 202),
+            Restrictions.le("stipend", 203))).list();
+    for(Intern intern: internList) {
+      Log.d("QUERY BY LIST", "id: " + intern.getId() + 
+          ", stipend: " + intern.getStipend() + ", hourly rate: " 
+          + intern.getHourlyRate() + ", name: "+ intern.getName());
+    }
+    
+    criteria = ormHelper
+        .createCriteria(Ford.class);
+    List<Ford> fordList = criteria.add(
+        Restrictions.gt("horse_power", 888)).list();
+    for(Ford ford: fordList) {
+      Log.d(
+          "QUERY BY LIST",
+          "id: " + ford.getId() + ", color: " + ford.getColor()
+              + ", horse power: " + ford.getHorsePower() + ", mfg: "
+              + ford.getMfgYear() + ", model: " + ford.getModel());
+    }
+    
+    criteria = ormHelper.createCriteria(Footballer.class);
+    List<Footballer> footballerList = criteria.add(
+        Restrictions.or(Restrictions.ge("goals", 95),
+            Restrictions.lt("goals", 94))).list();
+    for (Footballer footballer : footballerList) {
+      Log.d("QUERY BY LIST", "id: " + footballer.getId() + ", goals: "
+          + footballer.getGoals() + ", name: " + footballer.getName()
+          + ", team: " + footballer.getTeam());
+    }
+    
+    criteria = ormHelper.createCriteria(Sportsman.class);
+    List<Sportsman> sportsmanList = criteria.list();
+    for (Sportsman sportsman : sportsmanList) {
+      Log.d("QUERY BY LIST", "id: " + sportsman.getId()
+          + ", name: " + sportsman.getName());
+    }
+    
+    criteria = ormHelper.createCriteria(PrimeMinister.class);
+    List<PrimeMinister> primeMinisters = criteria.add(
+        Restrictions.eq("state", "Gujarat 2")).list();
+    for (PrimeMinister pm : primeMinisters) {
+      Log.d("QUERY BY LIST", "id: " + pm.getId() + ", age: " + pm.getAge()
+          + ", portfolio: " + pm.getPortfolio() + ", salary: " + pm.getSalary()
+          + ", state: " + pm.getState());
+    }
   }
-
+  
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -280,9 +312,10 @@ public class MainActivity extends Activity {
     testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
     testPersistenceOfComposition(ormHelper);
     testManyToManyPersistance(ormHelper);
-
-    testQueryByCursor(ormHelper);
-
+    
+    testQueryByList(ormHelper);
+        
   }
+  
 
 }

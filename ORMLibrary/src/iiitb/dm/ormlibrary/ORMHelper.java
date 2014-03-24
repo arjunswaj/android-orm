@@ -55,7 +55,21 @@ public class ORMHelper extends SQLiteOpenHelper {
 
   public void persist(Object obj) {
     long genId = save(obj, -1L, null);
-    // TODO: put this id in the Obj by invoking set_id(genId)
+    Method setterMethod;
+    try {
+      setterMethod = obj.getClass().getMethod("setId", long.class);
+      setterMethod.invoke(obj, genId);
+    } catch (NoSuchMethodException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    }
+    Log.d(SAVE_OBJECT_TAG, "Saved: " + obj.getClass().getSimpleName()
+        + " Generated Id: " + genId);
   }
 
   /**
@@ -64,7 +78,7 @@ public class ORMHelper extends SQLiteOpenHelper {
    * @return Criteria Instance
    */
   public Criteria createCriteria(Class<?> entity) {
-    return new CriteriaImpl(entity.getName(), getReadableDatabase());
+    return new CriteriaImpl(entity.getName(), getReadableDatabase(), mappingCache);
   }
   
   
@@ -194,7 +208,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 
     if (-1L != id) {
       contentValues.put(Constants.ID, id);
-      Log.d(SAVE_OBJECT_TAG, "Col: _id " + ", Val: " + id);
+      Log.v(SAVE_OBJECT_TAG, "Col: _id " + ", Val: " + id);
     }
     genId = getWritableDatabase().insert(tableName, null, contentValues);
     return genId;
@@ -237,7 +251,7 @@ public class ORMHelper extends SQLiteOpenHelper {
           // Don't add the id obtained from getter, it has to be auto generated
           if (!columnName.equals(Constants.ID) && !columnName.equals(Constants.ID_CAPS)) {
             contentValues.put(columnName, columnValue);
-            Log.d(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
+            Log.v(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
                 + columnValue);
           }
         } else if (null != fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE)) {
@@ -264,7 +278,7 @@ public class ORMHelper extends SQLiteOpenHelper {
             .getSubClassDetails().get(0).getAnnotationOptionValues()
             .get(Constants.DISCRIMINATOR_VALUE).get(Constants.VALUE);
         contentValues.put(discriminatorColumn, discriminatorValue);
-        Log.d(SAVE_OBJECT_TAG, "DiscriminatorCol: " + discriminatorColumn
+        Log.v(SAVE_OBJECT_TAG, "DiscriminatorCol: " + discriminatorColumn
             + ", DiscriminatorVal: " + discriminatorValue);
       }
 
@@ -279,7 +293,7 @@ public class ORMHelper extends SQLiteOpenHelper {
       if (-1L != id) {
         // Okay, add id only if explicitly passed
         contentValues.put(Constants.ID, id);
-        Log.d(SAVE_OBJECT_TAG, "Col: _id " + ", Val: " + id);
+        Log.v(SAVE_OBJECT_TAG, "Col: _id " + ", Val: " + id);
       }
 
       genId = getWritableDatabase().insert(tableName, null, contentValues);
@@ -398,7 +412,7 @@ public class ORMHelper extends SQLiteOpenHelper {
         // Don't add the id from getter, it has to be auto generated
         if (!columnName.equals(Constants.ID) && !columnName.equals(Constants.ID_CAPS)) {
           kvp.put(columnName, columnValue);
-          Log.d(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: " + columnValue);
+          Log.v(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: " + columnValue);
         }
       }
     } catch (ClassNotFoundException e) {
@@ -429,7 +443,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 			Map.Entry<String, ClassDetails> pairs = (Map.Entry<String, ClassDetails>) iterator.next();
 			ClassDetails classDetails = (ClassDetails) pairs.getValue();
 			try {
-				Log.d("ORM Helper OnCreate",
+				Log.v("ORM Helper OnCreate",
 						Class.forName(classDetails.getClassName())
 								.getSuperclass() + " " + Object.class);
 				if (Object.class == Class.forName(classDetails.getClassName())
@@ -462,7 +476,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 					.generateCreateTableStmts(classDetails);
 			for (String stmt : stmts)
 			{
-				Log.d("CreateTablesForHeirarchy", stmt);
+				Log.v("CreateTablesForHeirarchy", stmt);
 				db.execSQL(stmt);
 			}
 		}

@@ -54,7 +54,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 		for (FieldTypeDetails fieldTypeDetail : classDetails
 				.getFieldTypeDetails())
 		{
-			Log.d(DDL_TAG, " " + classDetails.getClassName() + " " +fieldTypeDetail.getFieldName() );
+			Log.v(DDL_TAG, " " + classDetails.getClassName() + " " +fieldTypeDetail.getFieldName() );
 			columnName = "";
 			columnType= "";
 			columnConstraints = new ArrayList<String>();
@@ -72,7 +72,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 							foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
 									+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 									.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
-							Log.d(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
+							Log.v(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
 							columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID);
 						}
 						else{
@@ -97,7 +97,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 				foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
 						+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 						.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
-				Log.d(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
+				Log.v(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
 				columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID);
 			}
 			else if (fieldTypeDetail.getAnnotationOptionValues().get(

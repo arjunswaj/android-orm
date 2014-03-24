@@ -9,7 +9,7 @@ public class Student {
 
   @Id
   @Column(name = "_id")
-  private int _id;
+  private long id;
   @Column(name = "AGE")
   private int age;
   @Column(name = "NAME")
@@ -21,7 +21,9 @@ public class Student {
   @Column(name = "COLLEGE")
   private String college;
 
-  
+  public Student() {
+    
+  }
   public Student(int age, String name, String address, float cgpa,
       String college) {
     super();
@@ -32,12 +34,12 @@ public class Student {
     this.college = college;
   }
 
-  public int get_id() {
-    return _id;
+  public long getId() {
+    return id;
   }
 
-  public void set_id(int _id) {
-    this._id = _id;
+  public void setId(long id) {
+    this.id = id;
   }
 
   public int getAge() {

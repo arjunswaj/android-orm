@@ -1,13 +1,21 @@
 package iiitb.dm.ormlibrary.query.impl;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.Entity;
+import javax.persistence.InheritanceType;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import iiitb.dm.ormlibrary.ddl.ClassDetails;
+import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.Criterion;
 import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
@@ -16,6 +24,10 @@ import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
 import iiitb.dm.ormlibrary.query.criterion.PropertyProjection;
 import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
 import iiitb.dm.ormlibrary.query.Projection;
+import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
+import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
+import iiitb.dm.ormlibrary.utils.Constants;
+import iiitb.dm.ormlibrary.utils.Utils;
 
 public class CriteriaImpl implements Criteria {
 
@@ -30,6 +42,8 @@ public class CriteriaImpl implements Criteria {
   private String orderBy;
   private String limit;
   private ProjectionList projectionList;
+  private AnnotationsScanner annotationsScanner = new AnnotationsScannerImpl();
+  private Map<String, ClassDetails> mappingCache;
   /**
    * sqliteDatabase
    */
@@ -39,9 +53,10 @@ public class CriteriaImpl implements Criteria {
    */
   private String entityOrClassName;
 
-  public CriteriaImpl(String entityOrClassName, SQLiteDatabase sqliteDatabase) {
+  public CriteriaImpl(String entityOrClassName, SQLiteDatabase sqliteDatabase, Map<String, ClassDetails> mappingCache) {
     this.entityOrClassName = entityOrClassName;
     this.sqliteDatabase = sqliteDatabase;
+    this.mappingCache = mappingCache;
   }
 
   @Override
@@ -98,28 +113,211 @@ public class CriteriaImpl implements Criteria {
     return null;
   }
 
+  private ClassDetails fetchClassDetailsMapping(Class<?> objClass) {
+    ClassDetails subClassDetails = null;
+    String objClassName = objClass.getName();
+    ClassDetails superClassDetails = mappingCache.get(objClassName);
+    if (null == superClassDetails) {
+      Log.e("CACHE MISS", "CACHE MISS for " + objClass.getName());
+      do {
+        try {
+          superClassDetails = annotationsScanner
+              .getEntityObjectDetails(objClass);
+          if (null != subClassDetails) {
+            superClassDetails.getSubClassDetails().add(subClassDetails);
+          }
+          subClassDetails = superClassDetails;
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+          e.printStackTrace();
+        } catch (InvocationTargetException e) {
+          e.printStackTrace();
+        }
+
+      } while (Object.class != (objClass = objClass.getSuperclass()));
+      mappingCache.put(objClassName, superClassDetails);
+    }
+    return superClassDetails;
+  }
+
+  private void queryBuilder(String tableName, ClassDetails superClassDetails,
+      StringBuilder sb, Map<FieldTypeDetails, String> colFieldMap,
+      List<String> tableNames, List<FieldTypeDetails> otherAttributes, boolean first) {
+    String comma = ", ";
+    if (first) {
+      comma = "";
+    }
+    for (FieldTypeDetails ftd : superClassDetails.getFieldTypeDetails()) {
+      String col = (String) ftd.getAnnotationOptionValues()
+          .get(Constants.COLUMN).get(Constants.NAME);
+      String asCol = tableName.toLowerCase() + "_" + col;
+      colFieldMap.put(ftd, asCol);      
+      sb.append(comma).append(tableName.toLowerCase()).append(".").append(col)
+          .append(" AS ").append(asCol);
+      comma = ", ";
+    }
+    if (null != otherAttributes) {
+      for (FieldTypeDetails ftd : otherAttributes) {
+        String col = (String) ftd.getAnnotationOptionValues()
+            .get(Constants.COLUMN).get(Constants.NAME);
+        String asCol = tableName.toLowerCase() + "_" + col;
+        colFieldMap.put(ftd, asCol);
+        if (0 == sb.length()) {
+          comma = "";
+        }
+        sb.append(comma).append(tableName.toLowerCase()).append(".")
+            .append(col).append(" AS ").append(asCol);
+        comma = ", ";
+      }
+      otherAttributes.clear();
+    }
+    tableNames.add(tableName);
+  }
+
   @Override
   public List list() {
     List result = new ArrayList();
     Cursor cursor = null;
     try {
       Class<?> eoClass = Class.forName(entityOrClassName);
-      Entity entity = eoClass.getAnnotation(Entity.class);
-      table = entity.name();
-      cursor = sqliteDatabase.query(distinct, table, columns, selection,
-          selectionArgs, groupBy, having, orderBy, limit);
+      ClassDetails classDetails = fetchClassDetailsMapping(eoClass);
+      ClassDetails superClassDetails = classDetails;
+      if (!selectionArgsList.isEmpty()) {
+        selectionArgs = new String[selectionArgsList.size()];
+        int index = 0;
+        for (String val : selectionArgsList) {
+          selectionArgs[index] = val;
+          index += 1;
+        }
+      }
+
+      Map<FieldTypeDetails, String> colFieldMap = new HashMap<FieldTypeDetails, String>();
+      StringBuilder sb = new StringBuilder();
+      sb.append("SELECT ");
+
+      List<String> tableNames = new ArrayList<String>();
+      List<FieldTypeDetails> otherAttributes = new ArrayList<FieldTypeDetails>();
+      boolean first = true;
+      while (null != superClassDetails) {
+        String tableName = (String) superClassDetails
+            .getAnnotationOptionValues().get(Constants.ENTITY)
+            .get(Constants.NAME);
+        Map<String, Object> inheritanceOptions = superClassDetails
+            .getAnnotationOptionValues().get(Constants.INHERITANCE);
+        if (null == inheritanceOptions) {
+          queryBuilder(tableName, superClassDetails, sb, colFieldMap,
+              tableNames, otherAttributes, first);
+          first = false;
+        } else {
+          InheritanceType strategy = (InheritanceType) inheritanceOptions
+              .get(Constants.STRATEGY);
+          switch (strategy) {
+          case JOINED:
+            queryBuilder(tableName, superClassDetails, sb, colFieldMap,
+                tableNames, otherAttributes, first);
+            first = false;
+            break;
+          case TABLE_PER_CLASS:            
+            otherAttributes.addAll(superClassDetails.getFieldTypeDetails());
+            if (null == superClassDetails.getSubClassDetails()
+                || 0 == superClassDetails.getSubClassDetails().size()) {
+              queryBuilder(tableName, superClassDetails, sb, colFieldMap,
+                  tableNames, otherAttributes, first);
+              first = false;
+            }
+            break;
+          default:
+            break;
+          }
+        }
+        List<ClassDetails> subClassDetailsList = superClassDetails
+            .getSubClassDetails();
+        superClassDetails = (!subClassDetailsList.isEmpty()) ? subClassDetailsList
+            .get(0) : null;
+      }
+      sb.append(" FROM ");
+      String prevTable = tableNames.remove(0);
+      sb.append(prevTable).append(" ").append(prevTable.toLowerCase());
+
+      for (String tableName : tableNames) {
+        sb.append(" JOIN ").append(tableName).append(" ")
+            .append(tableName.toLowerCase()).append(" ON ")
+            .append(prevTable.toLowerCase()).append("._id").append(" = ")
+            .append(tableName.toLowerCase()).append("._id");
+        prevTable = tableName;
+      }
+
+      if (null != selection) {
+        sb.append(" WHERE ").append(selection);
+      }
+      sb.append(";");
+      String sql = sb.toString();
+      Log.d("Generated SQL", sql);
+      cursor = sqliteDatabase.rawQuery(sql, selectionArgs);
       if (cursor.moveToFirst()) {
         do {
           Object eo = eoClass.newInstance();
+          for (Entry<FieldTypeDetails, String> colField : colFieldMap
+              .entrySet()) {
+            String field = colField.getKey().getFieldName();
+            String setterMethodName = Utils.getSetterMethodName(field);
 
+            String fieldType = colField.getKey().getFieldType().getSimpleName();
+            String colName = colField.getValue();
+            if (fieldType.equals("String")) {
+              Method setterMethod = eoClass.getMethod(setterMethodName,
+                  String.class);
+              String args = cursor.getString(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);
+            } else if (fieldType.equals("Float")) {
+              Method setterMethod = eoClass.getMethod(setterMethodName,
+                  Float.class);
+              float args = cursor.getFloat(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);
+            } else if (fieldType.equals("float")) {
+              Method setterMethod = eoClass.getMethod(setterMethodName,
+                  float.class);
+              float args = cursor.getFloat(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);
+            } else if (fieldType.equals("Integer")) {
+              Method setterMethod = eoClass.getMethod(setterMethodName,
+                  Integer.class);
+              int args = cursor.getInt(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);
+            } else if (fieldType.equals("int")) {
+              Method setterMethod = eoClass.getMethod(setterMethodName,
+                  int.class);
+              int args = cursor.getInt(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);
+            } else if (fieldType.equals("Long")) {
+              Method setterMethod = eoClass.getMethod(setterMethodName,
+                  Long.class);
+              long args = cursor.getLong(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);
+            } else if (fieldType.equals("long")) {
+              Method setterMethod = eoClass.getMethod(setterMethodName,
+                  long.class);
+              long args = cursor.getLong(cursor.getColumnIndex(colName));
+              setterMethod.invoke(eo, args);
+            }
+
+          }
           result.add(eo);
         } while (cursor.moveToNext());
+        cursor.close();
       }
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
     } catch (InstantiationException e) {
       e.printStackTrace();
     } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    } catch (NoSuchMethodException e) {
       e.printStackTrace();
     }
     return result;
@@ -160,7 +358,7 @@ public class CriteriaImpl implements Criteria {
           comma = ", ";
         }
         sb.append(" ");
-      }      
+      }
       sb.append("FROM ");
       sb.append(table).append(" ");
       sb.append("WHERE ").append(selection);
