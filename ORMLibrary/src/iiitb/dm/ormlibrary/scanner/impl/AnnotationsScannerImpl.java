@@ -157,6 +157,9 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 		return classDetailsMap;
 	}
 
+	// TODO : Should this be exposed as 'public'? The ClassDetails object 
+	// returned will not have its subClassDetails and ownedRelations members
+	// populated
 	@Override
 	public ClassDetails getEntityObjectDetails(Class<?> classToInvestigate)
 			throws IllegalAccessException, IllegalArgumentException,

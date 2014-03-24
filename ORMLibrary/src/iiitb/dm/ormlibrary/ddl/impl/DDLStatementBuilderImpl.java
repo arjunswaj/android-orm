@@ -103,17 +103,16 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 			else if (fieldTypeDetail.getAnnotationOptionValues().get(
 					Constants.MANY_TO_MANY) != null)
 			{
-				// Get the generic type of the collection. Prior validation for 
-				// a 'Collection' is assumed??
-				// TODO
+				// TODO: Validation
 				ParameterizedType pType = (ParameterizedType) fieldTypeDetail
 						.getFieldGenericType();
-				Class<?> ownedClass = (Class<?>) pType.getActualTypeArguments()[0];
+				Class<?> nonOwnedSideEntityClass = (Class<?>) pType
+						.getActualTypeArguments()[0];
 
-				ClassDetails ownedClassDetails = classDetailsMap.get(ownedClass
-						.getName());
+				ClassDetails ownedSideClassDetails = classDetailsMap
+						.get(nonOwnedSideEntityClass.getName());
 				createStmts.add(generateJoinTableCreateStmt(classDetails,
-						ownedClassDetails, fieldTypeDetail));
+						ownedSideClassDetails, fieldTypeDetail));
 			}
 			else{
 
@@ -283,67 +282,69 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 
 	}
 
-	// TODO: Need to fix the owner-owned symantics here
 	/**
 	 * Generates the join table for the m:n relation 
 	 * 
-	 * @param m The ClassDetails object of the owner class
-	 * @param n The ClassDetails object of the owned class
-	 * @param mappedField The field containing the mapping details of the m:n 
-	 * relation in the owner class
+	 * @param owningSide The ClassDetails object of the entity class where the 
+	 * join table, if not defaulted, has been specified.
+	 * 
+	 * @param inverseSide The ClassDetails object of the entity corresponding to
+	 * the other side of the many-to-many relationship.
+	 * 
+	 * @param mappedField The FieldTypeDetails object containing the mapping 
+	 * details of the many-to-many relation(corresponds to a field of the owning
+	 *  side)
+	 * 
 	 * @return SQL statement for creation of the join table
 	 */
-	// TODO : Error checking to be done.Can error checking be seperated from the
-    // table creation logic?
-	private String generateJoinTableCreateStmt(ClassDetails owner,
-			ClassDetails owned, FieldTypeDetails mappedField)
+	// TODO : Error checking to be done. Can error checking be separated from 
+	// the table creation logic?
+	private String generateJoinTableCreateStmt(ClassDetails owningSide,
+			ClassDetails inverseSide, FieldTypeDetails mappedField)
 	{
-		// owner table
-		String ownerTableName = (String) owner.getAnnotationOptionValues()
-				.get(Constants.ENTITY).get(Constants.NAME);
+		// owningSide table
+		String owningSideTableName = (String) owningSide
+				.getAnnotationOptionValues().get(Constants.ENTITY)
+				.get(Constants.NAME);
 
-		// owned table
-		String ownedTableName = (String) owned.getAnnotationOptionValues()
-				.get(Constants.ENTITY).get(Constants.NAME);
+		// inverseSide table
+		String inverseSideTableName = (String) inverseSide
+				.getAnnotationOptionValues().get(Constants.ENTITY)
+				.get(Constants.NAME);
 
 		// Join table name
-		String joinTableName = (String) mappedField.getAnnotationOptionValues()
-				.get(Constants.JOIN_TABLE).get(Constants.NAME);
-
-		JoinColumn[] joinColumns = (JoinColumn[]) mappedField
-				.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
-				.get(Constants.JOIN_COLUMNS);
-		// TODO: What about multiple join columns?
-		String joinColumnName = joinColumns[0].name();
-		FieldTypeDetails joinColumnFieldTypeDetails = owner
-				.getFieldTypeDetailsByColumnName(Constants.ID); // assuming
-																	// validation
-																	// is done
+		String joinTableName = owningSideTableName + "_" + inverseSideTableName;
+		
+		String joinColumnName = owningSideTableName
+				+ "_"
+				+ owningSide.getFieldTypeDetailsOfId()
+						.getAnnotationOptionValues().get(Constants.COLUMN)
+						.get(Constants.NAME);
+		
 		String joinColumnType = SQLColTypeEnumMap.get(
-				joinColumnFieldTypeDetails.getFieldType().getSimpleName())
-				.toString();
-
-		JoinColumn[] inverseJoinColumns = (JoinColumn[]) mappedField
-				.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
-				.get(Constants.INVERSE_JOIN_COLUMNS);
-		// TODO: What about multiple join columns?
-		String inverseJoinColumnName = inverseJoinColumns[0].name();
-		FieldTypeDetails inverseJoinColumnFieldTypeDetails = owned
-				.getFieldTypeDetailsByColumnName(Constants.ID); // assuming
-																			// validation
-																			// is
-																			// done
-		String inverseJoinColumnType = SQLColTypeEnumMap.get(
-				inverseJoinColumnFieldTypeDetails.getFieldType()
+				owningSide.getFieldTypeDetailsOfId().getFieldType()
 						.getSimpleName()).toString();
+
+		String inverseJoinColumnName = mappedField.getFieldName() + "_"
+				+ inverseSide.getFieldTypeDetailsOfId()
+				.getAnnotationOptionValues().get(Constants.COLUMN)
+				.get(Constants.NAME);
+		
+		String inverseJoinColumnType = SQLColTypeEnumMap.get(
+				inverseSide.getFieldTypeDetailsOfId().getFieldType()
+				.getSimpleName()).toString();
 
 		String createStmt = "create table " + joinTableName + "("
 				+ joinColumnName + " "
-				+ joinColumnType + " references " + ownerTableName + "("
-				+ Constants.ID + "), "
+				+ joinColumnType + " references " + owningSideTableName + "("
+				+ owningSide.getFieldTypeDetailsOfId()
+					.getAnnotationOptionValues().get(Constants.COLUMN)
+					.get(Constants.NAME) + "), "
 				+ inverseJoinColumnName + " "
-				+ inverseJoinColumnType + " references " + ownedTableName + "("
-				+ Constants.ID + "))";
+				+ inverseJoinColumnType + " references " + inverseSideTableName + "("
+				+ inverseSide.getFieldTypeDetailsOfId()
+					.getAnnotationOptionValues().get(Constants.COLUMN)
+					.get(Constants.NAME) + "))";
 		Log.d(DDL_TAG, createStmt);
 
 		return createStmt;

@@ -3,7 +3,6 @@ package iiitb.dm.ormlibrary.scanner;
 import iiitb.dm.ormlibrary.ddl.ClassDetails;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
 import java.util.Map;
 
 import android.content.Context;

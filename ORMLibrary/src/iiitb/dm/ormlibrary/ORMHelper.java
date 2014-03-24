@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -307,40 +306,42 @@ public class ORMHelper extends SQLiteOpenHelper {
         else if (fieldTypeDetail.getAnnotationOptionValues()
         		.get(Constants.MANY_TO_MANY) != null)
         {
+        	// for clarity of semantics for Abhijith
+        	ClassDetails ownerSide = superClassDetails;
         	Collection<Object> composedObjectCollection = 
         			(Collection<Object>) getterMethod.invoke(obj);
 				
-			JoinColumn[] joinColumns = (JoinColumn[]) fieldTypeDetail
-				.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
-				.get(Constants.JOIN_COLUMNS);
-			// TODO: What about multiple join columns?
-			String joinColumnName = joinColumns[0].name();
+			String joinColumnName = ownerSide
+					.getAnnotationOptionValues().get(Constants.ENTITY)
+					.get(Constants.NAME)
+					+ "_"
+					+ ownerSide.getFieldTypeDetailsOfId()
+						.getAnnotationOptionValues().get(Constants.COLUMN)
+						.get(Constants.NAME);
 
-			JoinColumn[] inverseJoinColumns = (JoinColumn[]) fieldTypeDetail
-					.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
-					.get(Constants.INVERSE_JOIN_COLUMNS);
-			// TODO: What about multiple join columns?
-			String inverseJoinColumnName = inverseJoinColumns[0].name();
-					
 			ParameterizedType pType = (ParameterizedType) fieldTypeDetail
 					.getFieldGenericType();
-			Class<?> ownedClass = (Class<?>) pType
+			Class<?> inverseClass = (Class<?>) pType
 					.getActualTypeArguments()[0];
 			// TODO: Scanning once again. 
 			// Need to have another field called compositionClassDetails
-			// which has information about all comoposed objects in the
+			// which has information about all composed objects in the
 			// owner class
-			ClassDetails ownedClassDetails = annotationsScanner
-					.getEntityObjectCollectionDetails(context)
-					.get(ownedClass.getName());					
-										
-			String ownedTableName = (String) ownedClassDetails
-					.getAnnotationOptionValues().get(Constants.ENTITY)
+			// DANGER : This ClassDetails object doesn't have its 
+			// inheritance and ownedRelations members populated
+			ClassDetails inverseSide = annotationsScanner
+					.getEntityObjectDetails(inverseClass);
+			
+			String inverseJoinColumnName = fieldTypeDetail.getFieldName() + "_"
+					+ inverseSide.getFieldTypeDetailsOfId()
+					.getAnnotationOptionValues().get(Constants.COLUMN)
 					.get(Constants.NAME);
-
-			String joinTableName = (String) fieldTypeDetail
-					.getAnnotationOptionValues().get(Constants.JOIN_TABLE)
-					.get(Constants.NAME);
+					
+			String joinTableName = ownerSide.getAnnotationOptionValues()
+					.get(Constants.ENTITY).get(Constants.NAME) 
+					+  "_" 
+					+ inverseSide.getAnnotationOptionValues()
+					.get(Constants.ENTITY).get(Constants.NAME);
 
 			for (Object composedObject : composedObjectCollection)
 			{
@@ -351,7 +352,6 @@ public class ORMHelper extends SQLiteOpenHelper {
 				if (getWritableDatabase().insert(joinTableName, null,
 				    joinTableContentValues) == -1)
 					Log.e(SAVE_OBJECT_TAG, "Error inserting into database");
-					
 			}
         }
       }
@@ -477,6 +477,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 		}
 
 	}
+	
   @Override
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     // TODO Auto-generated method stub
