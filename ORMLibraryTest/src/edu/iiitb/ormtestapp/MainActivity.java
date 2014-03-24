@@ -251,11 +251,51 @@ public class MainActivity extends Activity {
     
     criteria = ormHelper
         .createCriteria(Intern.class);
-    List<Intern> internList = criteria.list();
+    List<Intern> internList = criteria.add(
+        Restrictions.and(Restrictions.ge("stipend", 202),
+            Restrictions.le("stipend", 203))).list();
     for(Intern intern: internList) {
       Log.d("QUERY BY LIST", "id: " + intern.getId() + 
           ", stipend: " + intern.getStipend() + ", hourly rate: " 
           + intern.getHourlyRate() + ", name: "+ intern.getName());
+    }
+    
+    criteria = ormHelper
+        .createCriteria(Ford.class);
+    List<Ford> fordList = criteria.add(
+        Restrictions.gt("horse_power", 888)).list();
+    for(Ford ford: fordList) {
+      Log.d(
+          "QUERY BY LIST",
+          "id: " + ford.getId() + ", color: " + ford.getColor()
+              + ", horse power: " + ford.getHorsePower() + ", mfg: "
+              + ford.getMfgYear() + ", model: " + ford.getModel());
+    }
+    
+    criteria = ormHelper.createCriteria(Footballer.class);
+    List<Footballer> footballerList = criteria.add(
+        Restrictions.or(Restrictions.ge("goals", 95),
+            Restrictions.lt("goals", 94))).list();
+    for (Footballer footballer : footballerList) {
+      Log.d("QUERY BY LIST", "id: " + footballer.getId() + ", goals: "
+          + footballer.getGoals() + ", name: " + footballer.getName()
+          + ", team: " + footballer.getTeam());
+    }
+    
+    criteria = ormHelper.createCriteria(Sportsman.class);
+    List<Sportsman> sportsmanList = criteria.list();
+    for (Sportsman sportsman : sportsmanList) {
+      Log.d("QUERY BY LIST", "id: " + sportsman.getId()
+          + ", name: " + sportsman.getName());
+    }
+    
+    criteria = ormHelper.createCriteria(PrimeMinister.class);
+    List<PrimeMinister> primeMinisters = criteria.add(
+        Restrictions.eq("state", "Gujarat 2")).list();
+    for (PrimeMinister pm : primeMinisters) {
+      Log.d("QUERY BY LIST", "id: " + pm.getId() + ", age: " + pm.getAge()
+          + ", portfolio: " + pm.getPortfolio() + ", salary: " + pm.getSalary()
+          + ", state: " + pm.getState());
     }
   }
   

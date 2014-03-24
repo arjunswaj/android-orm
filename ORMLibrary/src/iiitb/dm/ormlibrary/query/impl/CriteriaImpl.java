@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.persistence.Entity;
+import javax.persistence.InheritanceType;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -42,7 +43,7 @@ public class CriteriaImpl implements Criteria {
   private String limit;
   private ProjectionList projectionList;
   private AnnotationsScanner annotationsScanner = new AnnotationsScannerImpl();
-  private Map<String, ClassDetails> mappingCache = new HashMap<String, ClassDetails>();
+  private Map<String, ClassDetails> mappingCache;
   /**
    * sqliteDatabase
    */
@@ -52,9 +53,10 @@ public class CriteriaImpl implements Criteria {
    */
   private String entityOrClassName;
 
-  public CriteriaImpl(String entityOrClassName, SQLiteDatabase sqliteDatabase) {
+  public CriteriaImpl(String entityOrClassName, SQLiteDatabase sqliteDatabase, Map<String, ClassDetails> mappingCache) {
     this.entityOrClassName = entityOrClassName;
     this.sqliteDatabase = sqliteDatabase;
+    this.mappingCache = mappingCache;
   }
 
   @Override
@@ -139,6 +141,40 @@ public class CriteriaImpl implements Criteria {
     return superClassDetails;
   }
 
+  private void queryBuilder(String tableName, ClassDetails superClassDetails,
+      StringBuilder sb, Map<FieldTypeDetails, String> colFieldMap,
+      List<String> tableNames, List<FieldTypeDetails> otherAttributes, boolean first) {
+    String comma = ", ";
+    if (first) {
+      comma = "";
+    }
+    for (FieldTypeDetails ftd : superClassDetails.getFieldTypeDetails()) {
+      String col = (String) ftd.getAnnotationOptionValues()
+          .get(Constants.COLUMN).get(Constants.NAME);
+      String asCol = tableName.toLowerCase() + "_" + col;
+      colFieldMap.put(ftd, asCol);      
+      sb.append(comma).append(tableName.toLowerCase()).append(".").append(col)
+          .append(" AS ").append(asCol);
+      comma = ", ";
+    }
+    if (null != otherAttributes) {
+      for (FieldTypeDetails ftd : otherAttributes) {
+        String col = (String) ftd.getAnnotationOptionValues()
+            .get(Constants.COLUMN).get(Constants.NAME);
+        String asCol = tableName.toLowerCase() + "_" + col;
+        colFieldMap.put(ftd, asCol);
+        if (0 == sb.length()) {
+          comma = "";
+        }
+        sb.append(comma).append(tableName.toLowerCase()).append(".")
+            .append(col).append(" AS ").append(asCol);
+        comma = ", ";
+      }
+      otherAttributes.clear();
+    }
+    tableNames.add(tableName);
+  }
+
   @Override
   public List list() {
     List result = new ArrayList();
@@ -159,22 +195,42 @@ public class CriteriaImpl implements Criteria {
       Map<FieldTypeDetails, String> colFieldMap = new HashMap<FieldTypeDetails, String>();
       StringBuilder sb = new StringBuilder();
       sb.append("SELECT ");
-      String comma = "";
+
       List<String> tableNames = new ArrayList<String>();
+      List<FieldTypeDetails> otherAttributes = new ArrayList<FieldTypeDetails>();
+      boolean first = true;
       while (null != superClassDetails) {
         String tableName = (String) superClassDetails
             .getAnnotationOptionValues().get(Constants.ENTITY)
             .get(Constants.NAME);
-        for (FieldTypeDetails ftd : superClassDetails.getFieldTypeDetails()) {
-          String col = (String) ftd.getAnnotationOptionValues()
-              .get(Constants.COLUMN).get(Constants.NAME);
-          String asCol = tableName.toLowerCase() + "_" + col;
-          colFieldMap.put(ftd, asCol);
-          sb.append(comma).append(tableName.toLowerCase()).append(".")
-              .append(col).append(" AS ").append(asCol);
-          comma = ", ";
+        Map<String, Object> inheritanceOptions = superClassDetails
+            .getAnnotationOptionValues().get(Constants.INHERITANCE);
+        if (null == inheritanceOptions) {
+          queryBuilder(tableName, superClassDetails, sb, colFieldMap,
+              tableNames, otherAttributes, first);
+          first = false;
+        } else {
+          InheritanceType strategy = (InheritanceType) inheritanceOptions
+              .get(Constants.STRATEGY);
+          switch (strategy) {
+          case JOINED:
+            queryBuilder(tableName, superClassDetails, sb, colFieldMap,
+                tableNames, otherAttributes, first);
+            first = false;
+            break;
+          case TABLE_PER_CLASS:            
+            otherAttributes.addAll(superClassDetails.getFieldTypeDetails());
+            if (null == superClassDetails.getSubClassDetails()
+                || 0 == superClassDetails.getSubClassDetails().size()) {
+              queryBuilder(tableName, superClassDetails, sb, colFieldMap,
+                  tableNames, otherAttributes, first);
+              first = false;
+            }
+            break;
+          default:
+            break;
+          }
         }
-        tableNames.add(tableName);
         List<ClassDetails> subClassDetailsList = superClassDetails
             .getSubClassDetails();
         superClassDetails = (!subClassDetailsList.isEmpty()) ? subClassDetailsList
@@ -189,6 +245,7 @@ public class CriteriaImpl implements Criteria {
             .append(tableName.toLowerCase()).append(" ON ")
             .append(prevTable.toLowerCase()).append("._id").append(" = ")
             .append(tableName.toLowerCase()).append("._id");
+        prevTable = tableName;
       }
 
       if (null != selection) {
