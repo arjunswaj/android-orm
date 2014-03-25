@@ -5,8 +5,6 @@ import java.util.Collection;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 
 @Entity(name = "PERSON")
@@ -22,6 +20,9 @@ public class Person
 
 	@ManyToMany
 	private Collection<Patent> patents;
+	
+	@ManyToMany
+	private Collection<Phone> phones;
 
 	public Person(String name)
 	{
@@ -61,6 +62,16 @@ public class Person
 	public void setPatents(Collection<Patent> patents)
 	{
 		this.patents = patents;
+	}
+
+	public Collection<Phone> getPhones()
+	{
+		return phones;
+	}
+
+	public void setPhones(Collection<Phone> phones)
+	{
+		this.phones = phones;
 	}
 
 }

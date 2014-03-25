@@ -26,4 +26,5 @@
 
  	<EntityObject>edu.iiitb.ormtestapp.composition.eo.Person</EntityObject>
  	<EntityObject>edu.iiitb.ormtestapp.composition.eo.Patent</EntityObject>
+ 	<EntityObject>edu.iiitb.ormtestapp.composition.eo.Phone</EntityObject>
 </EntityObjects>

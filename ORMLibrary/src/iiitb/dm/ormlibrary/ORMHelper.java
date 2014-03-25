@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.persistence.Column;
 import javax.persistence.InheritanceType;
 
 import android.content.ContentValues;
@@ -207,7 +208,7 @@ public class ORMHelper extends SQLiteOpenHelper {
     }
 
     if (-1L != id) {
-      contentValues.put(Constants.ID, id);
+      contentValues.put(Constants.ID_VALUE, id);
       Log.v(SAVE_OBJECT_TAG, "Col: _id " + ", Val: " + id);
     }
     genId = getWritableDatabase().insert(tableName, null, contentValues);
@@ -249,7 +250,7 @@ public class ORMHelper extends SQLiteOpenHelper {
           String columnValue = getterMethod.invoke(obj).toString();
 
           // Don't add the id obtained from getter, it has to be auto generated
-          if (!columnName.equals(Constants.ID) && !columnName.equals(Constants.ID_CAPS)) {
+          if (!columnName.equals(Constants.ID_VALUE) && !columnName.equals(Constants.ID_VALUE_CAPS)) {
             contentValues.put(columnName, columnValue);
             Log.v(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
                 + columnValue);
@@ -292,7 +293,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 
       if (-1L != id) {
         // Okay, add id only if explicitly passed
-        contentValues.put(Constants.ID, id);
+        contentValues.put(Constants.ID_VALUE, id);
         Log.v(SAVE_OBJECT_TAG, "Col: _id " + ", Val: " + id);
       }
 
@@ -318,21 +319,16 @@ public class ORMHelper extends SQLiteOpenHelper {
           }
         }
         else if (fieldTypeDetail.getAnnotationOptionValues()
-        		.get(Constants.MANY_TO_MANY) != null)
+        		.get(Constants.MANY_TO_MANY) != null 
+						&& fieldTypeDetail.getAnnotationOptionValues()
+								.get(Constants.MANY_TO_MANY)
+								.get(Constants.MAPPED_BY).equals(""))
         {
         	// for clarity of semantics for Abhijith
-        	ClassDetails ownerSide = superClassDetails;
+        	ClassDetails owningSide = superClassDetails;
         	Collection<Object> composedObjectCollection = 
         			(Collection<Object>) getterMethod.invoke(obj);
 				
-			String joinColumnName = ownerSide
-					.getAnnotationOptionValues().get(Constants.ENTITY)
-					.get(Constants.NAME)
-					+ "_"
-					+ ownerSide.getFieldTypeDetailsOfId()
-						.getAnnotationOptionValues().get(Constants.COLUMN)
-						.get(Constants.NAME);
-
 			ParameterizedType pType = (ParameterizedType) fieldTypeDetail
 					.getFieldGenericType();
 			Class<?> inverseClass = (Class<?>) pType
@@ -346,12 +342,28 @@ public class ORMHelper extends SQLiteOpenHelper {
 			ClassDetails inverseSide = annotationsScanner
 					.getEntityObjectDetails(inverseClass);
 			
+			// joinColumnName is different if there is a reverse mapping
+    		FieldTypeDetails joinColumnFieldTypeDetails = inverseSide
+    				.getFieldTypeDetailsByMappedByAnnotation(fieldTypeDetail
+    						.getFieldName());
+    		String joinColumnName;
+    		if (joinColumnFieldTypeDetails == null)
+    			joinColumnName = (String) owningSide
+					.getAnnotationOptionValues().get(Constants.ENTITY)
+					.get(Constants.NAME);
+    		else
+    			joinColumnName = joinColumnFieldTypeDetails.getFieldName();
+    		joinColumnName += "_"
+					+ owningSide.getFieldTypeDetailsOfId()
+						.getAnnotationOptionValues().get(Constants.COLUMN)
+						.get(Constants.NAME);
+			
 			String inverseJoinColumnName = fieldTypeDetail.getFieldName() + "_"
 					+ inverseSide.getFieldTypeDetailsOfId()
 					.getAnnotationOptionValues().get(Constants.COLUMN)
 					.get(Constants.NAME);
 					
-			String joinTableName = ownerSide.getAnnotationOptionValues()
+			String joinTableName = owningSide.getAnnotationOptionValues()
 					.get(Constants.ENTITY).get(Constants.NAME) 
 					+  "_" 
 					+ inverseSide.getAnnotationOptionValues()
@@ -410,7 +422,7 @@ public class ORMHelper extends SQLiteOpenHelper {
         String columnValue = getterMethod.invoke(obj).toString();
 
         // Don't add the id from getter, it has to be auto generated
-        if (!columnName.equals(Constants.ID) && !columnName.equals(Constants.ID_CAPS)) {
+        if (!columnName.equals(Constants.ID_VALUE) && !columnName.equals(Constants.ID_VALUE_CAPS)) {
           kvp.put(columnName, columnValue);
           Log.v(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: " + columnValue);
         }

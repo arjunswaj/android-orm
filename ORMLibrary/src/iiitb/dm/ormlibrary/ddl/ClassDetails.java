@@ -128,9 +128,33 @@ public ClassDetails(String className,
 		// TODO: Make fieldTypeDetails as a LinkedHashMap and avoid the for loop
 		for (FieldTypeDetails id : getFieldTypeDetails())
 			// TODO: need to get this to constants.java
-			if (id.getAnnotationOptionValues().get("Id") != null)
+			if (id.getAnnotationOptionValues().get(Constants.ID) != null)
 				return id;
 		return null;
 	}
+	
+	/**
+	 * Return a FieldTypeDetails object of a field which is annotated with an 
+	 * inverse many-to-many mapping to its owning side entity class through 
+	 * the given field name
+	 * 
+	 * @param inverseMappedFieldName
+	 * @return
+	 */
+	public FieldTypeDetails getFieldTypeDetailsByMappedByAnnotation(
+			String inverseMappedFieldName)
+	{
+		for (FieldTypeDetails fieldTypeDetails : getFieldTypeDetails())
+		{
+			if (fieldTypeDetails.getAnnotationOptionValues().get(
+					Constants.MANY_TO_MANY) == null)
+				continue;
+			if (fieldTypeDetails.getAnnotationOptionValues()
+					.get(Constants.MANY_TO_MANY)
+					.get(Constants.MAPPED_BY).equals(inverseMappedFieldName))
+				return fieldTypeDetails;
+		}
+		return null;
+	}	
 
 }

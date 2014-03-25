@@ -3,9 +3,6 @@ package iiitb.dm.ormlibrary.ddl;
 import iiitb.dm.ormlibrary.ddl.impl.MappingException;
 
 import java.util.Collection;
-import java.util.Map;
-
-import javax.persistence.InheritanceType;
 
 /**
  * DDLQueryBuilder Interface

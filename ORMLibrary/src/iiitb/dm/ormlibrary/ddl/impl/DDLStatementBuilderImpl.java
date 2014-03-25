@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
 
 import android.util.Log;
 
@@ -73,7 +72,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 									+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 									.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
 							Log.v(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
-							columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID);
+							columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID_VALUE);
 						}
 						else{
 							foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
@@ -98,36 +97,50 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 						+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 						.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
 				Log.v(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
-				columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID);
+				columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID_VALUE);
 			}
 			else if (fieldTypeDetail.getAnnotationOptionValues().get(
-					Constants.MANY_TO_MANY) != null)
+					Constants.MANY_TO_MANY) != null
+					&& fieldTypeDetail.getAnnotationOptionValues()
+							.get(Constants.MANY_TO_MANY)
+							.get(Constants.MAPPED_BY).equals(""))
 			{
+				// create join table only if this class is on the owning side
+				// of the many-to-many relation
 				// TODO: Validation
 				ParameterizedType pType = (ParameterizedType) fieldTypeDetail
 						.getFieldGenericType();
-				Class<?> nonOwnedSideEntityClass = (Class<?>) pType
+				Class<?> inverseSideEntityClass = (Class<?>) pType
 						.getActualTypeArguments()[0];
 
-				ClassDetails ownedSideClassDetails = classDetailsMap
-						.get(nonOwnedSideEntityClass.getName());
+				ClassDetails owningSideClassDetails = classDetailsMap
+						.get(inverseSideEntityClass.getName());
 				createStmts.add(generateJoinTableCreateStmt(classDetails,
-						ownedSideClassDetails, fieldTypeDetail));
+						owningSideClassDetails, fieldTypeDetail));
 			}
 			else{
-
-				columnName = (String) fieldTypeDetail.getAnnotationOptionValues()
-						.get(Constants.COLUMN).get(Constants.NAME);
-
-				columnType = SQLColTypeEnumMap.get(
-						fieldTypeDetail.getFieldType().getSimpleName()).toString();
-
-				if (fieldTypeDetail.getAnnotationOptionValues().get("Id") != null)
+				if (fieldTypeDetail.getAnnotationOptionValues().get(
+						Constants.MANY_TO_MANY) == null)
 				{
-					if(!columnName.equals("_id") || !columnType.equals("INTEGER"))
-						throw new MappingException("Column name must be _id and type must be INTEGER/INT " + fieldTypeDetail.getFieldName());
-					columnConstraints.add("PRIMARY KEY");
-					columnConstraints.add("AUTOINCREMENT");
+					columnName = (String) fieldTypeDetail
+							.getAnnotationOptionValues().get(Constants.COLUMN)
+							.get(Constants.NAME);
+
+					columnType = SQLColTypeEnumMap.get(
+							fieldTypeDetail.getFieldType().getSimpleName())
+							.toString();
+
+					if (fieldTypeDetail.getAnnotationOptionValues().get(
+							Constants.ID) != null)
+					{
+						if (!columnName.equals(Constants.ID_VALUE)
+								|| !columnType.equals("INTEGER"))
+							throw new MappingException(
+									"Column name must be _id and type must be INTEGER/INT "
+											+ fieldTypeDetail.getFieldName());
+						columnConstraints.add("PRIMARY KEY");
+						columnConstraints.add("AUTOINCREMENT");
+					}
 				}
 
 			}
@@ -165,7 +178,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 						if((Class<?>)genericType.getActualTypeArguments()[0] == Class.forName(classDetails.getClassName()))
 						{
 							columnName = (String) fieldTypeDetails.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
-							columnType = getColumnType(relatedClassDetails.getFieldTypeDetails(), Constants.ID);
+							columnType = getColumnType(relatedClassDetails.getFieldTypeDetails(), Constants.ID_VALUE);
 							columnConstraints = new ArrayList<String>();
 							foreignKeyConstraint.append(" , FOREIGN KEY(" + columnName + ") REFERENCES " 
 									+ relatedClassDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME)
@@ -315,8 +328,16 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 		// Join table name
 		String joinTableName = owningSideTableName + "_" + inverseSideTableName;
 		
-		String joinColumnName = owningSideTableName
-				+ "_"
+		// joinColumnName must be different if there is a reverse mapping
+		FieldTypeDetails joinColumnFieldTypeDetails = inverseSide
+				.getFieldTypeDetailsByMappedByAnnotation(mappedField
+						.getFieldName());
+		String joinColumnName;
+		if (joinColumnFieldTypeDetails == null)
+			joinColumnName = owningSideTableName;
+		else
+			joinColumnName = joinColumnFieldTypeDetails.getFieldName();
+		joinColumnName += "_"
 				+ owningSide.getFieldTypeDetailsOfId()
 						.getAnnotationOptionValues().get(Constants.COLUMN)
 						.get(Constants.NAME);

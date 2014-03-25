@@ -1,13 +1,21 @@
 package edu.iiitb.ormtestapp;
 
+import iiitb.dm.ormlibrary.ORMHelper;
+import iiitb.dm.ormlibrary.query.Criteria;
+import iiitb.dm.ormlibrary.query.criterion.Restrictions;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import android.app.Activity;
+import android.os.Bundle;
+import android.util.Log;
 import edu.iiitb.ormtestapp.composition.eo.Capital;
 import edu.iiitb.ormtestapp.composition.eo.Country;
 import edu.iiitb.ormtestapp.composition.eo.Patent;
 import edu.iiitb.ormtestapp.composition.eo.Person;
+import edu.iiitb.ormtestapp.composition.eo.Phone;
 import edu.iiitb.ormtestapp.composition.eo.State;
 import edu.iiitb.ormtestapp.eo.Course;
 import edu.iiitb.ormtestapp.eo.Student;
@@ -22,15 +30,6 @@ import edu.iiitb.ormtestapp.inheritance.mixed.eo.PrimeMinister;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Cricketer;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Footballer;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Sportsman;
-import iiitb.dm.ormlibrary.ORMHelper;
-import iiitb.dm.ormlibrary.query.Criteria;
-import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
-import iiitb.dm.ormlibrary.query.criterion.Projections;
-import iiitb.dm.ormlibrary.query.criterion.Restrictions;
-import android.app.Activity;
-import android.database.Cursor;
-import android.os.Bundle;
-import android.util.Log;
 
 public class MainActivity extends Activity {
 
@@ -218,19 +217,42 @@ public class MainActivity extends Activity {
   }
 
   private void testManyToManyPersistance(ORMHelper ormHelper) {
-    Person person = new Person();
-    person.setName("Leslie Lamport");
+	  
+	Collection<Person> persons = new ArrayList<Person>();
+	
+	for (int index = 1; index < 3; index += 1)
+	{
+		Person person = new Person();
+		person.setName("Leslie Lamport " + index);
+		persons.add(person);
+	}
+	
     Collection<Patent> patents = new ArrayList<Patent>();
     for (int index = 1; index < 5; index += 1) {
       Patent patent = new Patent();
-      patent.setTitle("Latex" + index);
       patent.setTitle("Distributed Computing Algo" + index);
       patents.add(patent);
     }
-    person.setPatents(patents);
-    ormHelper.persist(person);
+    
+    for (Person person : persons)
+    	person.setPatents(patents);
+    
+    Collection<Phone> phones = new ArrayList<Phone>();
+	for (int index = 1; index < 5; index += 1)
+	{
+		Phone phone = new Phone();
+		phone.setNumber(100000000 + index);
+		phone.setPersons(persons);
+		phones.add(phone);
+	}
+	
+	for (Person person : persons)
+	{
+		person.setPhones(phones);
+		ormHelper.persist(person);
+	}
   }
- 
+   
   private void testQueryByList(ORMHelper ormHelper) {
     Criteria criteria = ormHelper
         .createCriteria(Student.class)
@@ -314,8 +336,6 @@ public class MainActivity extends Activity {
     testManyToManyPersistance(ormHelper);
     
     testQueryByList(ormHelper);
-        
+    
   }
-  
-
 }
