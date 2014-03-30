@@ -18,4 +18,11 @@ public interface Criteria {
   
   Criteria setProjection(ProjectionList projectionList);
   
+  /**
+   * Create a new Criteria, "rooted" at the associated entity.
+   * @param associationPath A dot-separated property path 
+   * @return the created "sub criteria" 
+   */
+  public Criteria createCriteria(String associationPath);
+  
 }

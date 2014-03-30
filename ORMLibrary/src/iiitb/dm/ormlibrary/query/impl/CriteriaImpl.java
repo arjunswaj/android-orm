@@ -374,4 +374,14 @@ public class CriteriaImpl implements Criteria {
     return cursor;
   }
 
+/* (non-Javadoc)
+ * @see iiitb.dm.ormlibrary.query.Criteria#createCriteria(java.lang.String)
+ */
+@Override
+public Criteria createCriteria(String relatedEntityFieldName)
+{
+	// TODO Auto-generated method stub
+	return null;
+}
+
 }

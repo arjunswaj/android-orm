@@ -319,6 +319,36 @@ public class MainActivity extends Activity {
           + ", portfolio: " + pm.getPortfolio() + ", salary: " + pm.getSalary()
           + ", state: " + pm.getState());
     }
+    
+    
+    /*Uncomment after
+     	Fixing many-to-many bug
+     	Implementation of createCriteria() in Criteria*/
+   /* criteria = ormHelper.createCriteria(Person.class);
+    List<Person> persons = criteria.add(
+    		Restrictions.eq("name", "Leslie Lamport 1"))
+    			.createCriteria("patents").add
+    			(Restrictions.like("title", "Distributed Computing Algo3")).list();
+    for (Person p : persons)
+    {
+    	Log.d("Query BY LIST", "id: " + p.getId() + ", name: " + p.getName());
+    	for (Patent patent: p.getPatents())
+    		Log.d("QUERY BY LIST", "id: " + patent.getTitle());
+    }
+    
+	criteria = ormHelper.createCriteria(Country.class);
+	List<Country> countries = criteria
+			.add(Restrictions.like("name", "India 1"))
+			.createCriteria("states")
+			.add(Restrictions.like("name", "Karnataka 2")).list();
+	for (Country country : countries)
+	{
+		Log.d("QUERY BY LIST", "id: " + country.getId() + ", name: "
+				+ country.getName() + ", capital: " + country.getCapital());
+		for (State state : country.getStates())
+			Log.d("QUERY BY LIST", "id: " + state.getId() + ", name: "
+					+ state.getName());
+	}*/
   }
   
   @Override
