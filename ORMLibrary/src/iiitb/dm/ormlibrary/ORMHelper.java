@@ -79,7 +79,7 @@ public class ORMHelper extends SQLiteOpenHelper {
    * @return Criteria Instance
    */
   public Criteria createCriteria(Class<?> entity) {
-    return new CriteriaImpl(entity.getName(), getReadableDatabase(), mappingCache);
+    return new CriteriaImpl(entity.getName(), getReadableDatabase(), mappingCache, context);
   }
   
   

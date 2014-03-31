@@ -14,6 +14,8 @@ public class Sportsman {
   private long id;
   @Column(name = "NAME")
   private String name;
+  @Column(name = "AGE")
+  private int age;
 
   public long getId() {
     return id;
@@ -35,4 +37,14 @@ public class Sportsman {
   public String toString() {
     return "Sportsman id: " + getId() + " name: " + getName();
   }
+
+public int getAge()
+{
+	return age;
+}
+
+public void setAge(int age)
+{
+	this.age = age;
+}
 }

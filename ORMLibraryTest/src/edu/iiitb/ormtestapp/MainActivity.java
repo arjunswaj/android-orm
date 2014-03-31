@@ -7,6 +7,7 @@ import iiitb.dm.ormlibrary.query.criterion.Restrictions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import edu.iiitb.ormtestapp.composition.eo.Phone;
 import edu.iiitb.ormtestapp.composition.eo.State;
 import edu.iiitb.ormtestapp.eo.Course;
 import edu.iiitb.ormtestapp.eo.Student;
+import edu.iiitb.ormtestapp.inheritance.joined.eo.Employee;
 import edu.iiitb.ormtestapp.inheritance.joined.eo.FullTimeEmployee;
 import edu.iiitb.ormtestapp.inheritance.joined.eo.Intern;
 import edu.iiitb.ormtestapp.inheritance.joined.eo.PartTimeEmployee;
@@ -27,6 +29,7 @@ import edu.iiitb.ormtestapp.inheritance.mixed.eo.Car;
 import edu.iiitb.ormtestapp.inheritance.mixed.eo.Ford;
 import edu.iiitb.ormtestapp.inheritance.mixed.eo.Minister;
 import edu.iiitb.ormtestapp.inheritance.mixed.eo.PrimeMinister;
+import edu.iiitb.ormtestapp.inheritance.mixed.eo.Vehicle;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Cricketer;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Footballer;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Sportsman;
@@ -68,22 +71,26 @@ public class MainActivity extends Activity {
     // .execSQL(
     // "CREATE TABLE FULL_TIME_EMPLOYEE( _id INTEGER, SALARY INTEGER, PENSION INTEGER )");
 
+	  Random randomGen = new Random();
     for (int index = 1; index < 5; index += 1) {
       Intern intern = new Intern();
       intern.setName("Ron " + index + " Clyde");
       intern.setHourlyRate(20 + index);
       intern.setStipend(200 + index);
+      intern.setAge(randomGen.nextInt(100));
       ormHelper.persist(intern);
 
       PartTimeEmployee pte = new PartTimeEmployee();
       pte.setName("Tom " + index + " Hanks");
       pte.setHourlyRate(12 + index);
+      pte.setAge(randomGen.nextInt(100));
       ormHelper.persist(pte);
 
       FullTimeEmployee fte = new FullTimeEmployee();
       fte.setName("Bon " + index + " Snype");
       fte.setSalary(1230 + index);
       fte.setPension(630 + index);
+      fte.setAge(randomGen.nextInt(100));
       ormHelper.persist(fte);
     }
   }
@@ -104,21 +111,25 @@ public class MainActivity extends Activity {
     // .execSQL(
     // "CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
 
+	Random randomGen = new Random();
     for (int index = 1; index < 5; index += 1) {
       Sportsman sportsman = new Sportsman();
       sportsman.setName("Vishwanathan " + index + " Anand");
+      sportsman.setAge(randomGen.nextInt(100));
       ormHelper.persist(sportsman);
 
       Cricketer cricketer = new Cricketer();
       cricketer.setName("Saurav " + index + " Ganguly");
       cricketer.setAverage(42.28f + index);
       cricketer.setTeam("India" + index);
+      cricketer.setAge(randomGen.nextInt(100));
       ormHelper.persist(cricketer);
 
       Footballer footballer = new Footballer();
       footballer.setName("David " + index + " Beckham");
       footballer.setGoals(92 + index);
       footballer.setTeam("England" + index);
+      footballer.setAge(randomGen.nextInt(100));
       ormHelper.persist(footballer);
     }
   }
@@ -254,6 +265,8 @@ public class MainActivity extends Activity {
   }
    
   private void testQueryByList(ORMHelper ormHelper) {
+	 
+	final String TAG = "QUERY BY LIST"; 
     Criteria criteria = ormHelper
         .createCriteria(Student.class)
         .add(Restrictions.like("NAME", "Name%"))
@@ -266,7 +279,7 @@ public class MainActivity extends Activity {
         .add(Restrictions.eq("ADDRESS", "Address 5"));
     List<Student> studentList = criteria.list();
     for(Student student: studentList) {
-      Log.d("QUERY BY LIST", "id: " + student.getId() + ", name: " + student.getName() + ", age: "
+      Log.d(TAG, "id: " + student.getId() + ", name: " + student.getName() + ", age: "
           + student.getAge() + ", address: " + student.getAddress() + ", cgpa: " + student.getCgpa() + ", college: "
           + student.getCollege());
     }
@@ -277,7 +290,7 @@ public class MainActivity extends Activity {
         Restrictions.and(Restrictions.ge("stipend", 202),
             Restrictions.le("stipend", 203))).list();
     for(Intern intern: internList) {
-      Log.d("QUERY BY LIST", "id: " + intern.getId() + 
+      Log.d(TAG, "id: " + intern.getId() + 
           ", stipend: " + intern.getStipend() + ", hourly rate: " 
           + intern.getHourlyRate() + ", name: "+ intern.getName());
     }
@@ -288,7 +301,7 @@ public class MainActivity extends Activity {
         Restrictions.gt("horse_power", 888)).list();
     for(Ford ford: fordList) {
       Log.d(
-          "QUERY BY LIST",
+          TAG,
           "id: " + ford.getId() + ", color: " + ford.getColor()
               + ", horse power: " + ford.getHorsePower() + ", mfg: "
               + ford.getMfgYear() + ", model: " + ford.getModel());
@@ -299,7 +312,7 @@ public class MainActivity extends Activity {
         Restrictions.or(Restrictions.ge("goals", 95),
             Restrictions.lt("goals", 94))).list();
     for (Footballer footballer : footballerList) {
-      Log.d("QUERY BY LIST", "id: " + footballer.getId() + ", goals: "
+      Log.d(TAG, "id: " + footballer.getId() + ", goals: "
           + footballer.getGoals() + ", name: " + footballer.getName()
           + ", team: " + footballer.getTeam());
     }
@@ -307,7 +320,7 @@ public class MainActivity extends Activity {
     criteria = ormHelper.createCriteria(Sportsman.class);
     List<Sportsman> sportsmanList = criteria.list();
     for (Sportsman sportsman : sportsmanList) {
-      Log.d("QUERY BY LIST", "id: " + sportsman.getId()
+      Log.d(TAG, "id: " + sportsman.getId()
           + ", name: " + sportsman.getName());
     }
     
@@ -315,11 +328,78 @@ public class MainActivity extends Activity {
     List<PrimeMinister> primeMinisters = criteria.add(
         Restrictions.eq("state", "Gujarat 2")).list();
     for (PrimeMinister pm : primeMinisters) {
-      Log.d("QUERY BY LIST", "id: " + pm.getId() + ", age: " + pm.getAge()
+      Log.d(TAG, "id: " + pm.getId() + ", age: " + pm.getAge()
           + ", portfolio: " + pm.getPortfolio() + ", salary: " + pm.getSalary()
           + ", state: " + pm.getState());
     }
     
+    criteria = ormHelper.createCriteria(Employee.class);
+    List<Employee> employees = criteria.add(Restrictions.gt("age", "30")).list();
+    for (Employee employee : employees)
+    {
+    	if (employee instanceof PartTimeEmployee)
+    	{
+    		PartTimeEmployee pte = (PartTimeEmployee) employee;
+        	if (pte instanceof Intern)
+        	{
+        		Intern intern = (Intern) pte;
+    			Log.d(TAG, "Intern = id: " + intern.getId() + ", name: "
+    					+ intern.getName() + ", age: " + intern.getAge()
+    					+ ", hourlyRate: " + intern.getHourlyRate() 
+    					+ ", stipend: " + intern.getStipend());
+        	}
+        	else
+        		Log.d(TAG, "PartTimeEmployee = id: " + pte.getId() + ", name: "
+					+ pte.getName() + ", age: " + pte.getAge()
+					+ ", hourlyRate: " + pte.getHourlyRate());
+    	}
+    	else if (employee instanceof FullTimeEmployee)
+		{
+			FullTimeEmployee fte = (FullTimeEmployee) employee;
+			Log.d(TAG,
+					"FullTimeEmployee = id: " + fte.getId() + ", name: "
+							+ fte.getName() + ", age: " + fte.getAge()
+							+ ", salary: " + fte.getSalary()
+							+ ", pension: " + fte.getPension());
+		}
+    	else
+    	{
+			Log.e(TAG, "Employee(ERROR) = id: " + employee.getId()
+					+ ", name: " + employee.getName() + ", age: "
+					+ employee.getAge());
+    	}
+    }
+    
+    criteria = ormHelper.createCriteria(Sportsman.class);
+    List<Sportsman> sportsmen = criteria.add(Restrictions.gt("age", "30")).list();
+    for (Sportsman sportsman: sportsmen)
+    {
+    	if (sportsman instanceof Cricketer)
+    	{
+    		Cricketer c = (Cricketer) sportsman;
+			Log.d(TAG,
+					"Cricketer = id: " + c.getId() + ", name: "
+							+ c.getName() + ", age: " + c.getAge()
+							+ ", team: " + c.getTeam() + ", average"
+							+ c.getAverage());
+    	}
+    	else if (sportsman instanceof Footballer)
+    	{
+    		Footballer f = (Footballer) sportsman;
+			Log.d(TAG,
+					"Footballer = id: " + f.getId() + ", name: "
+							+ f.getName() + ", age: " + f.getAge()
+							+ ", team: " + f.getTeam() + ", goals"
+							+ f.getGoals());
+    	}
+    	else
+    	{
+			Log.d(TAG, "SportsMan = id: " + sportsman.getId()
+					+ ", name: " + sportsman.getName() + ", age: "
+					+ sportsman.getAge());
+    	}
+    }
+
     
     /*Uncomment after
      	Fixing many-to-many bug
@@ -331,9 +411,9 @@ public class MainActivity extends Activity {
     			(Restrictions.like("title", "Distributed Computing Algo3")).list();
     for (Person p : persons)
     {
-    	Log.d("Query BY LIST", "id: " + p.getId() + ", name: " + p.getName());
+    	Log.d(TAG, "id: " + p.getId() + ", name: " + p.getName());
     	for (Patent patent: p.getPatents())
-    		Log.d("QUERY BY LIST", "id: " + patent.getTitle());
+    		Log.d(TAG, "id: " + patent.getTitle());
     }
     
 	criteria = ormHelper.createCriteria(Country.class);
@@ -343,10 +423,10 @@ public class MainActivity extends Activity {
 			.add(Restrictions.like("name", "Karnataka 2")).list();
 	for (Country country : countries)
 	{
-		Log.d("QUERY BY LIST", "id: " + country.getId() + ", name: "
+		Log.d(TAG, "id: " + country.getId() + ", name: "
 				+ country.getName() + ", capital: " + country.getCapital());
 		for (State state : country.getStates())
-			Log.d("QUERY BY LIST", "id: " + state.getId() + ", name: "
+			Log.d(TAG, "id: " + state.getId() + ", name: "
 					+ state.getName());
 	}*/
   }
@@ -366,6 +446,5 @@ public class MainActivity extends Activity {
     testManyToManyPersistance(ormHelper);
     
     testQueryByList(ormHelper);
-    
   }
 }

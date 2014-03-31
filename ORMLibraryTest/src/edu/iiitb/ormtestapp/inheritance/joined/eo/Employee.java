@@ -16,6 +16,8 @@ public abstract class Employee {
   private long id;
   @Column(name = "NAME")
   private String name;
+  @Column(name = "AGE")
+  private int age;
 
   public long getId() {
     return id;
@@ -37,4 +39,14 @@ public abstract class Employee {
   public String toString() {
     return "Employee id: " + getId() + " name: " + getName();
   }
+
+public int getAge()
+{
+	return age;
+}
+
+public void setAge(int age)
+{
+	this.age = age;
+}
 }

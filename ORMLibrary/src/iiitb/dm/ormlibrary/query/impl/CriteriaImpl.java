@@ -1,16 +1,27 @@
 package iiitb.dm.ormlibrary.query.impl;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 
 import javax.persistence.Entity;
 import javax.persistence.InheritanceType;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import android.content.Context;
+import android.content.res.Resources;
+import android.content.res.XmlResourceParser;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
@@ -52,11 +63,13 @@ public class CriteriaImpl implements Criteria {
    * entityOrClassName
    */
   private String entityOrClassName;
+  private Context context;
 
-  public CriteriaImpl(String entityOrClassName, SQLiteDatabase sqliteDatabase, Map<String, ClassDetails> mappingCache) {
+  public CriteriaImpl(String entityOrClassName, SQLiteDatabase sqliteDatabase, Map<String, ClassDetails> mappingCache, Context context) {
     this.entityOrClassName = entityOrClassName;
     this.sqliteDatabase = sqliteDatabase;
     this.mappingCache = mappingCache;
+    this.context = context;
   }
 
   @Override
@@ -175,12 +188,115 @@ public class CriteriaImpl implements Criteria {
     tableNames.add(tableName);
   }
 
-  @Override
-  public List list() {
+	// TODO: Ugly???
+	private List<String> getEntityObjectsNamesFromManifest(Context context)
+			throws XmlPullParserException, IOException {
+		String XML_TAG = "XML in CRITERIA";
+		Resources resources = context.getResources();
+		// TODO: Should get from AndroidManifest
+		String uri = "xml/" + "entity_objects";
+		XmlResourceParser xpp = resources.getXml(resources.getIdentifier(uri, null,
+				context.getPackageName()));
+		xpp.next();
+		int eventType = xpp.getEventType();
+		List<String> eoNames = new ArrayList<String>();
+		while (eventType != XmlPullParser.END_DOCUMENT) {
+			if (eventType == XmlPullParser.START_DOCUMENT) {
+				// Log.v(XML_TAG, "We don't need this for now.");
+			} else if (eventType == XmlPullParser.START_TAG) {
+				// Log.v(XML_TAG, "We don't need this for now.");
+			} else if (eventType == XmlPullParser.END_TAG) {
+				// Log.v(XML_TAG, "We don't need this for now.");
+			} else if (eventType == XmlPullParser.TEXT) {
+				eoNames.add(xpp.getText());
+				Log.v(XML_TAG, "ClassName: " + xpp.getText());
+			}
+			eventType = xpp.next();
+		}
+		return eoNames;
+	}
+	
+
+	@Override
+	/**
+	 * Get the result of the query
+	 */
+	public List<?> list()
+	{
+		// TODO: can I create a superclass list?
+		List<?> result = new LinkedList();
+		try
+		{
+			// TODO: Ugly??? Should I be using subClassDetails field here??
+			List<String> eoNames = getEntityObjectsNamesFromManifest(context);
+			result = list(entityOrClassName, eoNames);
+		}
+		catch (XmlPullParserException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	/**
+	 * Get the result of the query for the specified entity class and all its subclasses
+	 * @param entityOrClassName Specified entity class
+	 * @param eoNames List containing all entity class names in the application
+	 * @return result of the query for the specified entity class and all its subclasses
+	 */
+	private List<?> list(String entityClassName, List<String> eoNames)
+	{
+		ClassDetails classDetails = null;
+		try
+		{
+			classDetails = new AnnotationsScannerImpl().getEntityObjectDetails(Utils
+					.getClassObject(entityClassName));
+		}
+		catch (IllegalAccessException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IllegalArgumentException e)
+		{
+			e.printStackTrace();
+		}
+		catch (InvocationTargetException e)
+		{
+			e.printStackTrace();
+		}
+		if (classDetails.getAnnotationOptionValues().get(Constants.INHERITANCE) == null)
+			return list(entityClassName);
+
+		List result = new LinkedList();
+		
+		// Collect the result of the specified class
+		if (classDetails.getAnnotationOptionValues().get(Constants.INHERITANCE)
+				.get(Constants.STRATEGY)
+				.equals(InheritanceType.TABLE_PER_CLASS)
+				|| (classDetails.getAnnotationOptionValues()
+						.get(Constants.INHERITANCE).get(Constants.STRATEGY)
+						.equals(InheritanceType.JOINED) && !Modifier
+						.isAbstract(Utils.getClassObject(entityClassName)
+								.getModifiers())))
+			result.addAll(list(entityClassName));
+
+		// Collect the result of all its subclasses
+		for (String eoName : eoNames)
+			if (Utils.getClassObject(eoName).getSuperclass()
+					.equals(Utils.getClassObject(entityClassName)))
+				result.addAll(list(eoName, eoNames));
+		return result;
+	}
+  
+  private List list(String entityClassName) {
     List result = new ArrayList();
     Cursor cursor = null;
     try {
-      Class<?> eoClass = Class.forName(entityOrClassName);
+      Class<?> eoClass = Class.forName(entityClassName);
       ClassDetails classDetails = fetchClassDetailsMapping(eoClass);
       ClassDetails superClassDetails = classDetails;
       if (!selectionArgsList.isEmpty()) {
