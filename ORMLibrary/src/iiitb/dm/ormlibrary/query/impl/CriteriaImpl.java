@@ -1,17 +1,30 @@
 package iiitb.dm.ormlibrary.query.impl;
 
+import iiitb.dm.ormlibrary.ddl.ClassDetails;
+import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
+import iiitb.dm.ormlibrary.query.Criteria;
+import iiitb.dm.ormlibrary.query.Criterion;
+import iiitb.dm.ormlibrary.query.Projection;
+import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
+import iiitb.dm.ormlibrary.query.criterion.Order;
+import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
+import iiitb.dm.ormlibrary.query.criterion.PropertyProjection;
+import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
+import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
+import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
+import iiitb.dm.ormlibrary.utils.Constants;
+import iiitb.dm.ormlibrary.utils.Utils;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 
 import javax.persistence.Entity;
 import javax.persistence.InheritanceType;
@@ -25,20 +38,6 @@ import android.content.res.XmlResourceParser;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-import iiitb.dm.ormlibrary.ddl.ClassDetails;
-import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
-import iiitb.dm.ormlibrary.query.Criteria;
-import iiitb.dm.ormlibrary.query.Criterion;
-import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
-import iiitb.dm.ormlibrary.query.criterion.Order;
-import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
-import iiitb.dm.ormlibrary.query.criterion.PropertyProjection;
-import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
-import iiitb.dm.ormlibrary.query.Projection;
-import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
-import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
-import iiitb.dm.ormlibrary.utils.Constants;
-import iiitb.dm.ormlibrary.utils.Utils;
 
 public class CriteriaImpl implements Criteria {
 
@@ -367,6 +366,33 @@ public class CriteriaImpl implements Criteria {
       if (null != selection) {
         sb.append(" WHERE ").append(selection);
       }
+      
+      /* Generate selection conditions to exclude the tuples in the parent
+       *  table which have discriminator values. These tuples belong to an
+       *  entity class which inherited from this parent entity 
+       *  class(entityClassName)
+       */ 
+      ClassDetails entityClassDetails = new AnnotationsScannerImpl()// TODO: AnnotationScannerImpl()
+	  	.getEntityObjectDetails(Class.forName(entityClassName));
+	  if (entityClassDetails.getAnnotationOptionValues().get(
+			Constants.INHERITANCE) != null
+			&& entityClassDetails.getAnnotationOptionValues()
+				.get(Constants.INHERITANCE).get(Constants.STRATEGY)
+				.equals(InheritanceType.JOINED))
+      {
+		  // TODO: What if no discriminator column is specified?
+		  // Define default discriminator column
+    	  String tableName = (String) entityClassDetails
+    	            .getAnnotationOptionValues().get(Constants.ENTITY)
+    	            .get(Constants.NAME);
+		  String discriminatorCol = (String) entityClassDetails
+						.getAnnotationOptionValues()
+						.get(Constants.DISCRIMINATOR_COLUMN)
+						.get(Constants.NAME);
+				sb.append(" AND ").append(tableName.toLowerCase()).append(".")
+						.append(discriminatorCol).append(" IS NULL ");
+      }
+      
       sb.append(";");
       String sql = sb.toString();
       Log.d("Generated SQL", sql);

@@ -332,7 +332,8 @@ public class MainActivity extends Activity {
           + ", portfolio: " + pm.getPortfolio() + ", salary: " + pm.getSalary()
           + ", state: " + pm.getState());
     }
-    
+
+    // Test case to test a JOINED inheritance hierarchy when the root entity class is queried
     criteria = ormHelper.createCriteria(Employee.class);
     List<Employee> employees = criteria.add(Restrictions.gt("age", "30")).list();
     for (Employee employee : employees)
@@ -370,6 +371,7 @@ public class MainActivity extends Activity {
     	}
     }
     
+    // Test case to test a TABLE_PER_CLASS inheritance hierarchy when the root entity class is queried
     criteria = ormHelper.createCriteria(Sportsman.class);
     List<Sportsman> sportsmen = criteria.add(Restrictions.gt("age", "30")).list();
     for (Sportsman sportsman: sportsmen)
