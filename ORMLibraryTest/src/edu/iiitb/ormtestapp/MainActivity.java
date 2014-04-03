@@ -12,11 +12,16 @@ import java.util.Random;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import edu.iiitb.ormtestapp.composition.eo.Article;
 import edu.iiitb.ormtestapp.composition.eo.Capital;
 import edu.iiitb.ormtestapp.composition.eo.Country;
 import edu.iiitb.ormtestapp.composition.eo.Patent;
 import edu.iiitb.ormtestapp.composition.eo.Person;
-import edu.iiitb.ormtestapp.composition.eo.Article;
 import edu.iiitb.ormtestapp.composition.eo.State;
 import edu.iiitb.ormtestapp.eo.Course;
 import edu.iiitb.ormtestapp.eo.Student;
@@ -29,13 +34,14 @@ import edu.iiitb.ormtestapp.inheritance.mixed.eo.Car;
 import edu.iiitb.ormtestapp.inheritance.mixed.eo.Ford;
 import edu.iiitb.ormtestapp.inheritance.mixed.eo.Minister;
 import edu.iiitb.ormtestapp.inheritance.mixed.eo.PrimeMinister;
-import edu.iiitb.ormtestapp.inheritance.mixed.eo.Vehicle;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Cricketer;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Footballer;
 import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Sportsman;
 
 public class MainActivity extends Activity {
 
+  ListView listView = null;
+  
   private void testPersistence(ORMHelper ormHelper) {
     Course course = null;
     for (int index = 0; index < 25; index += 1) {
@@ -461,16 +467,56 @@ public class MainActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
+    List<String> menuList = new ArrayList<String>();
+    menuList.add("Simple Persistence");
+    menuList.add("Inheritance Joined");
+    menuList.add("Inheritance Table Per Class");
+    menuList.add("Inheritance Mixed");
+    menuList.add("Composition - 1-1, 1-Many");
+    menuList.add("Composition - Many-Many");
+    menuList.add("Query");
+    
+    listView = (ListView) findViewById(R.id.mainList);
+    listView.setAdapter(new ArrayAdapter(this, android.R.layout.simple_list_item_1, menuList));
+    final ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
         "testDB.sqlite", null, 1);
     
-    testPersistence(ormHelper);
-    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
-    testPersistenceOfComposition(ormHelper);
-    testManyToManyPersistance(ormHelper);
+    listView.setOnItemClickListener(new OnItemClickListener() {
+      public void onItemClick(AdapterView<?> parent, View v, int position,
+          long id) {
+        switch (position) {
+        case 0:
+          testPersistence(ormHelper);
+          break;
+        case 1:
+          testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+          break;
+        case 2:
+          testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+          break;
+        case 3:
+          testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+          break;
+        case 4:
+          testPersistenceOfComposition(ormHelper);
+          break;
+        case 5:
+          testManyToManyPersistance(ormHelper);
+          break;
+        case 6:
+          testQueryByList(ormHelper);
+          break;        
+        }
+      }
+    });
+  
     
-    testQueryByList(ormHelper);
+    
+    
+    
+    
+    
+    
+    
   }
 }
