@@ -22,7 +22,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="edu.iiitb.ormtestapp.QueryActivity"
+            android:label="@string/title_activity_query" >
+        </activity>
     </application>
 
-    <meta-data android:value="entity_objects" android:name="entity_objects"></meta-data>
+    <meta-data
+        android:name="entity_objects"
+        android:value="entity_objects" >
+    </meta-data>
+
 </manifest>
