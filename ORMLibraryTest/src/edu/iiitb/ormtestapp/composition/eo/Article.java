@@ -7,17 +7,17 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 
-@Entity(name = "PHONE")
-public class Phone
+@Entity(name = "ARTICLE")
+public class Article
 {
 	@Id
 	@Column(name = "_id")
 	private long id;
 	
-	@Column(name = "NUMBER")
-	private int number;
+	@Column(name = "NAME")
+	private String name;
 	
-	@ManyToMany(mappedBy = "phones")
+	@ManyToMany(mappedBy = "articles")
 	private Collection<Person> persons;
 
 	public long getId()
@@ -30,16 +30,6 @@ public class Phone
 		this.id = id;
 	}
 
-	public int getNumber()
-	{
-		return number;
-	}
-
-	public void setNumber(int number)
-	{
-		this.number = number;
-	}
-
 	public Collection<Person> getPersons()
 	{
 		return persons;
@@ -48,6 +38,16 @@ public class Phone
 	public void setPersons(Collection<Person> persons)
 	{
 		this.persons = persons;
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public void setName(String name)
+	{
+		this.name = name;
 	}
 
 }

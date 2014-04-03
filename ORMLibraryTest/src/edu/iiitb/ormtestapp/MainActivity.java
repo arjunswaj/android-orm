@@ -16,7 +16,7 @@ import edu.iiitb.ormtestapp.composition.eo.Capital;
 import edu.iiitb.ormtestapp.composition.eo.Country;
 import edu.iiitb.ormtestapp.composition.eo.Patent;
 import edu.iiitb.ormtestapp.composition.eo.Person;
-import edu.iiitb.ormtestapp.composition.eo.Phone;
+import edu.iiitb.ormtestapp.composition.eo.Article;
 import edu.iiitb.ormtestapp.composition.eo.State;
 import edu.iiitb.ormtestapp.eo.Course;
 import edu.iiitb.ormtestapp.eo.Student;
@@ -227,41 +227,65 @@ public class MainActivity extends Activity {
     }
   }
 
-  private void testManyToManyPersistance(ORMHelper ormHelper) {
-	  
-	Collection<Person> persons = new ArrayList<Person>();
-	
-	for (int index = 1; index < 3; index += 1)
-	{
-		Person person = new Person();
-		person.setName("Leslie Lamport " + index);
-		persons.add(person);
-	}
-	
-    Collection<Patent> patents = new ArrayList<Patent>();
-    for (int index = 1; index < 5; index += 1) {
-      Patent patent = new Patent();
-      patent.setTitle("Distributed Computing Algo" + index);
-      patents.add(patent);
-    }
-    
-    for (Person person : persons)
-    	person.setPatents(patents);
-    
-    Collection<Phone> phones = new ArrayList<Phone>();
-	for (int index = 1; index < 5; index += 1)
-	{
-		Phone phone = new Phone();
-		phone.setNumber(100000000 + index);
-		phone.setPersons(persons);
-		phones.add(phone);
-	}
-	
-	for (Person person : persons)
-	{
-		person.setPhones(phones);
-		ormHelper.persist(person);
-	}
+  private void testManyToManyPersistance(ORMHelper ormHelper) 
+  {
+		// unidirectional many to many mapping
+		Collection<Patent> patents1 = new ArrayList<Patent>();
+		Collection<Patent> patents2 = new ArrayList<Patent>();
+		Collection<Patent> patents3 = new ArrayList<Patent>();
+		for (int index = 1; index < 5; index += 1)
+		{
+			Patent patent = new Patent();
+			patent.setTitle("Distributed Computing Algo " + index);
+			switch(index)
+			{
+			case 1: patents1.add(patent);
+			break;
+			case 2: patents2.add(patent);
+			break;
+			case 3: patents3.add(patent);
+			break;
+			case 4:
+				patents1.add(patent);
+				patents2.add(patent);
+				patents3.add(patent);
+				break;
+			}
+		}
+
+		Collection<Person> persons = new ArrayList<Person>();
+		for (int group = 1; group < 4; group += 1)
+		{
+			Person person = new Person();
+			person.setName("Leslie Lamport " + group);
+			persons.add(person);
+			switch(group)
+			{
+			case 1: person.setPatents(patents1); // 1 & 4
+			break;
+			case 2: person.setPatents(patents2);// 2 & 4
+			break;
+			case 3: person.setPatents(patents3); // 3 & 4
+			break;
+			}
+		}
+
+		// Bidirectional many to many mapping
+		Collection<Article> articles = new ArrayList<Article>();
+		for (int index = 1; index < 5; index += 1)
+		{
+			Article article = new Article();
+			article.setName("Article " + index);
+			article.setPersons(persons);
+			
+			articles.add(article);
+		}
+
+		for (Person person : persons)
+		{
+			person.setArticles(articles);
+			ormHelper.persist(person);
+		}
   }
    
   private void testQueryByList(ORMHelper ormHelper) {
@@ -439,7 +463,7 @@ public class MainActivity extends Activity {
     setContentView(R.layout.activity_main);
     ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
         "testDB.sqlite", null, 1);
-
+    
     testPersistence(ormHelper);
     testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
     testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
