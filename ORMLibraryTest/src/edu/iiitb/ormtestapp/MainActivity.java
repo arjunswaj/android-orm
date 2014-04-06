@@ -7,15 +7,22 @@ import iiitb.dm.ormlibrary.query.criterion.Restrictions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import edu.iiitb.ormtestapp.composition.eo.Article;
 import edu.iiitb.ormtestapp.composition.eo.Capital;
 import edu.iiitb.ormtestapp.composition.eo.Country;
 import edu.iiitb.ormtestapp.composition.eo.Patent;
 import edu.iiitb.ormtestapp.composition.eo.Person;
-import edu.iiitb.ormtestapp.composition.eo.Phone;
 import edu.iiitb.ormtestapp.composition.eo.State;
 import edu.iiitb.ormtestapp.eo.Course;
 import edu.iiitb.ormtestapp.eo.Student;
@@ -33,6 +40,8 @@ import edu.iiitb.ormtestapp.inheritance.tableperconcrete.eo.Sportsman;
 
 public class MainActivity extends Activity {
 
+  ListView listView = null;
+  
   private void testPersistence(ORMHelper ormHelper) {
     Course course = null;
     for (int index = 0; index < 25; index += 1) {
@@ -42,7 +51,7 @@ public class MainActivity extends Activity {
       course.setCredits(5);
       ormHelper.persist(course);
     }
-
+    
     Student student = null;
     for (int index = 0; index < 25; index += 1) {
       student = new Student(21 + (index % 3), "Name " + (index % 5), "Address "
@@ -68,22 +77,26 @@ public class MainActivity extends Activity {
     // .execSQL(
     // "CREATE TABLE FULL_TIME_EMPLOYEE( _id INTEGER, SALARY INTEGER, PENSION INTEGER )");
 
+	  Random randomGen = new Random();
     for (int index = 1; index < 5; index += 1) {
       Intern intern = new Intern();
       intern.setName("Ron " + index + " Clyde");
       intern.setHourlyRate(20 + index);
       intern.setStipend(200 + index);
+      intern.setAge(randomGen.nextInt(100));
       ormHelper.persist(intern);
 
       PartTimeEmployee pte = new PartTimeEmployee();
       pte.setName("Tom " + index + " Hanks");
       pte.setHourlyRate(12 + index);
+      pte.setAge(randomGen.nextInt(100));
       ormHelper.persist(pte);
 
       FullTimeEmployee fte = new FullTimeEmployee();
       fte.setName("Bon " + index + " Snype");
       fte.setSalary(1230 + index);
       fte.setPension(630 + index);
+      fte.setAge(randomGen.nextInt(100));
       ormHelper.persist(fte);
     }
   }
@@ -104,21 +117,25 @@ public class MainActivity extends Activity {
     // .execSQL(
     // "CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
 
+	Random randomGen = new Random();
     for (int index = 1; index < 5; index += 1) {
       Sportsman sportsman = new Sportsman();
       sportsman.setName("Vishwanathan " + index + " Anand");
+      sportsman.setAge(randomGen.nextInt(100));
       ormHelper.persist(sportsman);
 
       Cricketer cricketer = new Cricketer();
       cricketer.setName("Saurav " + index + " Ganguly");
       cricketer.setAverage(42.28f + index);
       cricketer.setTeam("India" + index);
+      cricketer.setAge(randomGen.nextInt(100));
       ormHelper.persist(cricketer);
 
       Footballer footballer = new Footballer();
       footballer.setName("David " + index + " Beckham");
       footballer.setGoals(92 + index);
       footballer.setTeam("England" + index);
+      footballer.setAge(randomGen.nextInt(100));
       ormHelper.persist(footballer);
     }
   }
@@ -216,169 +233,115 @@ public class MainActivity extends Activity {
     }
   }
 
-  private void testManyToManyPersistance(ORMHelper ormHelper) {
-	  
-	Collection<Person> persons = new ArrayList<Person>();
-	
-	for (int index = 1; index < 3; index += 1)
-	{
-		Person person = new Person();
-		person.setName("Leslie Lamport " + index);
-		persons.add(person);
-	}
-	
-    Collection<Patent> patents = new ArrayList<Patent>();
-    for (int index = 1; index < 5; index += 1) {
-      Patent patent = new Patent();
-      patent.setTitle("Distributed Computing Algo" + index);
-      patents.add(patent);
-    }
-    
-    for (Person person : persons)
-    	person.setPatents(patents);
-    
-    Collection<Phone> phones = new ArrayList<Phone>();
-	for (int index = 1; index < 5; index += 1)
-	{
-		Phone phone = new Phone();
-		phone.setNumber(100000000 + index);
-		//phone.setPersons(persons);
-		phones.add(phone);
-	}
-	
-	for (Person person : persons)
-	{
-		person.setPhones(phones);
-		ormHelper.persist(person);	
+   private void testManyToManyPersistance(ORMHelper ormHelper) 
+  {
+		// unidirectional many to many mapping
+		Collection<Patent> patents1 = new ArrayList<Patent>();
+		Collection<Patent> patents2 = new ArrayList<Patent>();
+		Collection<Patent> patents3 = new ArrayList<Patent>();
+		for (int index = 1; index < 5; index += 1)
+		{
+			Patent patent = new Patent();
+			patent.setTitle("Distributed Computing Algo " + index);
+			switch(index)
+			{
+			case 1: patents1.add(patent);
+			break;
+			case 2: patents2.add(patent);
+			break;
+			case 3: patents3.add(patent);
+			break;
+			case 4:
+				patents1.add(patent);
+				patents2.add(patent);
+				patents3.add(patent);
+				break;
+			}
+		}
+
+		Collection<Person> persons = new ArrayList<Person>();
+		for (int group = 1; group < 4; group += 1)
+		{
+			Person person = new Person();
+			person.setName("Leslie Lamport " + group);
+			persons.add(person);
+			switch(group)
+			{
+			case 1: person.setPatents(patents1); // 1 & 4
+			break;
+			case 2: person.setPatents(patents2);// 2 & 4
+			break;
+			case 3: person.setPatents(patents3); // 3 & 4
+			break;
+			}
+		}
+
+		// Bidirectional many to many mapping(commented out until query for bidirectional is done)
+		Collection<Article> articles = new ArrayList<Article>();
+		for (int index = 1; index < 5; index += 1)
+		{
+			Article article = new Article();
+			article.setName("Article " + index);
+			//article.setPersons(persons);
+			
+			articles.add(article);
+		}
+
+		for (Person person : persons)
+		{
+			person.setArticles(articles);
+			ormHelper.persist(person);
 		}
   }
-  
    
-  private void testQueryByList(ORMHelper ormHelper) {
-    Criteria criteria = ormHelper
-        .createCriteria(Student.class)
-        .add(Restrictions.like("name", "Name%"))
-        .add(
-            Restrictions.and(Restrictions.gt("cgpa", 1.0),
-                Restrictions.lt("cgpa", 4.0)))
-        .add(
-            Restrictions.or(Restrictions.eq("age", 23),
-                Restrictions.like("college", "IIIT-B 0")))
-        .add(Restrictions.eq("address", "Address 5"));
-    List<Student> studentList = criteria.list();
-    for(Student student: studentList) {
-      Log.d("QUERY BY LIST", "id: " + student.getId() + ", name: " + student.getName() + ", age: "
-          + student.getAge() + ", address: " + student.getAddress() + ", cgpa: " + student.getCgpa() + ", college: "
-          + student.getCollege());
-    }
-    
-    criteria = ormHelper
-        .createCriteria(Intern.class);
-    List<Intern> internList = criteria.add(
-        Restrictions.and(Restrictions.ge("stipend", 202),
-            Restrictions.le("stipend", 203))).list();
-    for(Intern intern: internList) {
-      Log.d("QUERY BY LIST", "id: " + intern.getId() + 
-          ", stipend: " + intern.getStipend() + ", hourly rate: " 
-          + intern.getHourlyRate() + ", name: "+ intern.getName());
-    }
-    
-    criteria = ormHelper
-        .createCriteria(Ford.class);
-    List<Ford> fordList = criteria.add(
-        Restrictions.gt("horsePower", 888)).list();
-    for(Ford ford: fordList) {
-      Log.d(
-          "QUERY BY LIST",
-          "id: " + ford.getId() + ", color: " + ford.getColor()
-              + ", horse power: " + ford.getHorsePower() + ", mfg: "
-              + ford.getMfgYear() + ", model: " + ford.getModel());
-    }
-    
-    criteria = ormHelper.createCriteria(Footballer.class);
-    List<Footballer> footballerList = criteria.add(
-        Restrictions.or(Restrictions.ge("goals", 95),
-            Restrictions.lt("goals", 94))).list();
-    for (Footballer footballer : footballerList) {
-      Log.d("QUERY BY LIST", "id: " + footballer.getId() + ", goals: "
-          + footballer.getGoals() + ", name: " + footballer.getName()
-          + ", team: " + footballer.getTeam());
-    }
-    
-    criteria = ormHelper.createCriteria(Sportsman.class);
-    List<Sportsman> sportsmanList = criteria.list();
-    for (Sportsman sportsman : sportsmanList) {
-      Log.d("QUERY BY LIST", "id: " + sportsman.getId()
-          + ", name: " + sportsman.getName());
-    }
-    
-   /* criteria = ormHelper.createCriteria(PrimeMinister.class);
-    List<PrimeMinister> primeMinisters = criteria.add(
-        Restrictions.eq("state", "Gujarat 2")).list();
-    for (PrimeMinister pm : primeMinisters) {
-      Log.d("QUERY BY LIST", "id: " + pm.getId() + ", age: " + pm.getAge()
-          + ", portfolio: " + pm.getPortfolio() + ", salary: " + pm.getSalary()
-          + ", state: " + pm.getState());
-    }*/
-    
-    
-    criteria = ormHelper.createCriteria(Person.class);
-    List<Person> persons = criteria.add(
-    		Restrictions.eq("name", "Leslie Lamport 1"))
-    			.createCriteria("patents").add
-    			(Restrictions.like("title", "Distributed Computing Algo3")).list();
-    for (Person p : persons)
-    {
-    	Log.d("Query BY LIST", "id: " + p.getId() + ", name: " + p.getName());
-    	for (Patent patent: p.getPatents())
-    		Log.d("QUERY BY LIST", "id: " + patent.getTitle());
-    }
-    
-	/*criteria = ormHelper.createCriteria(Country.class);
-	List<Country> countries = criteria
-			.add(Restrictions.like("name", "India 1"))
-			.createCriteria("capital")
-			.add(Restrictions.like("name", "New 1 Delhi")).list();
-	Log.d("MainActivity", "Got " + countries.size() + " objects of country");
-	for (Country country : countries)
-	{
-		Log.d("QUERY BY LIST", "id: " + country.getId() + ", name: "
-				+ country.getName() + ", capital: " + country.getCapital().getName());
-		for (State state : country.getStates())
-			Log.d("QUERY BY LIST", "id: " + state.getId() + ", name: "
-					+ state.getName());
-	}
-	criteria = ormHelper.createCriteria(Person.class);
-	persons = criteria.add(Restrictions.like("name", "Leslie Lamport 1"))
-			.createCriteria("phones")
-			.add(Restrictions.eq("number","100000001")).list();
-	for(Person person: persons)
-	{
-		Log.d("Query BY LIST", "id: " + person.getId() + ", name: " + person.getName());
-    	for (Patent patent: person.getPatents())
-    		Log.d("QUERY BY LIST", "id: " + patent.getTitle());
-    	for (Phone phone: person.getPhones())
-    		Log.d("QUERY BY LIST", "id: " + phone.getNumber());
-    	
-		
-	}*/
-  }
   
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
-        "testDB.sqlite", null, 1);
-
-    testPersistence(ormHelper);
-    testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
-    testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
-    testPersistenceOfComposition(ormHelper);
-    testManyToManyPersistance(ormHelper);
+    List<String> menuList = new ArrayList<String>();
+    menuList.add("Simple Persistence");
+    menuList.add("Inheritance Joined");
+    menuList.add("Inheritance Table Per Class");
+    menuList.add("Inheritance Mixed");
+    menuList.add("Composition - 1-1, 1-Many");
+    menuList.add("Composition - Many-Many");
+    menuList.add("Query");
     
-    testQueryByList(ormHelper);
+    listView = (ListView) findViewById(R.id.mainList);
+    listView.setAdapter(new ArrayAdapter(this, android.R.layout.simple_list_item_1, menuList));
+    final ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
+        "testDB.sqlite", null, 1);
+    
+    listView.setOnItemClickListener(new OnItemClickListener() {
+      public void onItemClick(AdapterView<?> parent, View v, int position,
+          long id) {
+        switch (position) {
+        case 0:
+          testPersistence(ormHelper);
+          break;
+        case 1:
+          testPersistenceOfInheritedObjectsWithJoinedStrategy(ormHelper);
+          break;
+        case 2:
+          testPersistenceOfInheritedObjectsWithTablePerClassStrategy(ormHelper);
+          break;
+        case 3:
+          testPersistenceOfInheritedObjectsWithMixedStrategy(ormHelper);
+          break;
+        case 4:
+          testPersistenceOfComposition(ormHelper);
+          break;
+        case 5:
+          testManyToManyPersistance(ormHelper);
+          break;
+        case 6:
+          Intent queryScreen = new Intent(MainActivity.this, QueryActivity.class);
+          startActivity(queryScreen);
+          break;        
+        }
+      }
+    });        
     
   }
 }

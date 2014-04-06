@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.persistence.Column;
 import javax.persistence.InheritanceType;
 
 import android.content.ContentValues;
@@ -54,21 +53,52 @@ public class ORMHelper extends SQLiteOpenHelper {
     this.context = context;
   }
 
+  private long getId(Object obj)
+  {
+		Long id = Long.valueOf(-1L);
+		ClassDetails superClassDetails = fetchClassDetailsMapping(obj);
+		for (FieldTypeDetails fieldTypeDetail : superClassDetails
+				.getFieldTypeDetails())
+		{
+			// TODO: What if the object being saved inherits and does not have
+			// an @ID annotation??
+			// This can't probably happen as I am dealing with superClassDetails
+			// Need to think this over.
+			if (fieldTypeDetail.getAnnotationOptionValues().get(Constants.ID) != null)
+			{
+				String getterMethodName = Utils
+						.getGetterMethodName(fieldTypeDetail.getFieldName());
+				Method getterMethod;
+				try
+				{
+					getterMethod = obj.getClass().getMethod(getterMethodName);
+					if ((Long) getterMethod.invoke(obj) != 0)
+						id = (Long) getterMethod.invoke(obj);
+				}
+				catch (NoSuchMethodException e)
+				{
+					e.printStackTrace();
+				}
+				catch (IllegalAccessException e)
+				{
+					e.printStackTrace();
+				}
+				catch (IllegalArgumentException e)
+				{
+					e.printStackTrace();
+				}
+				catch (InvocationTargetException e)
+				{
+					e.printStackTrace();
+				}
+				break;
+			}
+		}
+		return id;
+  }
+  
   public void persist(Object obj) {
-    long genId = save(obj, -1L, null);
-    Method setterMethod;
-    try {
-      setterMethod = obj.getClass().getMethod("setId", long.class);
-      setterMethod.invoke(obj, genId);
-    } catch (NoSuchMethodException e) {
-      e.printStackTrace();
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    } catch (IllegalArgumentException e) {
-      e.printStackTrace();
-    } catch (InvocationTargetException e) {
-      e.printStackTrace();
-    }
+    long genId = save(obj, getId(obj), null);
     Log.d(SAVE_OBJECT_TAG, "Saved: " + obj.getClass().getSimpleName()
         + " Generated Id: " + genId);
   }
@@ -79,7 +109,7 @@ public class ORMHelper extends SQLiteOpenHelper {
    * @return Criteria Instance
    */
   public Criteria createCriteria(Class<?> entity) {
-    return new CriteriaImpl(entity.getName(), getReadableDatabase(), mappingCache);
+    return new CriteriaImpl(entity.getName(), getReadableDatabase(), mappingCache, context);
   }
   
   
@@ -129,6 +159,21 @@ public class ORMHelper extends SQLiteOpenHelper {
     } else {
       // Has Inheritance annotation. Awesome. Check the Strategy and persist.
       id = saveObjectByInheritanceStrategy(classDetails, obj, passedKVPs);
+    }
+    Method setterMethod;
+    try {
+    	// TODO: Get the setter method instead of assuming that it will be "setId"
+    	// TODO: Get the type of the formal parameter instead of assuming it to be long
+      setterMethod = obj.getClass().getMethod("setId", long.class);
+      setterMethod.invoke(obj, id);
+    } catch (NoSuchMethodException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
     }
     return id;
   }
@@ -223,7 +268,7 @@ public class ORMHelper extends SQLiteOpenHelper {
    * @param obj
    *          object to save
    * @param id
-   *          ID of the object to be saved. -1L if needs to be ignored and se
+   *          ID of the object to be saved. -1L if needs to be ignored and else
    *          the auto generated value
    * @param kvp
    *          Additional Key Value Pairs to be persisted
@@ -297,7 +342,22 @@ public class ORMHelper extends SQLiteOpenHelper {
         Log.v(SAVE_OBJECT_TAG, "Col: _id " + ", Val: " + id);
       }
 
-      genId = getWritableDatabase().insert(tableName, null, contentValues);
+      // Insert into the database only if not already present
+      String[] strs = new String[1];
+      strs[0] = Long.valueOf(id).toString();
+      if (getReadableDatabase()
+    		  .rawQuery("select * from " + tableName + " where " 
+    			+ Constants.ID_VALUE + " = ?", strs).getCount() == 0)
+    	  // TODO: can I use '*' here??
+      {
+    	  genId = getWritableDatabase().insert(tableName, null, contentValues);
+    	  Log.d(SAVE_OBJECT_TAG, genId + ": Inserted into " + tableName);
+      }
+      else
+      {
+    	  Log.d(SAVE_OBJECT_TAG, id + ": Already present in " + tableName);
+    	  genId = id;
+      }
 
       // Save 1-Many and other Composed Objects
       for (FieldTypeDetails fieldTypeDetail : superClassDetails
@@ -325,6 +385,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 								.get(Constants.MAPPED_BY).equals(""))
         {
         	// for clarity of semantics for Abhijith
+        	// TODO: Will this will fail when the owning side is a subclass because of the semantics of superClassDetails??
         	ClassDetails owningSide = superClassDetails;
         	Collection<Object> composedObjectCollection = 
         			(Collection<Object>) getterMethod.invoke(obj);
@@ -374,7 +435,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 				ContentValues joinTableContentValues = new ContentValues();
 				joinTableContentValues.put(joinColumnName, genId);
 				joinTableContentValues.put(inverseJoinColumnName,
-						save(composedObject, -1L, null));
+						save(composedObject, getId(composedObject), null));
 				if (getWritableDatabase().insert(joinTableName, null,
 				    joinTableContentValues) == -1)
 					Log.e(SAVE_OBJECT_TAG, "Error inserting into database");

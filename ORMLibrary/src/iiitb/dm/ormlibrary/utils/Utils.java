@@ -24,5 +24,24 @@ public class Utils {
 		Log.v("Utils", "Method name is:" + methodName);
 		return methodName;
 	}
+	
+	/**
+	 * Utility class : Returns a the 'Class' object of the specified class name
+	 * @param className
+	 * @return
+	 */
+	public static Class<?> getClassObject(String className)
+	{
+		Class<?> _class = null;
+		try
+		{
+			_class = Class.forName(className);
+		}
+		catch (ClassNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		return _class;
+	}
 
 }

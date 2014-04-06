@@ -22,7 +22,7 @@ public class Person
 	private Collection<Patent> patents;
 	
 	@ManyToMany
-	private Collection<Phone> phones;
+	private Collection<Article> articles;
 
 	public Person(String name)
 	{
@@ -64,14 +64,13 @@ public class Person
 		this.patents = patents;
 	}
 
-	public Collection<Phone> getPhones()
+	public Collection<Article> getArticles()
 	{
-		return phones;
+		return articles;
 	}
 
-	public void setPhones(Collection<Phone> phones)
+	public void setArticles(Collection<Article> articles)
 	{
-		this.phones = phones;
+		this.articles = articles;
 	}
-
 }
