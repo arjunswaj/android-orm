@@ -16,9 +16,11 @@ public class Country {
   private long id;
   @Column(name = "NAME")
   private String name;
+  
   @OneToOne
   @JoinColumn(name = "CAPITAL_ID")
   private Capital capital;
+  
   @OneToMany
   @JoinColumn(name = "COUNTRY_ID")
   private Collection<State> states;

@@ -80,7 +80,7 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 				}
 				classDetailsMap.put(className, classDetails);
 			}
-			
+
 			// Fill in details about inheritance hierarchies
 			for (String cName : eoClassNames) {
 				Class<?> subClass = Class.forName(classDetailsMap.get(cName)
@@ -121,8 +121,8 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 						Class<?> relatedClass = (Class<?>)genericType.getActualTypeArguments()[0];
 						ClassDetails relatedClassDetails = classDetailsMap.get(relatedClass.getName());
 						boolean bidirectional = false;
-						
- 						// Then check if related class contains a reference back to this class.
+
+						// Then check if related class contains a reference back to this class.
 						if(fieldTypeDetails.getAnnotationOptionValues().get(Constants.ONE_TO_MANY).get(Constants.MAPPED_BY) != "")
 						{
 							for(FieldTypeDetails relatedFieldTypeDetails : relatedClassDetails.getFieldTypeDetails())
@@ -192,32 +192,99 @@ public class AnnotationsScannerImpl implements AnnotationsScanner {
 			Log.v(ANNOTATION_TAG, "FieldName: " + field.getName());
 			Annotation[] fieldAnnotations = field.getAnnotations();
 
-      Map<String, Map<String, Object>> fieldAnnotationOptionValues = new HashMap<String, Map<String, Object>>();
+			Map<String, Map<String, Object>> fieldAnnotationOptionValues = new HashMap<String, Map<String, Object>>();
 
-      for (Annotation annotation : fieldAnnotations) {
-        Map<String, Object> fieldOptionValues = new HashMap<String, Object>();
-        String fieldAnnotationName = annotation.annotationType()
-            .getSimpleName();
-        Log.v(ANNOTATION_TAG, "fieldAnnotationName: " + fieldAnnotationName);
+			for (Annotation annotation : fieldAnnotations) {
+				Map<String, Object> fieldOptionValues = new HashMap<String, Object>();
+				String fieldAnnotationName = annotation.annotationType()
+						.getSimpleName();
+				Log.v(ANNOTATION_TAG, "fieldAnnotationName: " + fieldAnnotationName);
 
-        // All the Key/Value Props
-        for (Method method : annotation.annotationType().getDeclaredMethods()) {
-          String propKey = method.getName();
-          Object propVal = method.invoke(annotation, null);
-          Log.v(ANNOTATION_TAG, "Field Annotations Props: " + propKey + ": "
-              + propVal);
-          fieldOptionValues.put(propKey, propVal);
-        }
-        fieldAnnotationOptionValues.put(fieldAnnotationName, fieldOptionValues);
-      }
+				// All the Key/Value Props
+				for (Method method : annotation.annotationType().getDeclaredMethods()) {
+					String propKey = method.getName();
+					Object propVal = method.invoke(annotation, null);
+					Log.v(ANNOTATION_TAG, "Field Annotations Props: " + propKey + ": "
+							+ propVal);
+					fieldOptionValues.put(propKey, propVal);
+				}
+				fieldAnnotationOptionValues.put(fieldAnnotationName, fieldOptionValues);
+			}
 
-      fieldTypeDetail.setFieldName(field.getName());
-      fieldTypeDetail.setFieldType(field.getType());
-      fieldTypeDetail.setFieldGenericType(field.getGenericType());
-      fieldTypeDetail.setAnnotationOptionValues(fieldAnnotationOptionValues);
-      fieldTypeDetailList.add(fieldTypeDetail);
-    }
-    return new ClassDetails(classToInvestigate.getName(),
-        classAnnotationOptionValues, fieldTypeDetailList);
-  }
+			fieldTypeDetail.setFieldName(field.getName());
+			fieldTypeDetail.setFieldType(field.getType());
+			fieldTypeDetail.setFieldGenericType(field.getGenericType());
+			fieldTypeDetail.setAnnotationOptionValues(fieldAnnotationOptionValues);
+			fieldTypeDetailList.add(fieldTypeDetail);
+		}
+		return new ClassDetails(classToInvestigate.getName(),
+				classAnnotationOptionValues, fieldTypeDetailList);
+	}
+
+	@Override
+	public ClassDetails getEntityObjectDetailsWithInheritedFields(Class<?> classToInvestigate)
+			throws IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException {
+		List<FieldTypeDetails> fieldTypeDetailList = new ArrayList<FieldTypeDetails>();
+		Map<String, Map<String, Object>> classAnnotationOptionValues = new HashMap<String, Map<String, Object>>();
+		Annotation[] classAnnotations = classToInvestigate.getAnnotations();
+
+		for (Annotation annotation : classAnnotations) {
+			Map<String, Object> classOptionValues = new HashMap<String, Object>();
+			String classAnnotationName = annotation.annotationType().getSimpleName();
+			Log.v(ANNOTATION_TAG, "ClassAnnotationName: " + classAnnotationName);
+
+			// All the Key/Value Props
+			for (Method method : annotation.annotationType().getDeclaredMethods()) {
+				String propKey = method.getName();
+				Object propVal = method.invoke(annotation, null);
+				Log.v(ANNOTATION_TAG, "Class Annotations Props: " + propKey + ": "
+						+ propVal);
+				classOptionValues.put(propKey, propVal);
+			}
+			classAnnotationOptionValues.put(classAnnotationName, classOptionValues);
+		}
+
+		Class<?> currentClass = classToInvestigate;
+		while(currentClass != Object.class)
+		{
+			;
+			// Fields
+			Field[] fields = currentClass.getDeclaredFields();
+
+			for (Field field : fields) {
+				FieldTypeDetails fieldTypeDetail = new FieldTypeDetails();
+				Log.v(ANNOTATION_TAG, "ClassName: " + currentClass.getName() +"FieldName: " + field.getName());
+				Annotation[] fieldAnnotations = field.getAnnotations();
+
+				Map<String, Map<String, Object>> fieldAnnotationOptionValues = new HashMap<String, Map<String, Object>>();
+
+				for (Annotation annotation : fieldAnnotations) {
+					Map<String, Object> fieldOptionValues = new HashMap<String, Object>();
+					String fieldAnnotationName = annotation.annotationType()
+							.getSimpleName();
+					Log.v(ANNOTATION_TAG, "fieldAnnotationName: " + fieldAnnotationName);
+
+					// All the Key/Value Props
+					for (Method method : annotation.annotationType().getDeclaredMethods()) {
+						String propKey = method.getName();
+						Object propVal = method.invoke(annotation, null);
+						Log.v(ANNOTATION_TAG, "Field Annotations Props: " + propKey + ": "
+								+ propVal);
+						fieldOptionValues.put(propKey, propVal);
+					}
+					fieldAnnotationOptionValues.put(fieldAnnotationName, fieldOptionValues);
+				}
+
+				fieldTypeDetail.setFieldName(field.getName());
+				fieldTypeDetail.setFieldType(field.getType());
+				fieldTypeDetail.setFieldGenericType(field.getGenericType());
+				fieldTypeDetail.setAnnotationOptionValues(fieldAnnotationOptionValues);
+				fieldTypeDetailList.add(fieldTypeDetail);
+			}
+			currentClass = currentClass.getSuperclass();
+		}
+		return new ClassDetails(classToInvestigate.getName(),
+				classAnnotationOptionValues, fieldTypeDetailList);
+	}
 }

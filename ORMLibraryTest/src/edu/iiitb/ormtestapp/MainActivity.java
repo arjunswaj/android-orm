@@ -242,28 +242,29 @@ public class MainActivity extends Activity {
 	{
 		Phone phone = new Phone();
 		phone.setNumber(100000000 + index);
-		phone.setPersons(persons);
+		//phone.setPersons(persons);
 		phones.add(phone);
 	}
 	
 	for (Person person : persons)
 	{
 		person.setPhones(phones);
-		ormHelper.persist(person);
-	}
+		ormHelper.persist(person);	
+		}
   }
+  
    
   private void testQueryByList(ORMHelper ormHelper) {
     Criteria criteria = ormHelper
         .createCriteria(Student.class)
-        .add(Restrictions.like("NAME", "Name%"))
+        .add(Restrictions.like("name", "Name%"))
         .add(
-            Restrictions.and(Restrictions.gt("CGPA", 1.0),
-                Restrictions.lt("CGPA", 4.0)))
+            Restrictions.and(Restrictions.gt("cgpa", 1.0),
+                Restrictions.lt("cgpa", 4.0)))
         .add(
-            Restrictions.or(Restrictions.eq("AGE", 23),
-                Restrictions.like("COLLEGE", "IIIT-B 0")))
-        .add(Restrictions.eq("ADDRESS", "Address 5"));
+            Restrictions.or(Restrictions.eq("age", 23),
+                Restrictions.like("college", "IIIT-B 0")))
+        .add(Restrictions.eq("address", "Address 5"));
     List<Student> studentList = criteria.list();
     for(Student student: studentList) {
       Log.d("QUERY BY LIST", "id: " + student.getId() + ", name: " + student.getName() + ", age: "
@@ -285,7 +286,7 @@ public class MainActivity extends Activity {
     criteria = ormHelper
         .createCriteria(Ford.class);
     List<Ford> fordList = criteria.add(
-        Restrictions.gt("horse_power", 888)).list();
+        Restrictions.gt("horsePower", 888)).list();
     for(Ford ford: fordList) {
       Log.d(
           "QUERY BY LIST",
@@ -311,20 +312,17 @@ public class MainActivity extends Activity {
           + ", name: " + sportsman.getName());
     }
     
-    criteria = ormHelper.createCriteria(PrimeMinister.class);
+   /* criteria = ormHelper.createCriteria(PrimeMinister.class);
     List<PrimeMinister> primeMinisters = criteria.add(
         Restrictions.eq("state", "Gujarat 2")).list();
     for (PrimeMinister pm : primeMinisters) {
       Log.d("QUERY BY LIST", "id: " + pm.getId() + ", age: " + pm.getAge()
           + ", portfolio: " + pm.getPortfolio() + ", salary: " + pm.getSalary()
           + ", state: " + pm.getState());
-    }
+    }*/
     
     
-    /*Uncomment after
-     	Fixing many-to-many bug
-     	Implementation of createCriteria() in Criteria*/
-   /* criteria = ormHelper.createCriteria(Person.class);
+    criteria = ormHelper.createCriteria(Person.class);
     List<Person> persons = criteria.add(
     		Restrictions.eq("name", "Leslie Lamport 1"))
     			.createCriteria("patents").add
@@ -336,18 +334,33 @@ public class MainActivity extends Activity {
     		Log.d("QUERY BY LIST", "id: " + patent.getTitle());
     }
     
-	criteria = ormHelper.createCriteria(Country.class);
+	/*criteria = ormHelper.createCriteria(Country.class);
 	List<Country> countries = criteria
 			.add(Restrictions.like("name", "India 1"))
-			.createCriteria("states")
-			.add(Restrictions.like("name", "Karnataka 2")).list();
+			.createCriteria("capital")
+			.add(Restrictions.like("name", "New 1 Delhi")).list();
+	Log.d("MainActivity", "Got " + countries.size() + " objects of country");
 	for (Country country : countries)
 	{
 		Log.d("QUERY BY LIST", "id: " + country.getId() + ", name: "
-				+ country.getName() + ", capital: " + country.getCapital());
+				+ country.getName() + ", capital: " + country.getCapital().getName());
 		for (State state : country.getStates())
 			Log.d("QUERY BY LIST", "id: " + state.getId() + ", name: "
 					+ state.getName());
+	}
+	criteria = ormHelper.createCriteria(Person.class);
+	persons = criteria.add(Restrictions.like("name", "Leslie Lamport 1"))
+			.createCriteria("phones")
+			.add(Restrictions.eq("number","100000001")).list();
+	for(Person person: persons)
+	{
+		Log.d("Query BY LIST", "id: " + person.getId() + ", name: " + person.getName());
+    	for (Patent patent: person.getPatents())
+    		Log.d("QUERY BY LIST", "id: " + patent.getTitle());
+    	for (Phone phone: person.getPhones())
+    		Log.d("QUERY BY LIST", "id: " + phone.getNumber());
+    	
+		
 	}*/
   }
   

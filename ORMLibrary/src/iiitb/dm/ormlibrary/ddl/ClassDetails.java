@@ -1,13 +1,18 @@
 package iiitb.dm.ormlibrary.ddl;
 
+import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
+import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
 import iiitb.dm.ormlibrary.utils.Constants;
 import iiitb.dm.ormlibrary.utils.RelationshipType;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import android.util.Log;
 
 /**
  * ClassDetails captured from Reflection
@@ -133,6 +138,7 @@ public ClassDetails(String className,
 		return null;
 	}
 	
+	
 	/**
 	 * Return a FieldTypeDetails object of a field which is annotated with an 
 	 * inverse many-to-many mapping to its owning side entity class through 
@@ -155,6 +161,17 @@ public ClassDetails(String className,
 				return fieldTypeDetails;
 		}
 		return null;
-	}	
+	}
+	
+	public FieldTypeDetails getFieldTypeDetailsByFieldName(
+			String fieldName)
+	{
+		for (FieldTypeDetails fieldTypeDetails : getFieldTypeDetails())
+		{
+			if (fieldTypeDetails.getFieldName().equals(fieldName))
+				return fieldTypeDetails;
+		}
+		return null;
+	}
 
 }

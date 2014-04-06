@@ -9,11 +9,14 @@ import android.content.Context;
 
 public interface AnnotationsScanner {
 
-  public ClassDetails getEntityObjectDetails(Class<?> classToInvestigate)
-      throws IllegalAccessException, IllegalArgumentException,
-      InvocationTargetException;
+	public ClassDetails getEntityObjectDetails(Class<?> classToInvestigate)
+			throws IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException;
 
-  public Map<String, ClassDetails> getEntityObjectCollectionDetails(
-      Context context);
+	public Map<String, ClassDetails> getEntityObjectCollectionDetails(
+			Context context);
+
+	public ClassDetails getEntityObjectDetailsWithInheritedFields(Class<?> classToInvestigate)
+			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
 
 }

@@ -5,7 +5,9 @@ import java.util.Collection;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 
 @Entity(name = "PHONE")
 public class Phone
@@ -17,8 +19,13 @@ public class Phone
 	@Column(name = "NUMBER")
 	private int number;
 	
-	@ManyToMany(mappedBy = "phones")
-	private Collection<Person> persons;
+/*	@ManyToMany(mappedBy = "phones")
+	private Collection<Person> persons;*/
+	
+	
+
+	
+	
 
 	public long getId()
 	{
@@ -40,7 +47,7 @@ public class Phone
 		this.number = number;
 	}
 
-	public Collection<Person> getPersons()
+	/*public Collection<Person> getPersons()
 	{
 		return persons;
 	}
@@ -48,6 +55,6 @@ public class Phone
 	public void setPersons(Collection<Person> persons)
 	{
 		this.persons = persons;
-	}
+	}*/
 
 }

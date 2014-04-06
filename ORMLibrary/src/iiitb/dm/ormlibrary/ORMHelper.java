@@ -315,7 +315,7 @@ public class ORMHelper extends SQLiteOpenHelper {
           for (Object composedObject : composedObjectCollection) {
             newKVPs.put(joinColumnName, String.valueOf(genId));
             // TODO : Make use of these newKVP's when bidirectional is implemented
-            long saveId = save(composedObject, -1L, null);
+            long saveId = save(composedObject, -1L, newKVPs);
           }
         }
         else if (fieldTypeDetail.getAnnotationOptionValues()

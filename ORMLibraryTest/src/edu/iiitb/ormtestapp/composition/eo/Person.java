@@ -15,7 +15,7 @@ public class Person
 	@Column(name = "_id")
 	private long id;
 
-	@Column(name = "PERSON_NAME")
+	@Column(name = "NAME")
 	private String name;
 
 	@ManyToMany
