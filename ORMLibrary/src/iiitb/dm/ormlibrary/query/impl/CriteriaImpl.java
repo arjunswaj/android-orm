@@ -54,8 +54,7 @@ public class CriteriaImpl implements Criteria {
 	private ProjectionList projectionList;
 	private AnnotationsScanner annotationsScanner;	
 
-	// List of subcriteria 
-	private List<SubCriteria> subCriteriaList = new ArrayList<SubCriteria>();
+
 	// Criterion corresponding to each subcriteria
 	private Map<Criteria, List<Criterion>> criteriaCriterionMap = new HashMap<Criteria, List<Criterion>>();
 	private Context context;
@@ -517,7 +516,6 @@ public class CriteriaImpl implements Criteria {
 				this.parent = criteriaClassName;
 			this.associationPath = associationPath;
 			this.className = getClassNameByAssociationPath(associationPath);
-			CriteriaImpl.this.subCriteriaList.add(this);
 			Log.v("SubCriteria ", "New criteria with associationPath " + this.associationPath + " and className " + this.className + " and parent " + this.parent);
 		}
 

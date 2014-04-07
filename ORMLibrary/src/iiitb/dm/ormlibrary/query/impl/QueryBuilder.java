@@ -10,6 +10,8 @@ import javax.persistence.InheritanceType;
 import android.util.Log;
 import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
+import iiitb.dm.ormlibrary.query.Criteria;
+import iiitb.dm.ormlibrary.query.Criterion;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 import iiitb.dm.ormlibrary.utils.Constants;
 import iiitb.dm.ormlibrary.utils.Utils;
@@ -20,6 +22,7 @@ public class QueryBuilder {
 	
 	private List<ClassDetails> queue = new ArrayList<ClassDetails>();
 	private String entityOrClassName;
+	private Map<Criteria, List<Criterion>> criteriaCriterionList;
 	
 	public QueryBuilder(String entityOrClassName)
 	{

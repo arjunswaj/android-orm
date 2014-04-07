@@ -2,9 +2,9 @@ package iiitb.dm.ormlibrary.query.impl;
 
 
 	public class ColumnField{
-		String columnName;
-		String className;
-		String fieldName;
+		private String columnName;
+		private String className;
+		private String fieldName;
 
 
 		public ColumnField(String columnName, String className,
