@@ -8,7 +8,6 @@ import iiitb.dm.ormlibrary.ddl.impl.MappingException;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.impl.CriteriaImpl;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
-import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
 import iiitb.dm.ormlibrary.utils.Constants;
 import iiitb.dm.ormlibrary.utils.Utils;
 
@@ -44,13 +43,14 @@ public class ORMHelper extends SQLiteOpenHelper {
   Context context;
 
   private Map<String, ClassDetails> mappingCache = new HashMap<String, ClassDetails>();
-  AnnotationsScanner annotationsScanner = new AnnotationsScannerImpl();
   private DDLStatementBuilder ddlStatementBuilder;
+  AnnotationsScanner annotationsScanner;
 
   public ORMHelper(Context context, String name, CursorFactory factory,
       int version) {
     super(context, name, factory, version);
     this.context = context;
+    annotationsScanner = AnnotationsScanner.getInstance(context);
   }
 
   private long getId(Object obj)
@@ -109,12 +109,13 @@ public class ORMHelper extends SQLiteOpenHelper {
    * @return Criteria Instance
    */
   public Criteria createCriteria(Class<?> entity) {
-    return new CriteriaImpl(entity.getName(), getReadableDatabase(), mappingCache, context);
+	
+    return new CriteriaImpl(entity.getName(), getReadableDatabase(), mappingCache, annotationsScanner, context);
   }
   
   
   /**
-   * Gets the ClassDetails object corressponding to the specified object.
+   * Gets the ClassDetails object corresponding to the specified object.
    * Does caching to ensure that the scanning itself is done only once.
    * 
    * 
@@ -130,16 +131,12 @@ public class ORMHelper extends SQLiteOpenHelper {
       do {
         try {
           superClassDetails = annotationsScanner
-              .getEntityObjectDetails(objClass);
+              .getEntityObjectDetails(objClass.getName());
           if (null != subClassDetails) {
             superClassDetails.getSubClassDetails().add(subClassDetails);
           }
           subClassDetails = superClassDetails;
-        } catch (IllegalAccessException e) {
-          e.printStackTrace();
         } catch (IllegalArgumentException e) {
-          e.printStackTrace();
-        } catch (InvocationTargetException e) {
           e.printStackTrace();
         }
 
@@ -401,7 +398,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 			// DANGER : This ClassDetails object doesn't have its 
 			// inheritance and ownedRelations members populated
 			ClassDetails inverseSide = annotationsScanner
-					.getEntityObjectDetails(inverseClass);
+					.getEntityObjectDetails(inverseClass.getName());
 			
 			// joinColumnName is different if there is a reverse mapping
     		FieldTypeDetails joinColumnFieldTypeDetails = inverseSide
@@ -504,9 +501,8 @@ public class ORMHelper extends SQLiteOpenHelper {
   @Override
 	public void onCreate(SQLiteDatabase db) {
 		Log.d(this.getClass().getName() + ".onCreate()", "Creating tables");
-		Map<String, ClassDetails> classDetailsMap = annotationsScanner
-				.getEntityObjectCollectionDetails(this.context);
-		
+		Map<String, ClassDetails> classDetailsMap = AnnotationsScanner.getInstance(context)
+				.getEntityObjectCollectionDetails();
 
 		ddlStatementBuilder = new DDLStatementBuilderImpl(classDetailsMap);
 		db.execSQL("pragma foreign_keys = on;");

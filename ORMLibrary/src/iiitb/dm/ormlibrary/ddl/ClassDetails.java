@@ -1,7 +1,6 @@
 package iiitb.dm.ormlibrary.ddl;
 
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
-import iiitb.dm.ormlibrary.scanner.impl.AnnotationsScannerImpl;
 import iiitb.dm.ormlibrary.utils.Constants;
 import iiitb.dm.ormlibrary.utils.RelationshipType;
 
@@ -173,5 +172,7 @@ public ClassDetails(String className,
 		}
 		return null;
 	}
+	
+	
 
 }
