@@ -15,14 +15,9 @@ import iiitb.dm.ormlibrary.utils.Constants;
 import iiitb.dm.ormlibrary.utils.Utils;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -57,8 +52,7 @@ public class CriteriaImpl implements Criteria {
 	private String orderBy;
 	private String limit;
 	private ProjectionList projectionList;
-	private AnnotationsScanner annotationsScanner;
-	private Map<String, ClassDetails> mappingCache;
+	private AnnotationsScanner annotationsScanner;	
 
 	// List of subcriteria 
 	private List<SubCriteria> subCriteriaList = new ArrayList<SubCriteria>();
@@ -76,12 +70,11 @@ public class CriteriaImpl implements Criteria {
 	 */
 	private String criteriaClassName;
 
-	public CriteriaImpl(String criteriaClassName, SQLiteDatabase sqliteDatabase, Map<String, ClassDetails> mappingCache, AnnotationsScanner annotationsScanner, Context context) {
+	public CriteriaImpl(String criteriaClassName, SQLiteDatabase sqliteDatabase, Context context) {
 		this.criteriaClassName = criteriaClassName;
-		this.sqliteDatabase = sqliteDatabase;
-		this.mappingCache = mappingCache;
-		this.annotationsScanner = annotationsScanner;
+		this.sqliteDatabase = sqliteDatabase;				
 		this.context = context;
+		this.annotationsScanner = AnnotationsScanner.getInstance(context);
 	}
 
 	// Add a criterion on this criteria
@@ -166,35 +159,6 @@ public class CriteriaImpl implements Criteria {
 	public Criteria addOrder(Order order) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	private ClassDetails fetchClassDetailsMapping(Class<?> objClass) {
-		ClassDetails subClassDetails = null;
-		String objClassName = objClass.getName();
-		ClassDetails superClassDetails = mappingCache.get(objClassName);
-		Log.v("fetchClassDetailsMapping", " objClassName " + objClassName);
-		for(Map.Entry<String, ClassDetails> entry: mappingCache.entrySet())
-			Log.v("fetchClassDetailsMapping" , " " + entry.getKey() + "--" + entry.getValue().getClassName());
-		if (null == superClassDetails) {
-			Log.e("CACHE MISS", "CACHE MISS for " + objClass.getName());
-			do {
-				try {
-					superClassDetails = annotationsScanner
-							.getEntityObjectDetails(objClass.getName());
-					if (null != subClassDetails) {
-						superClassDetails.getSubClassDetails().add(subClassDetails);
-					}
-					subClassDetails = superClassDetails;
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				}
-
-				Log.v("fetchClassDetailsMapping", " superClassDetails " + superClassDetails.getClassName());
-
-			} while (Object.class != (objClass = objClass.getSuperclass()));
-			mappingCache.put(objClassName, superClassDetails);
-		}
-		return superClassDetails;
 	}
 
 	@Override

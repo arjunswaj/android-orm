@@ -185,16 +185,18 @@ public class MainActivity extends Activity {
     // "CREATE TABLE PRIME_MINISTER( AGE INTEGER, _id INTEGER primary key autoincrement )");
 
     for (int index = 1; index < 5; index += 1) {
+      
       Minister minister = new Minister();
-      minister.setState("Karnataka" + index);
+      minister.setState("Karnataka" + index);            
       ormHelper.persist(minister);
-
+            
+      
       CabinetMinister cabinetMinister = new CabinetMinister();
       cabinetMinister.setPortfolio("Home " + index + " Minister");
       cabinetMinister.setSalary(10000 + index);
-      cabinetMinister.setState("Punjab " + index);
+      cabinetMinister.setState("Punjab " + index);      
       ormHelper.persist(cabinetMinister);
-
+      
       PrimeMinister pm = new PrimeMinister();
       pm.setAge(62 + index);
       pm.setPortfolio("Prime " + index + " Minister");

@@ -109,10 +109,8 @@ public class ORMHelper extends SQLiteOpenHelper {
    * @return Criteria Instance
    */
   public Criteria createCriteria(Class<?> entity) {
-	
-    return new CriteriaImpl(entity.getName(), getReadableDatabase(), mappingCache, annotationsScanner, context);
-  }
-  
+    return new CriteriaImpl(entity.getName(), getReadableDatabase(), context);
+  }  
   
   /**
    * Gets the ClassDetails object corresponding to the specified object.
@@ -131,7 +129,7 @@ public class ORMHelper extends SQLiteOpenHelper {
       do {
         try {
           superClassDetails = annotationsScanner
-              .getEntityObjectDetails(objClass.getName());
+              .getEntityObjectBranch(objClass.getName());
           if (null != subClassDetails) {
             superClassDetails.getSubClassDetails().add(subClassDetails);
           }
@@ -299,14 +297,7 @@ public class ORMHelper extends SQLiteOpenHelper {
           }
         } else if (null != fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE)) {
           // Handle 1-1 Composition here
-          Object composedObject = getterMethod.invoke(obj);
-          String joinColumnName = (String) fieldTypeDetail.getAnnotationOptionValues()
-              .get(Constants.JOIN_COLUMN).get(Constants.NAME);          
-          long saveId = save(composedObject, -1L, null);
-          if (null == kvp) {
-            kvp = new  HashMap<String, String>();            
-          }
-          kvp.put(joinColumnName, String.valueOf(saveId));          
+          handleOneToOneComposition(getterMethod, obj, fieldTypeDetail, kvp);          
         }
       }
 
@@ -340,105 +331,10 @@ public class ORMHelper extends SQLiteOpenHelper {
       }
 
       // Insert into the database only if not already present
-      String[] strs = new String[1];
-      strs[0] = Long.valueOf(id).toString();
-      if (getReadableDatabase()
-    		  .rawQuery("select * from " + tableName + " where " 
-    			+ Constants.ID_VALUE + " = ?", strs).getCount() == 0)
-    	  // TODO: can I use '*' here??
-      {
-    	  genId = getWritableDatabase().insert(tableName, null, contentValues);
-    	  Log.d(SAVE_OBJECT_TAG, genId + ": Inserted into " + tableName);
-      }
-      else
-      {
-    	  Log.d(SAVE_OBJECT_TAG, id + ": Already present in " + tableName);
-    	  genId = id;
-      }
+      genId = insertIntoDBIfNotAlreadyPresent(id, tableName, contentValues);
 
       // Save 1-Many and other Composed Objects
-      for (FieldTypeDetails fieldTypeDetail : superClassDetails
-          .getFieldTypeDetails()) {
-        String getterMethodName = Utils.getGetterMethodName(fieldTypeDetail
-            .getFieldName());
-        Method getterMethod = objClass.getMethod(getterMethodName);
-        if (null != fieldTypeDetail.getAnnotationOptionValues().get(
-        		Constants.ONE_TO_MANY)) {
-          Collection<Object> composedObjectCollection = (Collection<Object>) getterMethod
-              .invoke(obj);
-          String joinColumnName = (String) fieldTypeDetail.getAnnotationOptionValues()
-              .get(Constants.JOIN_COLUMN).get(Constants.NAME);
-          Map<String, String> newKVPs = new HashMap<String, String>();          
-          for (Object composedObject : composedObjectCollection) {
-            newKVPs.put(joinColumnName, String.valueOf(genId));
-            // TODO : Make use of these newKVP's when bidirectional is implemented
-            long saveId = save(composedObject, -1L, newKVPs);
-          }
-        }
-        else if (fieldTypeDetail.getAnnotationOptionValues()
-        		.get(Constants.MANY_TO_MANY) != null 
-						&& fieldTypeDetail.getAnnotationOptionValues()
-								.get(Constants.MANY_TO_MANY)
-								.get(Constants.MAPPED_BY).equals(""))
-        {
-        	// for clarity of semantics for Abhijith
-        	// TODO: Will this will fail when the owning side is a subclass because of the semantics of superClassDetails??
-        	ClassDetails owningSide = superClassDetails;
-        	Collection<Object> composedObjectCollection = 
-        			(Collection<Object>) getterMethod.invoke(obj);
-				
-			ParameterizedType pType = (ParameterizedType) fieldTypeDetail
-					.getFieldGenericType();
-			Class<?> inverseClass = (Class<?>) pType
-					.getActualTypeArguments()[0];
-			// TODO: Scanning once again. 
-			// Need to have another field called compositionClassDetails
-			// which has information about all composed objects in the
-			// owner class
-			// DANGER : This ClassDetails object doesn't have its 
-			// inheritance and ownedRelations members populated
-			ClassDetails inverseSide = annotationsScanner
-					.getEntityObjectDetails(inverseClass.getName());
-			
-			// joinColumnName is different if there is a reverse mapping
-    		FieldTypeDetails joinColumnFieldTypeDetails = inverseSide
-    				.getFieldTypeDetailsByMappedByAnnotation(fieldTypeDetail
-    						.getFieldName());
-    		String joinColumnName;
-    		if (joinColumnFieldTypeDetails == null)
-    			joinColumnName = (String) owningSide
-					.getAnnotationOptionValues().get(Constants.ENTITY)
-					.get(Constants.NAME);
-    		else
-    			joinColumnName = joinColumnFieldTypeDetails.getFieldName();
-    		joinColumnName += "_"
-					+ owningSide.getFieldTypeDetailsOfId()
-						.getAnnotationOptionValues().get(Constants.COLUMN)
-						.get(Constants.NAME);
-			
-			String inverseJoinColumnName = fieldTypeDetail.getFieldName() + "_"
-					+ inverseSide.getFieldTypeDetailsOfId()
-					.getAnnotationOptionValues().get(Constants.COLUMN)
-					.get(Constants.NAME);
-					
-			String joinTableName = owningSide.getAnnotationOptionValues()
-					.get(Constants.ENTITY).get(Constants.NAME) 
-					+  "_" 
-					+ inverseSide.getAnnotationOptionValues()
-					.get(Constants.ENTITY).get(Constants.NAME);
-
-			for (Object composedObject : composedObjectCollection)
-			{
-				ContentValues joinTableContentValues = new ContentValues();
-				joinTableContentValues.put(joinColumnName, genId);
-				joinTableContentValues.put(inverseJoinColumnName,
-						save(composedObject, getId(composedObject), null));
-				if (getWritableDatabase().insert(joinTableName, null,
-				    joinTableContentValues) == -1)
-					Log.e(SAVE_OBJECT_TAG, "Error inserting into database");
-			}
-        }
-      }
+      handleOneToManyAndManyToMany(superClassDetails, objClass, obj, genId);
     } catch (IllegalAccessException e) {
       e.printStackTrace();
     } catch (IllegalArgumentException e) {
@@ -451,6 +347,143 @@ public class ORMHelper extends SQLiteOpenHelper {
       e.printStackTrace();
     }
     return genId;
+  }
+
+  private void handleOneToManyAndManyToMany(ClassDetails superClassDetails,
+      Class<?> objClass, Object obj, long genId) {
+    try {
+      for (FieldTypeDetails fieldTypeDetail : superClassDetails
+          .getFieldTypeDetails()) {
+        String getterMethodName = Utils.getGetterMethodName(fieldTypeDetail
+            .getFieldName());
+        Method getterMethod = null;
+
+        getterMethod = objClass.getMethod(getterMethodName);
+
+        if (null != fieldTypeDetail.getAnnotationOptionValues().get(
+            Constants.ONE_TO_MANY)) {
+          Collection<Object> composedObjectCollection = (Collection<Object>) getterMethod
+              .invoke(obj);
+          String joinColumnName = (String) fieldTypeDetail
+              .getAnnotationOptionValues().get(Constants.JOIN_COLUMN)
+              .get(Constants.NAME);
+          Map<String, String> newKVPs = new HashMap<String, String>();
+          for (Object composedObject : composedObjectCollection) {
+            newKVPs.put(joinColumnName, String.valueOf(genId));
+            // TODO : Make use of these newKVP's when bidirectional is
+            // implemented
+            long saveId = save(composedObject, -1L, newKVPs);
+          }
+        } else if (fieldTypeDetail.getAnnotationOptionValues().get(
+            Constants.MANY_TO_MANY) != null
+            && fieldTypeDetail.getAnnotationOptionValues()
+                .get(Constants.MANY_TO_MANY).get(Constants.MAPPED_BY)
+                .equals("")) {
+          // for clarity of semantics for Abhijith
+          // TODO: Will this will fail when the owning side is a subclass
+          // because of the semantics of superClassDetails??
+          ClassDetails owningSide = superClassDetails;
+          Collection<Object> composedObjectCollection = (Collection<Object>) getterMethod
+              .invoke(obj);
+
+          ParameterizedType pType = (ParameterizedType) fieldTypeDetail
+              .getFieldGenericType();
+          Class<?> inverseClass = (Class<?>) pType.getActualTypeArguments()[0];
+          // TODO: Scanning once again.
+          // Need to have another field called compositionClassDetails
+          // which has information about all composed objects in the
+          // owner class
+          // DANGER : This ClassDetails object doesn't have its
+          // inheritance and ownedRelations members populated
+          ClassDetails inverseSide = annotationsScanner
+              .getEntityObjectBranch(inverseClass.getName());
+
+          // joinColumnName is different if there is a reverse mapping
+          FieldTypeDetails joinColumnFieldTypeDetails = inverseSide
+              .getFieldTypeDetailsByMappedByAnnotation(fieldTypeDetail
+                  .getFieldName());
+          String joinColumnName;
+          if (joinColumnFieldTypeDetails == null)
+            joinColumnName = (String) owningSide.getAnnotationOptionValues()
+                .get(Constants.ENTITY).get(Constants.NAME);
+          else
+            joinColumnName = joinColumnFieldTypeDetails.getFieldName();
+          joinColumnName += "_"
+              + owningSide.getFieldTypeDetailsOfId()
+                  .getAnnotationOptionValues().get(Constants.COLUMN)
+                  .get(Constants.NAME);
+
+          String inverseJoinColumnName = fieldTypeDetail.getFieldName()
+              + "_"
+              + inverseSide.getFieldTypeDetailsOfId()
+                  .getAnnotationOptionValues().get(Constants.COLUMN)
+                  .get(Constants.NAME);
+
+          String joinTableName = owningSide.getAnnotationOptionValues()
+              .get(Constants.ENTITY).get(Constants.NAME)
+              + "_"
+              + inverseSide.getAnnotationOptionValues().get(Constants.ENTITY)
+                  .get(Constants.NAME);
+
+          for (Object composedObject : composedObjectCollection) {
+            ContentValues joinTableContentValues = new ContentValues();
+            joinTableContentValues.put(joinColumnName, genId);
+            joinTableContentValues.put(inverseJoinColumnName,
+                save(composedObject, getId(composedObject), null));
+            if (getWritableDatabase().insert(joinTableName, null,
+                joinTableContentValues) == -1)
+              Log.e(SAVE_OBJECT_TAG, "Error inserting into database");
+          }
+        }
+      }
+    } catch (NoSuchMethodException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+
+  private long insertIntoDBIfNotAlreadyPresent(long id, String tableName,
+      ContentValues contentValues) {
+    long genId = 0;
+    String[] strs = new String[1];
+    strs[0] = Long.valueOf(id).toString();
+    if (getReadableDatabase().rawQuery(
+        "select * from " + tableName + " where " + Constants.ID_VALUE + " = ?",
+        strs).getCount() == 0)
+    // TODO: can I use '*' here??
+    {
+      genId = getWritableDatabase().insert(tableName, null, contentValues);
+      Log.d(SAVE_OBJECT_TAG, genId + ": Inserted into " + tableName);
+    } else {
+      Log.d(SAVE_OBJECT_TAG, id + ": Already present in " + tableName);
+      genId = id;
+    }
+    return genId;
+  }
+
+  private void handleOneToOneComposition(Method getterMethod, Object obj,
+      FieldTypeDetails fieldTypeDetail, Map<String, String> kvp)
+      throws IllegalAccessException, IllegalArgumentException,
+      InvocationTargetException {
+    Object composedObject = getterMethod.invoke(obj);
+    String joinColumnName = (String) fieldTypeDetail
+        .getAnnotationOptionValues().get(Constants.JOIN_COLUMN)
+        .get(Constants.NAME);
+    long saveId = save(composedObject, -1L, null);
+    if (null == kvp) {
+      kvp = new HashMap<String, String>();
+    }
+    kvp.put(joinColumnName, String.valueOf(saveId));
+
   }
 
   /**
@@ -475,16 +508,26 @@ public class ORMHelper extends SQLiteOpenHelper {
             .getFieldName());
         Method getterMethod = objClass.getMethod(getterMethodName);
 
-        String columnName = (String) fieldTypeDetail.getAnnotationOptionValues()
-            .get(Constants.COLUMN).get(Constants.NAME);
-        String columnValue = getterMethod.invoke(obj).toString();
+        if (null != fieldTypeDetail.getAnnotationOptionValues().get(
+            Constants.COLUMN)) {
+          String columnName = (String) fieldTypeDetail
+              .getAnnotationOptionValues().get(Constants.COLUMN)
+              .get(Constants.NAME);
+          String columnValue = getterMethod.invoke(obj).toString();
 
-        // Don't add the id from getter, it has to be auto generated
-        if (!columnName.equals(Constants.ID_VALUE) && !columnName.equals(Constants.ID_VALUE_CAPS)) {
-          kvp.put(columnName, columnValue);
-          Log.v(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: " + columnValue);
+          // Don't add the id from getter, it has to be auto generated
+          if (!columnName.equals(Constants.ID_VALUE)
+              && !columnName.equals(Constants.ID_VALUE_CAPS)) {
+            kvp.put(columnName, columnValue);
+            Log.v(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
+                + columnValue);
+          }
+        } else {
+          new UnsupportedOperationException(
+              "We aren't supporting Composition with TABLE_PER_CLASS strategy for now");
         }
       }
+     
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
     } catch (NoSuchMethodException e) {

@@ -52,6 +52,32 @@ public class AnnotationsScanner {
 		return classDetailsMap.get(className);
 	}
 	
+	/**
+	 * getEntityObjectBranch is used in ORM Helper.
+	 * Don't change this. Bad things will happen.
+	 * @param className className
+	 * @return ClassDetails branch - NOT the complete Hierarchy
+	 */
+	public ClassDetails getEntityObjectBranch(String className) {
+	  ClassDetails classDetails = null;
+    try {
+      classDetails =  getEntityObjectDetails(Class.forName(className));
+    } catch (IllegalAccessException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (ClassNotFoundException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return classDetails;
+	}
+	
 	public Map<String, ClassDetails> getEntityObjectCollectionDetails()
 	{
 		return classDetailsMap;
