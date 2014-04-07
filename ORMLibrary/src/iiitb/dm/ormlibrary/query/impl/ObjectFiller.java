@@ -30,6 +30,13 @@ public class ObjectFiller {
 		this.columnFieldList = columnFieldList;
 		this.entityOrClassName = entityOrClassName;
 		this.cursor = cursor;
+		Class<?> eoClass = null;
+		try {
+			eoClass = Class.forName(entityOrClassName);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		// Parse the result and set the fields in the created objects.
 		if (cursor.moveToFirst()) {
@@ -46,7 +53,7 @@ public class ObjectFiller {
 						Log.v("List", " Created a new object of " + entityOrClassName);
 						objectList.add(eo);
 					}
-					//fillObject(eo, eoClass, cursor);
+					fillObject(eo, eoClass, cursor);
 				} while (cursor.moveToNext());
 			}
 			catch(Exception ex)
