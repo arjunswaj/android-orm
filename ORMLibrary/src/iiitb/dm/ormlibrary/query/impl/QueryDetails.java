@@ -86,11 +86,10 @@ public class QueryDetails {
 
 		public TableJoinCondition(String tableName, String joinColumn,
 				String otherTableName, String otherJoinColumn) {
-			super();
-			this.tableName = tableName;
-			this.joinColumn = joinColumn;
-			this.otherTableName = otherTableName;
-			this.otherJoinColumn = otherJoinColumn;
+			this.tableName = tableName.intern();
+			this.joinColumn = joinColumn.intern();
+			this.otherTableName = otherTableName.intern();
+			this.otherJoinColumn = otherJoinColumn.intern();
 		}
 
 		/*
@@ -107,6 +106,21 @@ public class QueryDetails {
 					&& otherJoinColumn.equals(tableJoinConditionObj.getOtherJoinColumn());
 		}
 
+		
+		@Override
+		public int hashCode(){
+			int hash = 0;
+			if(tableName != null)
+				hash += tableName.hashCode();
+			if(joinColumn != null)
+				hash += joinColumn.hashCode();
+			if(otherTableName != null)
+				hash += otherTableName.hashCode();
+			if(otherJoinColumn != null)
+				hash += otherJoinColumn.hashCode();
+			return hash;
+		}
+		
 		public String getTableName() {
 			return tableName;
 		}
