@@ -44,6 +44,8 @@ public class AnnotationsScanner {
 	}
 	public static AnnotationsScanner getInstance()
 	{
+		if (instance == null)
+			throw new RuntimeException("Internal Error: Wasn't ORMHelper used at all before this??");
 		return instance;
 	}
 	

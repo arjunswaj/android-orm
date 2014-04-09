@@ -53,7 +53,7 @@ public class QueryBuilder {
 			}
 		}
 
-		
+
 	}
 
 	public QueryDetails getQueryDetails() {
@@ -114,8 +114,8 @@ public class QueryBuilder {
 		addCriteriaFromLogicalExpression(criteria, le.getRhs());
 		selection += ") ";
 	}
-	
-	
+
+
 	@SuppressLint("NewApi")
 	public List<Map.Entry<String,String[]>> getQuery()
 	{
@@ -280,10 +280,13 @@ public class QueryBuilder {
 
 					}
 
-					try {
-						classObj = Class.forName(classDetails.getClassName());
-					} catch (Exception e) {
-						e.printStackTrace();
+					if(classDetails != null)
+					{
+						try {
+							classObj = Class.forName(classDetails.getClassName());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 
 				}
@@ -294,7 +297,7 @@ public class QueryBuilder {
 		}while( queue.size() > 0);
 
 	}
-	
+
 
 	private void insertAssociatedClassesIntoQueue(ClassDetails classDetails, String tableName)
 	{
@@ -455,7 +458,7 @@ public class QueryBuilder {
 		}
 
 	}
-	
+
 
 	/*
 	 * Get name of table on which the criterion will be applied.
@@ -558,7 +561,7 @@ public class QueryBuilder {
 	{
 		return tableName.toLowerCase() + "_" + columnName;
 	}
-	
+
 	private String getTableAlias(String tableName)
 	{
 		if(tableAliases.get(tableName) == null)
