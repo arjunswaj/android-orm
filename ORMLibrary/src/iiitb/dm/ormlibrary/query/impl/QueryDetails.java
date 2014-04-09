@@ -80,8 +80,10 @@ public class QueryDetails {
 	
 	public class TableJoinCondition{
 		private String tableName;
+		private String tableAlias;
 		private String joinColumn;
 		private String otherTableName;
+		private String otherTableAlias;
 		private String otherJoinColumn;
 
 		public TableJoinCondition(String tableName, String joinColumn,

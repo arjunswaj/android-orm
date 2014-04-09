@@ -78,16 +78,15 @@ public class ObjectFiller {
 	 */
 	private void fillObject(Object object, Class<?> objectType, Cursor cursor)
 	{
-
-
+		fillId(object, objectType);
 		while(objectType != Object.class)
 		{
 			ClassDetails classDetails = null;
-			
 			classDetails = annotationsScanner.getEntityObjectDetails(objectType.getName());
 
 			Log.v("fillObject", "Filling Object of " + objectType.getName() + " with id " + cursor.getString(cursor.getColumnIndex(findColumn(Utils.getClassOfId(classDetails.getClassName()),
 					Utils.getFieldTypeDetailsOfId(classDetails.getClassName()).getFieldName()))));
+			
 			for(FieldTypeDetails fieldTypeDetails: classDetails.getFieldTypeDetails())
 			{
 				String fieldType = fieldTypeDetails.getFieldType().getSimpleName();
@@ -242,7 +241,42 @@ public class ObjectFiller {
 
 		}
 	}
-
+	
+	
+	public void fillId(Object object, Class<?> objectType)
+	{
+		String setterMethodName = Utils.getSetterMethodName(Utils.getFieldTypeDetailsOfId(objectType.getName()).getFieldName());
+		Method setterMethod = null;
+		long id = cursor.getLong(cursor.getColumnIndex(findColumn( Utils.getClassOfId(objectType.getName()), Utils.getFieldTypeDetailsOfId(objectType.getName()).getFieldName())));
+		try {
+			try {
+				setterMethod = Class.forName(Utils.getClassOfId(objectType.getName())).getMethod(setterMethodName,
+						long.class);
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			setterMethod.invoke(object, id);
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
+	
+	
 	/*
 	 * Find column name in columnFieldList, from class name and variable name and return it.
 	 * Used while filling objects.
@@ -251,11 +285,9 @@ public class ObjectFiller {
 	{
 		for(ColumnField colField: columnFieldList)
 		{
-			Log.v("findColumn", "classname: " + colField.getClassName() + " variableName: " + colField.getFieldName());
 			if(colField.getClassName().equals(className) && colField.getFieldName().equals(variableName))
 				return colField.getColumnName();
 		}
-		Log.v("findColumn", "Returning null");
 		return null;
 	}
 
@@ -271,7 +303,6 @@ public class ObjectFiller {
 		Collection collectionObject = (Collection)object;
 		Iterator iterator = collectionObject.iterator();
 		Class<?> collectionType = null;
-		Log.v("doesObjectExistInCollection", " id is " + id + " idField is " + idField + " collectionTypeName is " + collectionTypeName);
 		try {
 			collectionType = Class.forName(collectionTypeName);
 		} catch (ClassNotFoundException e1) {
@@ -318,6 +349,8 @@ public class ObjectFiller {
 
 		Class<?> type = null;
 		long id = 0;
+		
+		// Determine the type and id of object to be found.
 		try{
 			if(collection == true){
 				type = Class.forName(Utils.getCollectionType(classDetails.getClassName(), fieldTypeDetails.getFieldName()));
@@ -338,7 +371,7 @@ public class ObjectFiller {
 		}
 		for(Object obj : backEdgeInfo)
 		{
-			if(obj.getClass() == type)
+			if(obj.getClass().getName().equals(type.getName()))
 			{
 				String getterMethodName = Utils.getGetterMethodName(Utils.getFieldTypeDetailsOfId(obj.getClass().getName()).getFieldName());
 				Method getterMethod;
@@ -361,7 +394,6 @@ public class ObjectFiller {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
 				if(objId == id)
 					return obj;
 			}

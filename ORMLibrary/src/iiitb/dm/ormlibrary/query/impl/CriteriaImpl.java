@@ -45,8 +45,6 @@ public class CriteriaImpl implements Criteria {
 	private String table;
 	private String[] columns;
 	private String selection;
-	private String[] selectionArgs;
-	private List<String> selectionArgsList = new ArrayList<String>();
 	private String groupBy;
 	private String having;
 	private String orderBy;
@@ -103,57 +101,7 @@ public class CriteriaImpl implements Criteria {
 
 	}
 
-	private void addCriteria(Criteria criteria, Criterion criterion) {
-
-		if (criterion instanceof SimpleExpression) {
-			extractSimpleExpression(criteria, (SimpleExpression) criterion);
-		} else if (criterion instanceof LogicalExpression) {
-			extractLogicalExpression(criteria, (LogicalExpression) criterion);
-		}
-	}
-
-	private void extractSimpleExpression(Criteria criteria, SimpleExpression se) {
-		String className = null;
-		if(criteria instanceof SubCriteria)
-			className = ((SubCriteria)criteria).getClassName();
-		else className = criteriaClassName;
-		if (null == selection) {
-			selection = "(" + getTableNameForCriterion(className, se.getPropertyName()) + "." + getColumnNameForCriterion(className, se.getPropertyName()) + " " + se.getOp() + " ?) ";
-		} else {
-			selection += "AND (" + getTableNameForCriterion(className, se.getPropertyName()) + "." +  getColumnNameForCriterion(className, se.getPropertyName()) + " " + se.getOp() + " ?) ";
-		}
-		selectionArgsList.add(se.getValue().toString());
-	}
-
-	private void addCriteriaFromLogicalExpression(Criteria criteria, Criterion criterion) {
-		if (criterion instanceof SimpleExpression) {
-			extractSimpleExpressionFromLogicalExpression(criteria, (SimpleExpression) criterion);
-		} else if (criterion instanceof LogicalExpression) {
-			extractLogicalExpression(criteria, (LogicalExpression) criterion);
-		}
-	}
-
-	private void extractSimpleExpressionFromLogicalExpression(Criteria criteria, SimpleExpression se) {
-		String className = null;
-		if(criteria instanceof SubCriteria)
-			className = ((SubCriteria)criteria).getClassName();
-		else className = criteriaClassName;
-		selection += "(" + getTableNameForCriterion(className, se.getPropertyName()) + "." + getColumnNameForCriterion(className, se.getPropertyName()) + " " + se.getOp() + " ?) ";
-		selectionArgsList.add(se.getValue().toString());
-	}
-
-	private void extractLogicalExpression(Criteria criteria, LogicalExpression le) {
-		if (null == selection) {
-			selection = "(";
-		} else {
-			selection += "AND (";
-		}
-		addCriteriaFromLogicalExpression(criteria, le.getLhs());
-		selection += le.getOp() + " ";
-		addCriteriaFromLogicalExpression(criteria, le.getRhs());
-		selection += ") ";
-	}
-
+	
 	@Override
 	public Criteria addOrder(Order order) {
 		// TODO Auto-generated method stub
@@ -235,31 +183,11 @@ public class CriteriaImpl implements Criteria {
 			
 			criteriaClassName = entityOrClassName;
 			StringBuilder sb = new StringBuilder();
-			QueryBuilder queryBuilder = new QueryBuilder(entityOrClassName);
-			sb.append(queryBuilder.getQuery());
+			QueryBuilder queryBuilder = new QueryBuilder(entityOrClassName, criteriaCriterionMap);
+			sb.append(queryBuilder.getQuery().get(0).getKey());
 			List<ColumnField> columnFieldList = queryBuilder.getQueryDetails().getColumnFieldList();
 
-			// Add all the criterion
-			for (Map.Entry<Criteria, List<Criterion>> criteriaCriterionList : criteriaCriterionMap.entrySet())
-			{
-				for(Criterion criterion: criteriaCriterionList.getValue())
-					addCriteria(criteriaCriterionList.getKey(), criterion);
-			}
-
-			if (!selectionArgsList.isEmpty()) {
-				selectionArgs = new String[selectionArgsList.size()];
-				int index = 0;
-				for (String val : selectionArgsList) {
-					selectionArgs[index] = val;
-					index += 1;
-				}
-			}
-
-
-			// append selection conditions
-			if (null != selection) {
-				sb.append(" WHERE ").append(selection);
-			}
+			
 
 			/* Generate selection conditions to exclude the tuples in the parent
 			 *  table which have discriminator values. These tuples belong to an
@@ -287,12 +215,11 @@ public class CriteriaImpl implements Criteria {
 				.append(discriminatorCol).append(" IS NULL ");
 			}
 
-			sb.append(";");
 			String sql = sb.toString();
 			Log.d("Generated SQL", sql);
 
 			// Finally, execute query.
-			cursor = sqliteDatabase.rawQuery(sql, selectionArgs);
+			cursor = sqliteDatabase.rawQuery(sql, queryBuilder.getQuery().get(0).getValue());
 			
 			result = new ObjectFiller(columnFieldList, entityOrClassName, cursor).getObjects();
 
@@ -302,8 +229,6 @@ public class CriteriaImpl implements Criteria {
 		{
 			ex.printStackTrace();
 		}
-		selection = null;
-		selectionArgsList = new ArrayList<String>();
 		return result;
 	}
 
@@ -318,7 +243,7 @@ public class CriteriaImpl implements Criteria {
 	@Override
 	public Cursor cursor() {
 		Cursor cursor = null;
-		try {
+		/*try {
 			Class<?> eoClass = Class.forName(criteriaClassName);
 			Entity entity = eoClass.getAnnotation(Entity.class);
 			table = entity.name();
@@ -356,7 +281,7 @@ public class CriteriaImpl implements Criteria {
 			cursor = sqliteDatabase.rawQuery(sql, selectionArgs);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
-		}
+		}*/
 		return cursor;
 	}
 
@@ -403,102 +328,7 @@ public class CriteriaImpl implements Criteria {
 		return eoNames;
 	}
 	
-	/*
-	 * Get name of table on which the criterion will be applied.
-	 */
-	private String getTableNameForCriterion(String className, String variableName)
-	{
-		Class<?> classObj = null;
-		try {
-			classObj = Class.forName(className);
-		} catch (ClassNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		boolean found = false;
-		ClassDetails classDetails = null;
-		try {
-			classDetails = AnnotationsScanner.getInstance().getEntityObjectDetails(classObj.getName());
-		} catch (IllegalArgumentException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-		String tableName = (String) classDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME);
-		Log.v("getTableNameForCriterion", className + " " + variableName);
-		try {
-			do 
-			{
-				classObj = Class.forName(className);
-				classDetails = AnnotationsScanner.getInstance().getEntityObjectDetails(classObj.getName());
-				if(classDetails.getAnnotationOptionValues().get(Constants.INHERITANCE) != null 
-						&& classDetails.getAnnotationOptionValues().get(Constants.INHERITANCE)
-						.get(Constants.STRATEGY).equals(InheritanceType.JOINED))
-					tableName = (String)classDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME);
-				for(FieldTypeDetails fieldTypeDetails: classDetails.getFieldTypeDetails())
-				{
-					if(fieldTypeDetails.getFieldName().equals(variableName))
-					{
-						found = true;
-					}
-				}
-				className = classObj.getSuperclass().getName();
-			}while(found == false && classObj.getSuperclass() != Object.class);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return tableName;
-
-	}
 	
-
-	/*
-	 * Get name of column on which the criterion will be applied.
-	 */
-	private String getColumnNameForCriterion(String className, String variableName)
-	{
-		Class<?> classObj = null;
-		try {
-			classObj = Class.forName(className);
-		} catch (ClassNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		boolean found = false;
-		ClassDetails classDetails = null;
-		try {
-			classDetails = AnnotationsScanner.getInstance().getEntityObjectDetails(classObj.getName());
-		} catch (IllegalArgumentException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		String columnName = null;
-		Log.v("getColumnNameForCriterion", className + " " + variableName);
-		try {
-			do 
-			{
-				classObj = Class.forName(className);
-				classDetails = AnnotationsScanner.getInstance().getEntityObjectDetails(classObj.getName());
-				for(FieldTypeDetails fieldTypeDetails: classDetails.getFieldTypeDetails())
-				{
-					if(fieldTypeDetails.getFieldName().equals(variableName))
-					{
-						found = true;
-						columnName = (String) fieldTypeDetails.getAnnotationOptionValues().get(Constants.COLUMN).get(Constants.NAME);
-					}
-				}
-				className = classObj.getSuperclass().getName();
-			}while(found == false && classObj.getSuperclass() != Object.class);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return columnName;
-
-	}
-
-
 
 
 	public class SubCriteria implements Criteria{
