@@ -25,13 +25,11 @@ class PersistenceHelper {
 	private static final String SAVE_OBJECT_TAG = "SAVE_OBJECT";
 	  
 	private Map<String, ClassDetails> mappingCache = new HashMap<String, ClassDetails>();
-	private AnnotationsScanner annotationsScanner;
 	private SQLiteDatabase writableDatabase;
 	private SQLiteDatabase readableDatabase;
 	
-	public PersistenceHelper(AnnotationsScanner annotationsScanner, SQLiteDatabase readableDatabase, SQLiteDatabase writableDatabase)
+	public PersistenceHelper(SQLiteDatabase readableDatabase, SQLiteDatabase writableDatabase)
 	{
-		this.annotationsScanner = annotationsScanner;
 		this.writableDatabase = writableDatabase;
 		this.readableDatabase = readableDatabase;
 	}
@@ -51,7 +49,7 @@ class PersistenceHelper {
 	      Log.e("CACHE MISS", "CACHE MISS for " + objClass.getName());
 	      do {
 	        try {
-	          superClassDetails = annotationsScanner
+	          superClassDetails = AnnotationsScanner.getInstance()
 	              .getEntityObjectBranch(objClass.getName());
 	          if (null != subClassDetails) {
 	            superClassDetails.getSubClassDetails().add(subClassDetails);
@@ -357,13 +355,7 @@ class PersistenceHelper {
 	          ParameterizedType pType = (ParameterizedType) fieldTypeDetail
 	              .getFieldGenericType();
 	          Class<?> inverseClass = (Class<?>) pType.getActualTypeArguments()[0];
-	          // TODO: Scanning once again.
-	          // Need to have another field called compositionClassDetails
-	          // which has information about all composed objects in the
-	          // owner class
-	          // DANGER : This ClassDetails object doesn't have its
-	          // inheritance and ownedRelations members populated
-	          ClassDetails inverseSide = annotationsScanner
+	          ClassDetails inverseSide = AnnotationsScanner.getInstance()
 	              .getEntityObjectBranch(inverseClass.getName());
 
 	          // joinColumnName is different if there is a reverse mapping

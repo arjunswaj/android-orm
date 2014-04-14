@@ -1,20 +1,14 @@
 package iiitb.dm.ormlibrary.query.impl;
 
 import iiitb.dm.ormlibrary.ddl.ClassDetails;
-import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.Criterion;
-import iiitb.dm.ormlibrary.query.Projection;
-import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
 import iiitb.dm.ormlibrary.query.criterion.Order;
 import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
-import iiitb.dm.ormlibrary.query.criterion.PropertyProjection;
-import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 import iiitb.dm.ormlibrary.utils.Constants;
 import iiitb.dm.ormlibrary.utils.Utils;
 
-import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,15 +16,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.Entity;
 import javax.persistence.InheritanceType;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import android.content.Context;
-import android.content.res.Resources;
-import android.content.res.XmlResourceParser;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
@@ -50,13 +37,9 @@ public class CriteriaImpl implements Criteria {
 	private String orderBy;
 	private String limit;
 	private ProjectionList projectionList;
-	private AnnotationsScanner annotationsScanner;	
-
 
 	// Criterion corresponding to each subcriteria
 	private Map<Criteria, List<Criterion>> criteriaCriterionMap = new HashMap<Criteria, List<Criterion>>();
-	private Context context;
-
 
 	/**
 	 * sqliteDatabase
@@ -67,11 +50,9 @@ public class CriteriaImpl implements Criteria {
 	 */
 	private String criteriaClassName;
 
-	public CriteriaImpl(String criteriaClassName, SQLiteDatabase sqliteDatabase, Context context) {
+	public CriteriaImpl(String criteriaClassName, SQLiteDatabase sqliteDatabase) {
 		this.criteriaClassName = criteriaClassName;
-		this.sqliteDatabase = sqliteDatabase;				
-		this.context = context;
-		this.annotationsScanner = AnnotationsScanner.getInstance(context);
+		this.sqliteDatabase = sqliteDatabase;
 	}
 
 	// Add a criterion on this criteria
@@ -98,39 +79,18 @@ public class CriteriaImpl implements Criteria {
 		}
 		else
 			criteriaCriterionMap.get(criteria).add(criterion);
-
 	}
 
-	
 	@Override
 	public Criteria addOrder(Order order) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+	
 	@Override
-	/**
-	 * Get the result of the query
-	 */
 	public List<?> list()
 	{
-		// TODO: can I create a superclass list?
-		List<?> result = new LinkedList();
-		try
-		{
-			// TODO: Ugly??? Should I be using subClassDetails field here??
-			List<String> eoNames = getEntityObjectsNamesFromManifest(context);
-			result = list(criteriaClassName, eoNames);
-		}
-		catch (XmlPullParserException e)
-		{
-			e.printStackTrace();
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-		return result;
+		return list(criteriaClassName);
 	}
 
 
@@ -140,12 +100,12 @@ public class CriteriaImpl implements Criteria {
 	 * @param eoNames List containing all entity class names in the application
 	 * @return result of the query for the specified entity class and all its subclasses
 	 */
-	private List<?> list(String entityOrClassName, List<String> eoNames)
+	private List<?> list(String entityOrClassName)
 	{
 		ClassDetails classDetails = null;
 		try
 		{
-			classDetails = annotationsScanner.getEntityObjectDetails(Utils
+			classDetails = AnnotationsScanner.getInstance().getEntityObjectDetails(Utils
 					.getClassObject(entityOrClassName).getName());
 		}
 		catch (IllegalArgumentException e)
@@ -153,7 +113,7 @@ public class CriteriaImpl implements Criteria {
 			e.printStackTrace();
 		}
 		if (classDetails.getAnnotationOptionValues().get(Constants.INHERITANCE) == null)
-			return list(entityOrClassName);
+			return getQueryResult(entityOrClassName);
 
 		List result = new LinkedList();
 
@@ -166,35 +126,33 @@ public class CriteriaImpl implements Criteria {
 						.equals(InheritanceType.JOINED) && !Modifier
 						.isAbstract(Utils.getClassObject(entityOrClassName)
 								.getModifiers())))
-			result.addAll(list(entityOrClassName));
+			result.addAll(getQueryResult(entityOrClassName));
 
 		// Collect the result of all its subclasses
-		for (String eoName : eoNames)
+		for (String eoName :  AnnotationsScanner.getInstance()
+				.getAllEntityObjectDetails().keySet())
 			if (Utils.getClassObject(eoName).getSuperclass()
 					.equals(Utils.getClassObject(entityOrClassName)))
-				result.addAll(list(eoName, eoNames));
+				result.addAll(list(eoName));
 		return result;
 	}
 
-	private List list(String entityOrClassName) {
+	private List getQueryResult(String entityOrClassName) {
 		List result = new ArrayList();
 		Cursor cursor = null;
-		try {
-			
+		try {			
 			criteriaClassName = entityOrClassName;
 			StringBuilder sb = new StringBuilder();
 			QueryBuilder queryBuilder = new QueryBuilder(entityOrClassName, criteriaCriterionMap);
 			sb.append(queryBuilder.getQuery().get(0).getKey());
 			List<ColumnField> columnFieldList = queryBuilder.getQueryDetails().getColumnFieldList();
 
-			
-
 			/* Generate selection conditions to exclude the tuples in the parent
 			 *  table which have discriminator values. These tuples belong to an
 			 *  entity class which inherited from this parent entity 
 			 *  class(entityClassName)
 			 */ 
-			ClassDetails entityClassDetails = annotationsScanner// TODO: AnnotationScannerImpl()
+			ClassDetails entityClassDetails = AnnotationsScanner.getInstance()// TODO: AnnotationScannerImpl()
 			.getEntityObjectDetails(entityOrClassName);
 			if (entityClassDetails.getAnnotationOptionValues().get(
 					Constants.INHERITANCE) != null
@@ -222,8 +180,6 @@ public class CriteriaImpl implements Criteria {
 			cursor = sqliteDatabase.rawQuery(sql, queryBuilder.getQuery().get(0).getValue());
 			
 			result = new ObjectFiller(columnFieldList, entityOrClassName, cursor).getObjects();
-
-			
 		}
 		catch(Exception ex)
 		{
@@ -231,8 +187,6 @@ public class CriteriaImpl implements Criteria {
 		}
 		return result;
 	}
-
-
 
 	@Override
 	public Criteria setProjection(ProjectionList projectionList) {
@@ -296,41 +250,6 @@ public class CriteriaImpl implements Criteria {
 	}
 
 
-
-	
-
-
-	// TODO: Ugly???
-	private List<String> getEntityObjectsNamesFromManifest(Context context)
-			throws XmlPullParserException, IOException {
-		String XML_TAG = "XML in CRITERIA";
-		Resources resources = context.getResources();
-		// TODO: Should get from AndroidManifest
-		String uri = "xml/" + "entity_objects";
-		XmlResourceParser xpp = resources.getXml(resources.getIdentifier(uri, null,
-				context.getPackageName()));
-		xpp.next();
-		int eventType = xpp.getEventType();
-		List<String> eoNames = new ArrayList<String>();
-		while (eventType != XmlPullParser.END_DOCUMENT) {
-			if (eventType == XmlPullParser.START_DOCUMENT) {
-				// Log.v(XML_TAG, "We don't need this for now.");
-			} else if (eventType == XmlPullParser.START_TAG) {
-				// Log.v(XML_TAG, "We don't need this for now.");
-			} else if (eventType == XmlPullParser.END_TAG) {
-				// Log.v(XML_TAG, "We don't need this for now.");
-			} else if (eventType == XmlPullParser.TEXT) {
-				eoNames.add(xpp.getText());
-				Log.v(XML_TAG, "ClassName: " + xpp.getText());
-			}
-			eventType = xpp.next();
-		}
-		return eoNames;
-	}
-	
-	
-
-
 	public class SubCriteria implements Criteria{
 
 		private String parent;
@@ -353,11 +272,9 @@ public class CriteriaImpl implements Criteria {
 			return className;
 		}
 
-
 		public void setClassName(String className) {
 			this.className = className;
 		}
-
 
 		public String getAssociationPath() {
 			return associationPath;
@@ -366,8 +283,6 @@ public class CriteriaImpl implements Criteria {
 		public void setAssociationPath(String associationPath) {
 			this.associationPath = associationPath;
 		}
-
-
 
 		@Override
 		public Criteria add(Criterion criterion) {
@@ -401,7 +316,6 @@ public class CriteriaImpl implements Criteria {
 			return new SubCriteria(this, associationPath);
 		}
 
-
 		/*
 		 * Association path is a variable name. Gets the name of the class to which the variable belongs.
 		 * Goes up the inheritance tree from parent class.
@@ -412,7 +326,7 @@ public class CriteriaImpl implements Criteria {
 			Log.v("getClassName", " associationPath " + associationPath);
 			boolean found = false;
 			try {
-				classDetails = annotationsScanner.getEntityObjectDetails(this.parent);
+				classDetails = AnnotationsScanner.getInstance().getEntityObjectDetails(this.parent);
 				if(classDetails.getFieldTypeDetailsByFieldName(associationPath) != null)
 					found = true;
 				else{
@@ -424,7 +338,7 @@ public class CriteriaImpl implements Criteria {
 							found = true;
 							break;
 						}
-						classDetails = annotationsScanner.getEntityObjectDetails(Class.forName(classDetails.getClassName()).getSuperclass().getName());
+						classDetails = AnnotationsScanner.getInstance().getEntityObjectDetails(Class.forName(classDetails.getClassName()).getSuperclass().getName());
 					}
 				}
 			}
@@ -443,11 +357,6 @@ public class CriteriaImpl implements Criteria {
 					className = temp;
 			}
 			return className;
-
 		}
-
 	}
-
-
-
 }

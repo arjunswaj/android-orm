@@ -33,7 +33,7 @@ public class AnnotationsScanner {
 
 	private AnnotationsScanner(Context context)
 	{
-		classDetailsMap = getEntityObjectCollectionDetails(context); 
+		classDetailsMap = getAllEntityObjectDetails(context); 
 	}
 	
 	public static AnnotationsScanner getInstance(Context context)
@@ -80,7 +80,7 @@ public class AnnotationsScanner {
     return classDetails;
 	}
 	
-	public Map<String, ClassDetails> getEntityObjectCollectionDetails()
+	public Map<String, ClassDetails> getAllEntityObjectDetails()
 	{
 		return classDetailsMap;
 	}
@@ -111,7 +111,7 @@ public class AnnotationsScanner {
 		return eoNames;
 	}
 
-	private Map<String, ClassDetails> getEntityObjectCollectionDetails(
+	private Map<String, ClassDetails> getAllEntityObjectDetails(
 			Context context) {
 		Map<String, ClassDetails> classDetailsMap = new HashMap<String, ClassDetails>();
 		List<String> eoClassNames;
@@ -198,8 +198,6 @@ public class AnnotationsScanner {
 					}
 				}
 			}
-
-
 		} catch (XmlPullParserException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {
@@ -211,9 +209,6 @@ public class AnnotationsScanner {
 		return classDetailsMap;
 	}
 
-	// TODO : Should this be exposed as 'public'? The ClassDetails object 
-	// returned will not have its subClassDetails and ownedRelations members
-	// populated
 	private ClassDetails getEntityObjectDetails(Class<?> classToInvestigate)
 			throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException {

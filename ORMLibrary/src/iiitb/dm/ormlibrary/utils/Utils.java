@@ -4,10 +4,7 @@ import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
-
-import android.util.Log;
 
 public class Utils {
 	

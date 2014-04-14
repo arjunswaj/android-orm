@@ -9,10 +9,8 @@ import iiitb.dm.ormlibrary.query.impl.CriteriaImpl;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -29,7 +27,6 @@ import android.util.Log;
 public class ORMHelper extends SQLiteOpenHelper {
 
   private static final String SAVE_OBJECT_TAG = "SAVE_OBJECT";
-  private Context context;
   private PersistenceHelper persistenceHelper;
   
   private DDLStatementBuilder ddlStatementBuilder;
@@ -37,12 +34,10 @@ public class ORMHelper extends SQLiteOpenHelper {
 
   public ORMHelper(Context context, String name, CursorFactory factory,
       int version) {
-    super(context, name, factory, version);
-    this.context = context;
-    annotationsScanner = AnnotationsScanner.getInstance(context);
-    persistenceHelper = new PersistenceHelper(annotationsScanner, getReadableDatabase(), getWritableDatabase());
+    super(context, name, factory, version); 
+    annotationsScanner = AnnotationsScanner.getInstance(context); // Crucial step to ensure use of AnnotationsScanner.getInstance() throughout the library
+    persistenceHelper = new PersistenceHelper(getReadableDatabase(), getWritableDatabase());
   }
-
   
   public void persist(Object obj) {
     long genId = persistenceHelper.save(obj, persistenceHelper.getId(obj), null);
@@ -56,20 +51,20 @@ public class ORMHelper extends SQLiteOpenHelper {
    * @return Criteria Instance
    */
   public Criteria createCriteria(Class<?> entity) {
-    return new CriteriaImpl(entity.getName(), getReadableDatabase(), context);
+    return new CriteriaImpl(entity.getName(), getReadableDatabase());
   }  
+  
   @Override
 	public void onCreate(SQLiteDatabase db) {
 		Log.d(this.getClass().getName() + ".onCreate()", "Creating tables");
-		Map<String, ClassDetails> classDetailsMap = AnnotationsScanner.getInstance(context)
-				.getEntityObjectCollectionDetails();
+		Map<String, ClassDetails> classDetailsMap = annotationsScanner
+				.getAllEntityObjectDetails();
 
 		ddlStatementBuilder = new DDLStatementBuilderImpl(classDetailsMap);
 		db.execSQL("pragma foreign_keys = on;");
 
-		Iterator<Entry<String, ClassDetails>> iterator = classDetailsMap.entrySet().iterator();
-		while (iterator.hasNext()) {
-			Map.Entry<String, ClassDetails> pairs = (Map.Entry<String, ClassDetails>) iterator.next();
+		for (Map.Entry<String, ClassDetails> pairs : classDetailsMap.entrySet())
+		{
 			ClassDetails classDetails = (ClassDetails) pairs.getValue();
 			try {
 				Log.v("ORM Helper OnCreate",
@@ -83,7 +78,6 @@ public class ORMHelper extends SQLiteOpenHelper {
 				e.printStackTrace();
 			}
 		}
-
 	}
 
   /**
@@ -116,13 +110,10 @@ public class ORMHelper extends SQLiteOpenHelper {
 		for (ClassDetails subClassDetails : classDetails.getSubClassDetails()) {
 			createTablesForHeirarchy(db, subClassDetails);
 		}
-
 	}
 	
   @Override
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     // TODO Auto-generated method stub
-
   }
-
 }

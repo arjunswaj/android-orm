@@ -1,8 +1,6 @@
 package edu.iiitb.ormtestapp;
 
 import iiitb.dm.ormlibrary.ORMHelper;
-import iiitb.dm.ormlibrary.query.Criteria;
-import iiitb.dm.ormlibrary.query.criterion.Restrictions;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +10,6 @@ import java.util.Random;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -142,18 +139,6 @@ public class MainActivity extends Activity {
 
   private void testPersistenceOfInheritedObjectsWithMixedStrategy(
       ORMHelper ormHelper) {
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE VEHICLE( MFG_YEAR INTEGER, _id INTEGER primary key autoincrement, VEHICLE_TYPE TEXT )");
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE CAR( COLOR TEXT, _id INTEGER primary key autoincrement, HORSE_POWER INTEGER )");
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE FORD( COLOR TEXT, _id INTEGER primary key autoincrement, HORSE_POWER INTEGER, MODEL TEXT )");
 
     for (int index = 1; index < 5; index += 1) {
 
@@ -170,19 +155,6 @@ public class MainActivity extends Activity {
       ford.setModel("Fiesta " + index);
       ormHelper.persist(ford);
     }
-
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE MINISTER( STATE TEXT, _id INTEGER primary key autoincrement )");
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE CABINET_MINISTER( STATE TEXT, _id INTEGER primary key autoincrement, PORTFOLIO TEXT, SALARY REAL, MINISTER_TYPE TEXT )");
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE PRIME_MINISTER( AGE INTEGER, _id INTEGER primary key autoincrement )");
 
     for (int index = 1; index < 5; index += 1) {
       
@@ -207,15 +179,6 @@ public class MainActivity extends Activity {
   }
 
   private void testPersistenceOfComposition(ORMHelper ormHelper) {
-    /*
-     * ormHelper .getWritableDatabase() .execSQL(
-     * "CREATE TABLE COUNTRY( NAME TEXT, _id INTEGER primary key autoincrement, CAPITAL_ID INTEGER )"
-     * ); ormHelper .getWritableDatabase() .execSQL(
-     * "CREATE TABLE CAPITAL( NAME TEXT, _id INTEGER primary key autoincrement )"
-     * ); ormHelper .getWritableDatabase() .execSQL(
-     * "CREATE TABLE STATES( NAME TEXT, _id INTEGER primary key autoincrement, COUNTRY_ID INTEGER )"
-     * );
-     */
     for (int index = 1; index < 5; index += 1) {
       Country country = new Country();
       country.setName("India " + index);
