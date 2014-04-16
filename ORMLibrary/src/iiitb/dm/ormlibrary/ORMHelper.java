@@ -2,12 +2,15 @@ package iiitb.dm.ormlibrary;
 
 import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.DDLStatementBuilder;
+import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.ddl.impl.DDLStatementBuilderImpl;
 import iiitb.dm.ormlibrary.ddl.impl.MappingException;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.impl.CriteriaImpl;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
+import iiitb.dm.ormlibrary.utils.Constants;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
@@ -72,7 +75,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 								.getSuperclass() + " " + Object.class);
 				if (Object.class == Class.forName(classDetails.getClassName())
 						.getSuperclass()) {
-					createTablesForHeirarchy(db, classDetails);
+				  createTablesForHierarchy(db, classDetails);
 				}
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
@@ -88,7 +91,7 @@ public class ORMHelper extends SQLiteOpenHelper {
    * @param db
    * @param classDetails
    */
-	private void createTablesForHeirarchy(SQLiteDatabase db,
+	private void createTablesForHierarchy(SQLiteDatabase db,
 			ClassDetails classDetails) {
 		// Create table/s for this class
 		Collection<String> stmts = new LinkedList<String>();
@@ -108,12 +111,80 @@ public class ORMHelper extends SQLiteOpenHelper {
 
 		// Create Tables for all the sub classes recursively
 		for (ClassDetails subClassDetails : classDetails.getSubClassDetails()) {
-			createTablesForHeirarchy(db, subClassDetails);
+			createTablesForHierarchy(db, subClassDetails);
 		}
 	}
 	
+	/**
+   * When an entity class has subclasses inheriting from it, this method
+   * drops tables for the entire hierarchy of the entity class in consideration
+   * and all its subclasses. 
+   * 
+   * @param db
+   * @param classDetails
+   * @param classDetailsMap
+   */
+  private void dropTablesForHierarchy(SQLiteDatabase db,
+      ClassDetails classDetails, Map<String, ClassDetails> classDetailsMap) {
+    // Create table/s for this class
+    String table = null;
+
+    for (FieldTypeDetails fieldTypeDetail : classDetails.getFieldTypeDetails()) {
+      if (fieldTypeDetail.getAnnotationOptionValues().get(
+          Constants.MANY_TO_MANY) != null
+          && fieldTypeDetail.getAnnotationOptionValues()
+              .get(Constants.MANY_TO_MANY).get(Constants.MAPPED_BY).equals("")) {
+        ParameterizedType pType = (ParameterizedType) fieldTypeDetail
+            .getFieldGenericType();
+        Class<?> inverseSideEntityClass = (Class<?>) pType
+            .getActualTypeArguments()[0];
+
+        ClassDetails inverseSide = classDetailsMap
+            .get(inverseSideEntityClass.getName());
+        
+        // owningSide table
+        String owningSideTableName = (String) classDetails
+            .getAnnotationOptionValues().get(Constants.ENTITY)
+            .get(Constants.NAME);
+
+        // inverseSide table
+        String inverseSideTableName = (String) inverseSide
+            .getAnnotationOptionValues().get(Constants.ENTITY)
+            .get(Constants.NAME);
+
+        String joinTableName = owningSideTableName + "_" + inverseSideTableName;
+        db.execSQL("DROP TABLE IF EXISTS " + joinTableName);
+        Log.d("DROP TABLE", "DROP TABLE IF EXISTS " + joinTableName);
+      }
+    }
+    table = (String) classDetails.getAnnotationOptionValues()
+        .get(Constants.ENTITY).get(Constants.NAME);
+
+    db.execSQL("DROP TABLE IF EXISTS " + table);
+    Log.d("DROP TABLE", "DROP TABLE IF EXISTS " + table);
+
+    // Create Tables for all the sub classes recursively
+    for (ClassDetails subClassDetails : classDetails.getSubClassDetails()) {
+      dropTablesForHierarchy(db, subClassDetails, classDetailsMap);
+    }
+  }
+
   @Override
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-    // TODO Auto-generated method stub
+    Log.d(this.getClass().getName() + ".onUpgrade()", "Upgrading Schema");
+    Map<String, ClassDetails> classDetailsMap = annotationsScanner
+        .getAllEntityObjectDetails();
+    for (Map.Entry<String, ClassDetails> pairs : classDetailsMap.entrySet()) {
+      ClassDetails classDetails = (ClassDetails) pairs.getValue();
+      try {
+        if (Object.class == Class.forName(classDetails.getClassName())
+            .getSuperclass()) {
+          dropTablesForHierarchy(db, classDetails, classDetailsMap);
+        }
+      } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+      }
+    }
+    onCreate(db);
   }
 }
