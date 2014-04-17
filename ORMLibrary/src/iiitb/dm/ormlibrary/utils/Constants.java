@@ -45,5 +45,7 @@ public class Constants
 	public static final String ID_VALUE = "_id";
 	public static final String ID_VALUE_CAPS = "ID";
 	public static final String EMPTY = "";
+	public static final String ENTITY_OBJECT_FILE = "entity_object_file";
+  public static final String XML = "xml";
 
 }

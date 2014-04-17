@@ -20,6 +20,9 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.util.Log;
@@ -85,31 +88,34 @@ public class AnnotationsScanner {
 		return classDetailsMap;
 	}
 	
-	private List<String> getEntityObjectsNamesFromManifest(Context context)
-			throws XmlPullParserException, IOException {
-		Resources resources = context.getResources();
-		// TODO: Should get from AndroidManifest
-		String uri = "xml/" + "entity_objects";
-		XmlResourceParser xpp = resources.getXml(resources.getIdentifier(uri, null,
-				context.getPackageName()));
-		xpp.next();
-		int eventType = xpp.getEventType();
-		List<String> eoNames = new ArrayList<String>();
-		while (eventType != XmlPullParser.END_DOCUMENT) {
-			if (eventType == XmlPullParser.START_DOCUMENT) {
-				// Log.v(XML_TAG, "We don't need this for now.");
-			} else if (eventType == XmlPullParser.START_TAG) {
-				// Log.v(XML_TAG, "We don't need this for now.");
-			} else if (eventType == XmlPullParser.END_TAG) {
-				// Log.v(XML_TAG, "We don't need this for now.");
-			} else if (eventType == XmlPullParser.TEXT) {
-				eoNames.add(xpp.getText());
-				Log.v(XML_TAG, "ClassName: " + xpp.getText());
-			}
-			eventType = xpp.next();
-		}
-		return eoNames;
-	}
+  private List<String> getEntityObjectsNamesFromManifest(Context context)
+      throws XmlPullParserException, IOException, NameNotFoundException {
+    Resources resources = context.getResources();
+    ApplicationInfo ai = context.getPackageManager().getApplicationInfo(
+        context.getPackageName(), PackageManager.GET_META_DATA);
+    String entityObjectFile = ai.metaData.getString(Constants.ENTITY_OBJECT_FILE);
+    String uri = Constants.XML + "/" + entityObjectFile;
+    
+    XmlResourceParser xpp = resources.getXml(resources.getIdentifier(uri, null,
+        context.getPackageName()));
+    xpp.next();
+    int eventType = xpp.getEventType();
+    List<String> eoNames = new ArrayList<String>();
+    while (eventType != XmlPullParser.END_DOCUMENT) {
+      if (eventType == XmlPullParser.START_DOCUMENT) {
+        // Log.v(XML_TAG, "We don't need this for now.");
+      } else if (eventType == XmlPullParser.START_TAG) {
+        // Log.v(XML_TAG, "We don't need this for now.");
+      } else if (eventType == XmlPullParser.END_TAG) {
+        // Log.v(XML_TAG, "We don't need this for now.");
+      } else if (eventType == XmlPullParser.TEXT) {
+        eoNames.add(xpp.getText());
+        Log.v(XML_TAG, "ClassName: " + xpp.getText());
+      }
+      eventType = xpp.next();
+    }
+    return eoNames;
+  }
 
 	private Map<String, ClassDetails> getAllEntityObjectDetails(
 			Context context) {
@@ -205,7 +211,10 @@ public class AnnotationsScanner {
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} catch (NameNotFoundException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
 		return classDetailsMap;
 	}
 
