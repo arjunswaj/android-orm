@@ -30,11 +30,9 @@
             android:name="edu.iiitb.ormtestapp.UpdateActivity"
             android:label="@string/title_activity_query" >
         </activity>
+        <meta-data
+            android:name="entity_object_file"
+            android:value="entity_objects" >
+        </meta-data>
     </application>
-
-    <meta-data
-        android:name="entity_objects"
-        android:value="entity_objects" >
-    </meta-data>
-
 </manifest>

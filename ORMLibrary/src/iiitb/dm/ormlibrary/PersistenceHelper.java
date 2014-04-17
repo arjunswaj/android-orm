@@ -248,15 +248,17 @@ class PersistenceHelper {
 
 	        if (null != fieldTypeDetail.getAnnotationOptionValues().get(Constants.COLUMN)) {
 	          String columnName = (String) fieldTypeDetail.getAnnotationOptionValues()
-	              .get(Constants.COLUMN).get(Constants.NAME);
-	          String columnValue = getterMethod.invoke(obj).toString();
+	              .get(Constants.COLUMN).get(Constants.NAME);	          
+	          Object columnValue = getterMethod.invoke(obj);
 
 	          // Don't add the id obtained from getter, it has to be auto generated
-	          if (!columnName.equals(Constants.ID_VALUE) && !columnName.equals(Constants.ID_VALUE_CAPS)) {
-	            contentValues.put(columnName, columnValue);
-	            Log.v(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
-	                + columnValue);
-	          }
+            if (!columnName.equals(Constants.ID_VALUE)
+                && !columnName.equals(Constants.ID_VALUE_CAPS)
+                && null != columnValue) {
+              contentValues.put(columnName, columnValue.toString());
+              Log.v(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
+                  + columnValue);
+            }
 	        } else if (null != fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE)) {
 	          // Handle 1-1 Composition here
 	          handleOneToOneComposition(getterMethod, obj, fieldTypeDetail, kvp);          
@@ -379,15 +381,17 @@ class PersistenceHelper {
 	              + inverseSide.getAnnotationOptionValues().get(Constants.ENTITY)
 	                  .get(Constants.NAME);
 
-	          for (Object composedObject : composedObjectCollection) {
-	            ContentValues joinTableContentValues = new ContentValues();
-	            joinTableContentValues.put(joinColumnName, genId);
-	            joinTableContentValues.put(inverseJoinColumnName,
-	                save(composedObject, getId(composedObject), null));
-	            if (writableDatabase.insert(joinTableName, null,
-	                joinTableContentValues) == -1)
-	              Log.e(SAVE_OBJECT_TAG, "Error inserting into database");
-	          }
+            if (null != composedObjectCollection) {
+              for (Object composedObject : composedObjectCollection) {
+                ContentValues joinTableContentValues = new ContentValues();
+                joinTableContentValues.put(joinColumnName, genId);
+                joinTableContentValues.put(inverseJoinColumnName,
+                    save(composedObject, getId(composedObject), null));
+                if (writableDatabase.insert(joinTableName, null,
+                    joinTableContentValues) == -1)
+                  Log.e(SAVE_OBJECT_TAG, "Error inserting into database");
+              }
+            }
 	        }
 	      }
 	    } catch (NoSuchMethodException e) {
@@ -431,12 +435,13 @@ class PersistenceHelper {
 	    String joinColumnName = (String) fieldTypeDetail
 	        .getAnnotationOptionValues().get(Constants.JOIN_COLUMN)
 	        .get(Constants.NAME);
-	    long saveId = save(composedObject, -1L, null);
-	    if (null == kvp) {
-	      kvp = new HashMap<String, String>();
-	    }
-	    kvp.put(joinColumnName, String.valueOf(saveId));
-
+      if (null != composedObject) {
+        long saveId = save(composedObject, -1L, null);
+        if (null == kvp) {
+          kvp = new HashMap<String, String>();
+        }
+        kvp.put(joinColumnName, String.valueOf(saveId));
+      }
 	  }
 
 	  /**
@@ -466,15 +471,16 @@ class PersistenceHelper {
 	          String columnName = (String) fieldTypeDetail
 	              .getAnnotationOptionValues().get(Constants.COLUMN)
 	              .get(Constants.NAME);
-	          String columnValue = getterMethod.invoke(obj).toString();
+	          Object columnValue = getterMethod.invoke(obj);
 
 	          // Don't add the id from getter, it has to be auto generated
-	          if (!columnName.equals(Constants.ID_VALUE)
-	              && !columnName.equals(Constants.ID_VALUE_CAPS)) {
-	            kvp.put(columnName, columnValue);
-	            Log.v(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
-	                + columnValue);
-	          }
+            if (!columnName.equals(Constants.ID_VALUE)
+                && !columnName.equals(Constants.ID_VALUE_CAPS)
+                && null != columnValue) {
+              kvp.put(columnName, columnValue.toString());
+              Log.v(SAVE_OBJECT_TAG, "Col: " + columnName + ", Val: "
+                  + columnValue);
+            }
 	        } else {
 	          new UnsupportedOperationException(
 	              "We aren't supporting Composition with TABLE_PER_CLASS strategy for now");
