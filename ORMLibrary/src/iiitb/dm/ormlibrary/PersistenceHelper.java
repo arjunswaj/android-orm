@@ -72,10 +72,6 @@ class PersistenceHelper {
 			for (FieldTypeDetails fieldTypeDetail : superClassDetails
 					.getFieldTypeDetails())
 			{
-				// TODO: What if the object being saved inherits and does not have
-				// an @ID annotation??
-				// This can't probably happen as I am dealing with superClassDetails
-				// Need to think this over.
 				if (fieldTypeDetail.getAnnotationOptionValues().get(Constants.ID) != null)
 				{
 					String getterMethodName = Utils
@@ -336,8 +332,6 @@ class PersistenceHelper {
 	          Map<String, String> newKVPs = new HashMap<String, String>();
 	          for (Object composedObject : composedObjectCollection) {
 	            newKVPs.put(joinColumnName, String.valueOf(genId));
-	            // TODO : Make use of these newKVP's when bidirectional is
-	            // implemented
 	            long saveId = save(composedObject, -1L, newKVPs);
 	          }
 	        } else if (fieldTypeDetail.getAnnotationOptionValues().get(
@@ -419,7 +413,6 @@ class PersistenceHelper {
 	    if (readableDatabase.rawQuery(
 	        "select * from " + tableName + " where " + Constants.ID_VALUE + " = ?",
 	        strs).getCount() == 0)
-	    // TODO: can I use '*' here??
 	    {
 	      genId = writableDatabase.insert(tableName, null, contentValues);
 	      Log.d(SAVE_OBJECT_TAG, genId + ": Inserted into " + tableName);

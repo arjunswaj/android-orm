@@ -3,6 +3,7 @@ package iiitb.dm.ormlibrary.ddl.impl;
 import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.DDLStatementBuilder;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
+import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 import iiitb.dm.ormlibrary.utils.Constants;
 import iiitb.dm.ormlibrary.utils.RelationshipType;
 import iiitb.dm.ormlibrary.utils.SQLColTypeEnumMap;
@@ -12,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.InheritanceType;
 
@@ -22,12 +22,6 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 {
 
 	private final String DDL_TAG = "DDL STATEMENT BUILDER";
-	private Map<String, ClassDetails> classDetailsMap;
-
-	public DDLStatementBuilderImpl(Map<String, ClassDetails> classDetailsMap)
-	{
-		this.classDetailsMap = classDetailsMap;
-	}
 
 	@Override
 	public Collection<String> generateCreateTableStmts(ClassDetails classDetails) throws MappingException
@@ -45,7 +39,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 
 		ClassDetails superClassDetails = null;
 		try {
-			superClassDetails = classDetailsMap.get(Class.forName(classDetails.getClassName()).getSuperclass().getName());
+			superClassDetails = AnnotationsScanner.getInstance().getEntityObjectDetails(Class.forName(classDetails.getClassName()).getSuperclass().getName());
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -69,16 +63,16 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 						if(referencedColumnName.equals(""))
 						{
 							foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
-									+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
+									+ AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 									.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
-							Log.v(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
-							columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID_VALUE);
+							Log.v(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()));
+							columnType = getColumnType(AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID_VALUE);
 						}
 						else{
 							foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
-									+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
+									+ AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 									.get(Constants.ENTITY).get(Constants.NAME) + "(" + referencedColumnName + ")");
-							columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(),
+							columnType = getColumnType(AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(),
 									referencedColumnName);
 						}
 					}
@@ -94,10 +88,10 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 			{
 				columnName = (String) fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
 				foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
-						+ classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
+						+ AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 						.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
-				Log.v(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + classDetailsMap.get(fieldTypeDetail.getFieldType().getName()));
-				columnType = getColumnType(classDetailsMap.get(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID_VALUE);
+				Log.v(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()));
+				columnType = getColumnType(AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID_VALUE);
 			}
 			else if (fieldTypeDetail.getAnnotationOptionValues().get(
 					Constants.MANY_TO_MANY) != null
@@ -113,8 +107,8 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 				Class<?> inverseSideEntityClass = (Class<?>) pType
 						.getActualTypeArguments()[0];
 
-				ClassDetails owningSideClassDetails = classDetailsMap
-						.get(inverseSideEntityClass.getName());
+				ClassDetails owningSideClassDetails = AnnotationsScanner.getInstance()
+						.getEntityObjectDetails(inverseSideEntityClass.getName());
 				createStmts.add(generateJoinTableCreateStmt(classDetails,
 						owningSideClassDetails, fieldTypeDetail));
 			}
@@ -292,7 +286,6 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 		}
 		query.delete(query.length() - 2, query.length() - 1);
 		return query.toString();
-
 	}
 
 	/**

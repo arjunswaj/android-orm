@@ -28,6 +28,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 
   private static final String SAVE_OBJECT_TAG = "SAVE_OBJECT";
   private PersistenceHelper persistenceHelper;
+  private UpdateHelper updateHelper;
   
   private DDLStatementBuilder ddlStatementBuilder;
   private AnnotationsScanner annotationsScanner;
@@ -37,12 +38,19 @@ public class ORMHelper extends SQLiteOpenHelper {
     super(context, name, factory, version); 
     annotationsScanner = AnnotationsScanner.getInstance(context); // Crucial step to ensure use of AnnotationsScanner.getInstance() throughout the library
     persistenceHelper = new PersistenceHelper(getReadableDatabase(), getWritableDatabase());
+    updateHelper = new UpdateHelper(getReadableDatabase(), getWritableDatabase());
   }
   
   public void persist(Object obj) {
     long genId = persistenceHelper.save(obj, persistenceHelper.getId(obj), null);
     Log.d(SAVE_OBJECT_TAG, "Saved: " + obj.getClass().getSimpleName()
         + " Generated Id: " + genId);
+  }
+  
+  public void update(Object obj)
+  {
+		updateHelper.update(AnnotationsScanner.getInstance()
+				.getEntityObjectDetails(obj.getClass().getName()), obj);
   }
 
   /**
@@ -56,14 +64,13 @@ public class ORMHelper extends SQLiteOpenHelper {
   
   @Override
 	public void onCreate(SQLiteDatabase db) {
-		Log.d(this.getClass().getName() + ".onCreate()", "Creating tables");
-		Map<String, ClassDetails> classDetailsMap = annotationsScanner
-				.getAllEntityObjectDetails();
+		Log.d(this.getClass().getName() + ".onCreate()", "Creating tables"); 
 
-		ddlStatementBuilder = new DDLStatementBuilderImpl(classDetailsMap);
+		ddlStatementBuilder = new DDLStatementBuilderImpl();
 		db.execSQL("pragma foreign_keys = on;");
 
-		for (Map.Entry<String, ClassDetails> pairs : classDetailsMap.entrySet())
+		for (Map.Entry<String, ClassDetails> pairs : annotationsScanner
+				.getAllEntityObjectDetails().entrySet())
 		{
 			ClassDetails classDetails = (ClassDetails) pairs.getValue();
 			try {

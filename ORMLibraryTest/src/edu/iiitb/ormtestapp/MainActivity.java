@@ -59,20 +59,6 @@ public class MainActivity extends Activity {
 
   private void testPersistenceOfInheritedObjectsWithJoinedStrategy(
       ORMHelper ormHelper) {
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE EMPLOYEE( NAME TEXT, _id INTEGER primary key autoincrement, EMPLOYEE_TYPE TEXT )");
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE PART_TIME_EMPLOYEE( _id INTEGER, HOURLY_RATE REAL, PART_TIME_EMPLOYEE_TYPE TEXT )");
-    // ormHelper.getWritableDatabase().execSQL(
-    // "CREATE TABLE INTERN( _id INTEGER, STIPEND REAL )");
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE FULL_TIME_EMPLOYEE( _id INTEGER, SALARY INTEGER, PENSION INTEGER )");
 
 	  Random randomGen = new Random();
     for (int index = 1; index < 5; index += 1) {
@@ -100,19 +86,6 @@ public class MainActivity extends Activity {
 
   private void testPersistenceOfInheritedObjectsWithTablePerClassStrategy(
       ORMHelper ormHelper) {
-
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE SPORTSMAN( NAME TEXT, _id INTEGER primary key autoincrement )");
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE FOOTBALLER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, GOALS INTEGER )");
-    // ormHelper
-    // .getWritableDatabase()
-    // .execSQL(
-    // "CREATE TABLE CRICKETER( NAME TEXT, _id INTEGER primary key autoincrement, TEAM TEXT, AVERAGE REAL )");
 
 	Random randomGen = new Random();
     for (int index = 1; index < 5; index += 1) {
@@ -272,6 +245,7 @@ public class MainActivity extends Activity {
     menuList.add("Composition - 1-1, 1-Many");
     menuList.add("Composition - Many-Many");
     menuList.add("Query");
+    menuList.add("Update");
     
     listView = (ListView) findViewById(R.id.mainList);
     listView.setAdapter(new ArrayAdapter(this, android.R.layout.simple_list_item_1, menuList));
@@ -303,7 +277,12 @@ public class MainActivity extends Activity {
         case 6:
           Intent queryScreen = new Intent(MainActivity.this, QueryActivity.class);
           startActivity(queryScreen);
-          break;        
+          break;
+        case 7:
+            Intent updateScreen = new Intent(MainActivity.this, UpdateActivity.class);
+            startActivity(updateScreen);
+            break;        
+
         }
       }
     });        

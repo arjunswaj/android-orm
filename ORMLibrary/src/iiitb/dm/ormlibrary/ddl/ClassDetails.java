@@ -125,9 +125,7 @@ public ClassDetails(String className,
 
 	public FieldTypeDetails getFieldTypeDetailsOfId()
 	{
-		// TODO: Make fieldTypeDetails as a LinkedHashMap and avoid the for loop
 		for (FieldTypeDetails id : getFieldTypeDetails())
-			// TODO: need to get this to constants.java
 			if (id.getAnnotationOptionValues().get(Constants.ID) != null)
 				return id;
 		return null;
@@ -158,8 +156,7 @@ public ClassDetails(String className,
 		return null;
 	}
 	
-	public FieldTypeDetails getFieldTypeDetailsByFieldName(
-			String fieldName)
+	public FieldTypeDetails getFieldTypeDetailsByFieldName(String fieldName)
 	{
 		for (FieldTypeDetails fieldTypeDetails : getFieldTypeDetails())
 		{
@@ -168,7 +165,4 @@ public ClassDetails(String className,
 		}
 		return null;
 	}
-	
-	
-
 }

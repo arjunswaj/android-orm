@@ -26,6 +26,10 @@
             android:name="edu.iiitb.ormtestapp.QueryActivity"
             android:label="@string/title_activity_query" >
         </activity>
+        <activity
+            android:name="edu.iiitb.ormtestapp.UpdateActivity"
+            android:label="@string/title_activity_query" >
+        </activity>
     </application>
 
     <meta-data
