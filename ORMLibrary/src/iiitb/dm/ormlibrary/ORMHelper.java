@@ -14,6 +14,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Stack;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -115,20 +116,20 @@ public class ORMHelper extends SQLiteOpenHelper {
 		}
 	}
 	
-	/**
-   * When an entity class has subclasses inheriting from it, this method
-   * drops tables for the entire hierarchy of the entity class in consideration
-   * and all its subclasses. 
+  /**
+   * When an entity class has subclasses inheriting from it, this method drops
+   * tables for the entire hierarchy of the entity class in consideration and
+   * all its subclasses.
    * 
-   * @param db
    * @param classDetails
    * @param classDetailsMap
+   * @param tableNames
    */
-  private void dropTablesForHierarchy(SQLiteDatabase db,
-      ClassDetails classDetails, Map<String, ClassDetails> classDetailsMap) {
-    // Create table/s for this class
+  private void dropTablesForHierarchy(ClassDetails classDetails,
+      Map<String, ClassDetails> classDetailsMap, Stack<String> tableNames) {
     String table = null;
 
+    // This loop is for finding those join tables of many-many relationship
     for (FieldTypeDetails fieldTypeDetail : classDetails.getFieldTypeDetails()) {
       if (fieldTypeDetail.getAnnotationOptionValues().get(
           Constants.MANY_TO_MANY) != null
@@ -139,9 +140,9 @@ public class ORMHelper extends SQLiteOpenHelper {
         Class<?> inverseSideEntityClass = (Class<?>) pType
             .getActualTypeArguments()[0];
 
-        ClassDetails inverseSide = classDetailsMap
-            .get(inverseSideEntityClass.getName());
-        
+        ClassDetails inverseSide = classDetailsMap.get(inverseSideEntityClass
+            .getName());
+
         // owningSide table
         String owningSideTableName = (String) classDetails
             .getAnnotationOptionValues().get(Constants.ENTITY)
@@ -153,19 +154,16 @@ public class ORMHelper extends SQLiteOpenHelper {
             .get(Constants.NAME);
 
         String joinTableName = owningSideTableName + "_" + inverseSideTableName;
-        db.execSQL("DROP TABLE IF EXISTS " + joinTableName);
-        Log.d("DROP TABLE", "DROP TABLE IF EXISTS " + joinTableName);
+        tableNames.add(joinTableName);
       }
     }
     table = (String) classDetails.getAnnotationOptionValues()
         .get(Constants.ENTITY).get(Constants.NAME);
+    tableNames.add(table);
 
-    db.execSQL("DROP TABLE IF EXISTS " + table);
-    Log.d("DROP TABLE", "DROP TABLE IF EXISTS " + table);
-
-    // Create Tables for all the sub classes recursively
+    // Drop Tables for all the sub classes recursively
     for (ClassDetails subClassDetails : classDetails.getSubClassDetails()) {
-      dropTablesForHierarchy(db, subClassDetails, classDetailsMap);
+      dropTablesForHierarchy(subClassDetails, classDetailsMap, tableNames);
     }
   }
 
@@ -174,16 +172,23 @@ public class ORMHelper extends SQLiteOpenHelper {
     Log.d(this.getClass().getName() + ".onUpgrade()", "Upgrading Schema");
     Map<String, ClassDetails> classDetailsMap = annotationsScanner
         .getAllEntityObjectDetails();
+    Stack<String> tableNames = new Stack<String>();
     for (Map.Entry<String, ClassDetails> pairs : classDetailsMap.entrySet()) {
       ClassDetails classDetails = (ClassDetails) pairs.getValue();
       try {
         if (Object.class == Class.forName(classDetails.getClassName())
             .getSuperclass()) {
-          dropTablesForHierarchy(db, classDetails, classDetailsMap);
+          dropTablesForHierarchy(classDetails, classDetailsMap, tableNames);
         }
       } catch (ClassNotFoundException e) {
         e.printStackTrace();
       }
+    }
+    while (!tableNames.isEmpty()) {
+      String tableName = tableNames.pop();
+      String dropTableSQL = "DROP TABLE IF EXISTS " + tableName;
+      db.execSQL(dropTableSQL);
+      Log.d("DROP TABLE", dropTableSQL);
     }
     onCreate(db);
   }
