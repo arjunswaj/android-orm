@@ -47,5 +47,7 @@ public class Constants
 	public static final String EMPTY = "";
 	public static final String ENTITY_OBJECT_FILE = "entity_object_file";
   public static final String XML = "xml";
+  public static final String DATABASE_NAME = "database_name";
+  public static final String DATABASE_VERSION = "database_version";
 
 }

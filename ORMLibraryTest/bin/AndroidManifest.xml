@@ -23,16 +23,30 @@
             </intent-filter>
         </activity>
         <activity
+            android:name="edu.iiitb.ormtestapp.CreateActivity"
+            android:label="@string/title_activity_create" >
+        </activity>
+        <activity
             android:name="edu.iiitb.ormtestapp.QueryActivity"
             android:label="@string/title_activity_query" >
         </activity>
         <activity
             android:name="edu.iiitb.ormtestapp.UpdateActivity"
-            android:label="@string/title_activity_query" >
+            android:label="@string/title_activity_update" >
         </activity>
+
         <meta-data
             android:name="entity_object_file"
             android:value="entity_objects" >
         </meta-data>
+        <meta-data
+            android:name="database_name"
+            android:value="testDB.sqlite" >
+        </meta-data>
+        <meta-data
+            android:name="database_version"
+            android:value="1" >
+        </meta-data>
     </application>
+
 </manifest>

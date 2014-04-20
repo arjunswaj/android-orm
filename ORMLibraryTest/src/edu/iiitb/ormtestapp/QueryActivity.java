@@ -245,8 +245,7 @@ public class QueryActivity extends Activity {
     listView = (ListView) findViewById(R.id.queryList);
     listView.setAdapter(new ArrayAdapter(this,
         android.R.layout.simple_list_item_1, menuList));
-    final ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
-        "testDB.sqlite", null, 1);
+    final ORMHelper ormHelper = ORMHelper.getInstance(getApplicationContext());;
 
     listView.setOnItemClickListener(new OnItemClickListener() {
       public void onItemClick(AdapterView<?> parent, View v, int position,

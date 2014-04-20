@@ -194,7 +194,7 @@ public class UpdateActivity extends Activity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_query);
+		setContentView(R.layout.activity_update);
 
 		List<String> menuList = new ArrayList<String>();
 		menuList.add("Update on object with no inheritance and no composition");
@@ -204,11 +204,10 @@ public class UpdateActivity extends Activity
 		menuList.add("Update on object which has 1-1 and 1-N associations");
 		menuList.add("Update on object which has M-N associations");
 
-		listView = (ListView) findViewById(R.id.queryList);
+		listView = (ListView) findViewById(R.id.updateList);
 		listView.setAdapter(new ArrayAdapter(this,
 				android.R.layout.simple_list_item_1, menuList));
-		final ORMHelper ormHelper = new ORMHelper(getApplicationContext(),
-				"testDB.sqlite", null, 1);
+		final ORMHelper ormHelper = ORMHelper.getInstance(getApplicationContext());
 
 		listView.setOnItemClickListener(new OnItemClickListener()
 		{

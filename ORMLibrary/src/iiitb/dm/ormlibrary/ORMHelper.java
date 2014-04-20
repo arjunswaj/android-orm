@@ -17,6 +17,9 @@ import java.util.Map;
 import java.util.Stack;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -36,15 +39,34 @@ public class ORMHelper extends SQLiteOpenHelper {
   
   private DDLStatementBuilder ddlStatementBuilder;
   private AnnotationsScanner annotationsScanner;
-
-  public ORMHelper(Context context, String name, CursorFactory factory,
+  private static ORMHelper ormHelperInstance;
+  
+  private ORMHelper(Context context, String name, CursorFactory factory,
       int version) {
     super(context, name, factory, version); 
-    annotationsScanner = AnnotationsScanner.getInstance(context); // Crucial step to ensure use of AnnotationsScanner.getInstance() throughout the library
+    // Crucial step to ensure use of AnnotationsScanner.getInstance() throughout the library
+    annotationsScanner = AnnotationsScanner.getInstance(context);
     persistenceHelper = new PersistenceHelper(getReadableDatabase(), getWritableDatabase());
     updateHelper = new UpdateHelper(getReadableDatabase(), getWritableDatabase());
   }
   
+  public static ORMHelper getInstance(Context context) {
+    if (null == ormHelperInstance) {
+      ApplicationInfo ai;
+      try {
+        ai = context.getPackageManager().getApplicationInfo(
+            context.getPackageName(), PackageManager.GET_META_DATA);
+        String databaseName = ai.metaData.getString(Constants.DATABASE_NAME);
+        int databaseVersion = ai.metaData.getInt(Constants.DATABASE_VERSION);
+        ormHelperInstance = new ORMHelper(context, databaseName, null,
+            databaseVersion);
+      } catch (NameNotFoundException e) {
+        e.printStackTrace();
+      }
+    }
+    return ormHelperInstance;
+  }
+
   public void persist(Object obj) {
     long genId = persistenceHelper.save(obj, persistenceHelper.getId(obj), null);
     Log.d(SAVE_OBJECT_TAG, "Saved: " + obj.getClass().getSimpleName()
@@ -108,7 +130,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 					.generateCreateTableStmts(classDetails);
 			for (String stmt : stmts)
 			{
-				Log.v("CreateTablesForHeirarchy", stmt);
+				Log.v("CreateTablesForHierarchy", stmt);
 				db.execSQL(stmt);
 			}
 		}
