@@ -15,8 +15,7 @@ import javax.persistence.OneToOne;
 import edu.iiitb.ormtestapp.composition.eo.Article;
 
 @Entity(name = "MINISTER")
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "MINISTER_TYPE")
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class Minister {
   @Id
   @Column(name = "_id")
