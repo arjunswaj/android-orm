@@ -2,6 +2,7 @@ package edu.iiitb.ormtestapp.inheritance.mixed.eo;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
@@ -9,6 +10,7 @@ import javax.persistence.InheritanceType;
 @Entity(name = "CABINET_MINISTER")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "MINISTER_TYPE")
+@DiscriminatorValue(value = "CM")
 public class CabinetMinister extends Minister {
 
   @Column(name = "PORTFOLIO")

@@ -10,11 +10,13 @@ import iiitb.dm.ormlibrary.utils.SQLColTypeEnumMap;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.InheritanceType;
+import javax.persistence.CascadeType;
 
 import android.util.Log;
 
@@ -27,7 +29,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 	public Collection<String> generateCreateTableStmts(ClassDetails classDetails) throws MappingException
 	{ 
 		Collection<String> createStmts = new LinkedList<String>();
-		
+
 		String tableName = (String) classDetails.getAnnotationOptionValues()
 				.get(Constants.ENTITY).get(Constants.NAME);
 
@@ -54,7 +56,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 			if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE) != null)
 			{
 				// If this is the owner class
-				if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE).get(Constants.MAPPED_BY) == "")
+				if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE).get(Constants.MAPPED_BY).equals(""))
 				{
 					if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.JOIN_COLUMN) != null)
 					{
@@ -90,14 +92,15 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 				foreignKeyConstraint.append(", FOREIGN KEY (" + columnName + ") REFERENCES "
 						+ AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()).getAnnotationOptionValues()
 						.get(Constants.ENTITY).get(Constants.NAME) + "(_id ) ");
+				foreignKeyConstraint.append(" ON DELETE SET NULL ");
 				Log.v(DDL_TAG, fieldTypeDetail.getFieldType().getName() + " " + AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()));
 				columnType = getColumnType(AnnotationsScanner.getInstance().getEntityObjectDetails(fieldTypeDetail.getFieldType().getName()).getFieldTypeDetails(), Constants.ID_VALUE);
 			}
 			else if (fieldTypeDetail.getAnnotationOptionValues().get(
 					Constants.MANY_TO_MANY) != null
 					&& fieldTypeDetail.getAnnotationOptionValues()
-							.get(Constants.MANY_TO_MANY)
-							.get(Constants.MAPPED_BY).equals(""))
+					.get(Constants.MANY_TO_MANY)
+					.get(Constants.MAPPED_BY).equals(""))
 			{
 				// create join table only if this class is on the owning side
 				// of the many-to-many relation
@@ -171,12 +174,18 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 					try{
 						if((Class<?>)genericType.getActualTypeArguments()[0] == Class.forName(classDetails.getClassName()))
 						{
-							columnName = (String) fieldTypeDetails.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
-							columnType = getColumnType(relatedClassDetails.getFieldTypeDetails(), Constants.ID_VALUE);
-							columnConstraints = new ArrayList<String>();
-							foreignKeyConstraint.append(" , FOREIGN KEY(" + columnName + ") REFERENCES " 
-									+ relatedClassDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME)
-									+ "(_id)");
+							if(fieldTypeDetails.getAnnotationOptionValues().get(Constants.JOIN_COLUMN) != null)
+							{
+								columnName = (String) fieldTypeDetails.getAnnotationOptionValues().get(Constants.JOIN_COLUMN).get(Constants.NAME);
+								columnType = getColumnType(relatedClassDetails.getFieldTypeDetails(), Constants.ID_VALUE);
+								columnConstraints = new ArrayList<String>();
+								foreignKeyConstraint.append(" , FOREIGN KEY(" + columnName + ") REFERENCES " 
+										+ relatedClassDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME)
+										+ "(_id)");
+								foreignKeyConstraint.append(" ON DELETE SET NULL ");
+							}
+							else
+								throw new MappingException(" @JoinColumn missing with @OneToMany");
 						}
 					}
 					catch(ClassNotFoundException ex)
@@ -221,7 +230,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 			case JOINED:
 				foreignKeyConstraint.append(" , FOREIGN KEY(_id) REFERENCES " 
 						+ superClassDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME)
-						+ "(_id)");
+						+ "(_id) ON DELETE CASCADE ");
 				columnName = "_id";
 				columnType = "INTEGER";
 				columnConstraints = new ArrayList<String>();
@@ -320,7 +329,7 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 
 		// Join table name
 		String joinTableName = owningSideTableName + "_" + inverseSideTableName;
-		
+
 		// joinColumnName must be different if there is a reverse mapping
 		FieldTypeDetails joinColumnFieldTypeDetails = inverseSide
 				.getFieldTypeDetailsByMappedByAnnotation(mappedField
@@ -332,18 +341,18 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 			joinColumnName = joinColumnFieldTypeDetails.getFieldName();
 		joinColumnName += "_"
 				+ owningSide.getFieldTypeDetailsOfId()
-						.getAnnotationOptionValues().get(Constants.COLUMN)
-						.get(Constants.NAME);
-		
+				.getAnnotationOptionValues().get(Constants.COLUMN)
+				.get(Constants.NAME);
+
 		String joinColumnType = SQLColTypeEnumMap.get(
 				owningSide.getFieldTypeDetailsOfId().getFieldType()
-						.getSimpleName()).toString();
+				.getSimpleName()).toString();
 
 		String inverseJoinColumnName = mappedField.getFieldName() + "_"
 				+ inverseSide.getFieldTypeDetailsOfId()
 				.getAnnotationOptionValues().get(Constants.COLUMN)
 				.get(Constants.NAME);
-		
+
 		String inverseJoinColumnType = SQLColTypeEnumMap.get(
 				inverseSide.getFieldTypeDetailsOfId().getFieldType()
 				.getSimpleName()).toString();
@@ -352,13 +361,13 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 				+ joinColumnName + " "
 				+ joinColumnType + " references " + owningSideTableName + "("
 				+ owningSide.getFieldTypeDetailsOfId()
-					.getAnnotationOptionValues().get(Constants.COLUMN)
-					.get(Constants.NAME) + "), "
+				.getAnnotationOptionValues().get(Constants.COLUMN)
+				.get(Constants.NAME) + " ) ON DELETE CASCADE , "
 				+ inverseJoinColumnName + " "
 				+ inverseJoinColumnType + " references " + inverseSideTableName + "("
 				+ inverseSide.getFieldTypeDetailsOfId()
-					.getAnnotationOptionValues().get(Constants.COLUMN)
-					.get(Constants.NAME) + "))";
+				.getAnnotationOptionValues().get(Constants.COLUMN)
+				.get(Constants.NAME) + ") ON DELETE CASCADE )";
 		Log.d(DDL_TAG, createStmt);
 
 		return createStmt;

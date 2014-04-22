@@ -38,7 +38,7 @@ public class AnnotationsScanner {
 	{
 		classDetailsMap = getAllEntityObjectDetails(context); 
 	}
-	
+
 	public static AnnotationsScanner getInstance(Context context)
 	{
 		if(instance == null)
@@ -51,12 +51,12 @@ public class AnnotationsScanner {
 			throw new RuntimeException("Internal Error: Wasn't ORMHelper used at all before this??");
 		return instance;
 	}
-	
+
 	public ClassDetails getEntityObjectDetails(String className)
 	{
 		return classDetailsMap.get(className);
 	}
-	
+
 	/**
 	 * getEntityObjectBranch is used in ORM Helper.
 	 * Don't change this. Bad things will happen.
@@ -64,58 +64,58 @@ public class AnnotationsScanner {
 	 * @return ClassDetails branch - NOT the complete Hierarchy
 	 */
 	public ClassDetails getEntityObjectBranch(String className) {
-	  ClassDetails classDetails = null;
-    try {
-      classDetails =  getEntityObjectDetails(Class.forName(className));
-    } catch (IllegalAccessException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (IllegalArgumentException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InvocationTargetException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (ClassNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    return classDetails;
+		ClassDetails classDetails = null;
+		try {
+			classDetails =  getEntityObjectDetails(Class.forName(className));
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return classDetails;
 	}
-	
+
 	public Map<String, ClassDetails> getAllEntityObjectDetails()
 	{
 		return classDetailsMap;
 	}
-	
-  private List<String> getEntityObjectsNamesFromManifest(Context context)
-      throws XmlPullParserException, IOException, NameNotFoundException {
-    Resources resources = context.getResources();
-    ApplicationInfo ai = context.getPackageManager().getApplicationInfo(
-        context.getPackageName(), PackageManager.GET_META_DATA);
-    String entityObjectFile = ai.metaData.getString(Constants.ENTITY_OBJECT_FILE);
-    String uri = Constants.XML + "/" + entityObjectFile;
-    
-    XmlResourceParser xpp = resources.getXml(resources.getIdentifier(uri, null,
-        context.getPackageName()));
-    xpp.next();
-    int eventType = xpp.getEventType();
-    List<String> eoNames = new ArrayList<String>();
-    while (eventType != XmlPullParser.END_DOCUMENT) {
-      if (eventType == XmlPullParser.START_DOCUMENT) {
-        // Log.v(XML_TAG, "We don't need this for now.");
-      } else if (eventType == XmlPullParser.START_TAG) {
-        // Log.v(XML_TAG, "We don't need this for now.");
-      } else if (eventType == XmlPullParser.END_TAG) {
-        // Log.v(XML_TAG, "We don't need this for now.");
-      } else if (eventType == XmlPullParser.TEXT) {
-        eoNames.add(xpp.getText());
-        Log.v(XML_TAG, "ClassName: " + xpp.getText());
-      }
-      eventType = xpp.next();
-    }
-    return eoNames;
-  }
+
+	private List<String> getEntityObjectsNamesFromManifest(Context context)
+			throws XmlPullParserException, IOException, NameNotFoundException {
+		Resources resources = context.getResources();
+		ApplicationInfo ai = context.getPackageManager().getApplicationInfo(
+				context.getPackageName(), PackageManager.GET_META_DATA);
+		String entityObjectFile = ai.metaData.getString(Constants.ENTITY_OBJECT_FILE);
+		String uri = Constants.XML + "/" + entityObjectFile;
+
+		XmlResourceParser xpp = resources.getXml(resources.getIdentifier(uri, null,
+				context.getPackageName()));
+		xpp.next();
+		int eventType = xpp.getEventType();
+		List<String> eoNames = new ArrayList<String>();
+		while (eventType != XmlPullParser.END_DOCUMENT) {
+			if (eventType == XmlPullParser.START_DOCUMENT) {
+				// Log.v(XML_TAG, "We don't need this for now.");
+			} else if (eventType == XmlPullParser.START_TAG) {
+				// Log.v(XML_TAG, "We don't need this for now.");
+			} else if (eventType == XmlPullParser.END_TAG) {
+				// Log.v(XML_TAG, "We don't need this for now.");
+			} else if (eventType == XmlPullParser.TEXT) {
+				eoNames.add(xpp.getText());
+				Log.v(XML_TAG, "ClassName: " + xpp.getText());
+			}
+			eventType = xpp.next();
+		}
+		return eoNames;
+	}
 
 	private Map<String, ClassDetails> getAllEntityObjectDetails(
 			Context context) {
@@ -212,9 +212,9 @@ public class AnnotationsScanner {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NameNotFoundException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
-    }
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		return classDetailsMap;
 	}
 
@@ -277,4 +277,17 @@ public class AnnotationsScanner {
 		return new ClassDetails(classToInvestigate.getName(),
 				classAnnotationOptionValues, fieldTypeDetailList);
 	}
+
+	public ClassDetails getEntityObjectDetailsWithInheritedFields(Class<?> classToInvestigate) {
+		ClassDetails classDetails = new ClassDetails(classToInvestigate.getName(),
+				classDetailsMap.get(classToInvestigate.getName()).getAnnotationOptionValues(),
+				new ArrayList<FieldTypeDetails>(classDetailsMap.get(classToInvestigate.getName()).getFieldTypeDetails()));
+		Class<?> superClass = classToInvestigate.getSuperclass();
+		while(superClass != Object.class){
+			classDetails.getFieldTypeDetails().addAll(classDetailsMap.get(superClass.getName()).getFieldTypeDetails());
+			superClass = superClass.getSuperclass();
+		}
+		return classDetails;
+	}
+
 }

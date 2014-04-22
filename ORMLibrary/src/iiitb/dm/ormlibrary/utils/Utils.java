@@ -245,4 +245,61 @@ public class Utils
 	                  .getAnnotationOptionValues().get(Constants.COLUMN)
 	                  .get(Constants.NAME);
 	}
+	
+	public static Long getId(Object obj)
+	{
+		String getterMethodName = Utils.getGetterMethodName(Utils.getFieldTypeDetailsOfId(obj.getClass().getName()).getFieldName());
+		Method getterMethod = null;
+		try {
+			getterMethod = obj.getClass().getMethod(getterMethodName);
+		} catch (NoSuchMethodException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		Long id = -1L;
+		try {
+			id = (Long)getterMethod.invoke(obj);
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch(Exception ex){
+			ex.printStackTrace();
+		}
+		return id;
+	}
+
+	public static Object getObject(Object obj, String fieldName) {
+		String getterMethodName = Utils.getGetterMethodName(fieldName);
+		Method getterMethod = null;
+		try {
+			getterMethod = obj.getClass().getMethod(getterMethodName);
+		} catch (NoSuchMethodException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		Object returnedObj = null;
+		try {
+			returnedObj = getterMethod.invoke(obj);
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch(Exception ex){
+			ex.printStackTrace();
+		}
+		return returnedObj;
+	}
 }

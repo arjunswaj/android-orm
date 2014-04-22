@@ -1,5 +1,6 @@
 package iiitb.dm.ormlibrary.utils;
 
+
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorValue;
@@ -31,7 +32,7 @@ public class Constants
 	public static final String MANY_TO_MANY = ManyToMany.class.getSimpleName();
 	public static final String JOIN_TABLE = JoinTable.class.getSimpleName();
 	public static final String ID = Id.class.getSimpleName();
-
+	
 	// Annotation option keys
 	public static final String STRATEGY = "strategy";
 	public static final String NAME = "name";
@@ -40,6 +41,7 @@ public class Constants
 	public static final String INVERSE_JOIN_COLUMNS = "inverseJoinColumns";
 	public static final String VALUE = "value";
 	public static final String REFERENCED_COLUMN_NAME = "referencedColumnName";
+	public static final String CASCADE = "cascade";
 
 	// Misc
 	public static final String ID_VALUE = "_id";

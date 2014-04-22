@@ -2,6 +2,7 @@ package edu.iiitb.ormtestapp.composition.eo;
 
 import java.util.Collection;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -17,11 +18,11 @@ public class Country {
   @Column(name = "NAME")
   private String name;
   
-  @OneToOne
+  @OneToOne(cascade={CascadeType.DELETE})
   @JoinColumn(name = "CAPITAL_ID")
   private Capital capital;
   
-  @OneToMany
+  @OneToMany(cascade={CascadeType.DELETE})
   @JoinColumn(name = "COUNTRY_ID")
   private Collection<State> states;
 
