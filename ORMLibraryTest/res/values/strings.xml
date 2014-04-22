@@ -6,6 +6,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_create">Create</string>
     <string name="title_activity_query">Query</string>
-    <string name="title_activity_update">Update</string>    
+    <string name="title_activity_update">Update</string>
+    <string name="title_activity_delete">Delete</string>    
 
 </resources>

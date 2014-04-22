@@ -34,6 +34,10 @@
             android:name="edu.iiitb.ormtestapp.UpdateActivity"
             android:label="@string/title_activity_update" >
         </activity>
+        <activity
+            android:name="edu.iiitb.ormtestapp.DeleteActivity"
+            android:label="@string/title_activity_delete" >
+        </activity>
 
         <meta-data
             android:name="entity_object_file"

@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
     menuList.add("Create");
     menuList.add("Query");
     menuList.add("Update");
+    menuList.add("Delete");
 
     listView = (ListView) findViewById(R.id.mainList);
     listView.setAdapter(new ArrayAdapter(this,
@@ -50,6 +51,11 @@ public class MainActivity extends Activity {
               UpdateActivity.class);
           startActivity(updateScreen);
           break;
+        case 3:
+            Intent deleteScreen = new Intent(MainActivity.this,
+                DeleteActivity.class);
+            startActivity(deleteScreen);
+            break;
 
         }
       }
