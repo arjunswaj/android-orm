@@ -27,17 +27,13 @@ An **O**bject **R**elational **M**apper for *Android platform*.
         
 2. List all the entity files in an `XML` file, say, `entity_objects.xml`.
 
-	````
-    	<?xml version="1.0" encoding="utf-8"?>
+   		<?xml version="1.0" encoding="utf-8"?>
 	    <EntityObjects>
-    		<EntityObject>edu.iiitb.foo.eo.Student</EntityObject>
-        	<EntityObject>edu.iiitb.bar.eo.Course</EntityObject>
+   			<EntityObject>edu.iiitb.foo.eo.Student</EntityObject>
+       		<EntityObject>edu.iiitb.bar.eo.Course</EntityObject>
 	    </EntityObjects>
-	````
 	
-3. Update the `AndroidManifest.xml` with values of `entity_object_file`, `database_name` and `database_version` in the meta-data.
-
-	````    
+3. Update the `AndroidManifest.xml` with values of `entity_object_file`, `database_name` and `database_version` in the meta-data.	
 		<application>
 			...
 		  <meta-data
@@ -54,7 +50,7 @@ An **O**bject **R**elational **M**apper for *Android platform*.
 		  </meta-data>
 			...
 	    </application>    
-	````
+		
 4. Get the instance of `ORMHelper` and perform the **CRUD** Operations as required.
 
 		final ORMHelper ormHelper = ORMHelper.getInstance(getApplicationContext());
@@ -93,8 +89,10 @@ This section will give example about Create.
 		This section will give example about Many To Many Mapping.	
 
 ###Retrieve
-	* ####Criteria Class APIs
-		This section will give example about Criteria Class APIs.
+This section will give example about Retrieve.
+
+* ####Inheritance
+	This section will give example about Criteria Class APIs.
 
 ###Update
 This section will give example about Update.
