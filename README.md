@@ -34,22 +34,24 @@ An **O**bject **R**elational **M**apper for *Android platform*.
 	    </EntityObjects>
 	
 3. Update the `AndroidManifest.xml` with values of `entity_object_file`, `database_name` and `database_version` in the meta-data.	
+		
 		<application>
 			...
-		  <meta-data
-			  android:name="entity_object_file"
-			  android:value="entity_objects" >
-		  </meta-data>
-		  <meta-data
-			  android:name="database_name"
-			  android:value="testDB.sqlite" >
-		  </meta-data>
-		  <meta-data
-			  android:name="database_version"
-			  android:value="1" >
-		  </meta-data>
+			<meta-data
+				android:name="entity_object_file"
+				android:value="entity_objects" >
+			</meta-data>
+			<meta-data
+				android:name="database_name"
+				android:value="testDB.sqlite" >
+			</meta-data>
+			<meta-data
+				android:name="database_version"
+				android:value="1" >
+			</meta-data>
 			...
-	    </application>    
+		</application>    
+		
 		
 4. Get the instance of `ORMHelper` and perform the **CRUD** Operations as required.
 
