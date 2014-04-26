@@ -6,6 +6,7 @@ import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.ddl.impl.DDLStatementBuilderImpl;
 import iiitb.dm.ormlibrary.ddl.impl.MappingException;
 import iiitb.dm.ormlibrary.query.Criteria;
+import iiitb.dm.ormlibrary.query.criterion.Restrictions;
 import iiitb.dm.ormlibrary.query.impl.CriteriaImpl;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 import iiitb.dm.ormlibrary.utils.Constants;
@@ -82,6 +83,11 @@ public class ORMHelper extends SQLiteOpenHelper {
 				+ " Generated Id: " + genId);
 	}
 
+	public Object find(Class<?> entity, long id) {
+	  return new CriteriaImpl(entity.getName(), getReadableDatabase())
+	    .add(Restrictions.gt("id", id)).list().get(0);
+	}
+	
 	public void update(Object obj) {
 		updateHelper.update(AnnotationsScanner.getInstance()
 				.getEntityObjectDetails(obj.getClass().getName()), obj);

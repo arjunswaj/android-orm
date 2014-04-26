@@ -13,6 +13,7 @@ import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.Criterion;
+import iiitb.dm.ormlibrary.query.criterion.BetweenExpression;
 import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
 import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
 import iiitb.dm.ormlibrary.query.impl.CriteriaImpl.SubCriteria;
@@ -70,8 +71,24 @@ public class QueryBuilder {
 			extractSimpleExpression(criteria, (SimpleExpression) criterion);
 		} else if (criterion instanceof LogicalExpression) {
 			extractLogicalExpression(criteria, (LogicalExpression) criterion);
+		} else if (criterion instanceof BetweenExpression) {
+		  extractBetweenExpression(criteria, (BetweenExpression) criterion);
 		}
 	}
+	
+	private void extractBetweenExpression(Criteria criteria, BetweenExpression be) {
+    String className = null;
+    if(criteria instanceof SubCriteria)
+      className = ((SubCriteria)criteria).getClassName();
+    else className = entityOrClassName;
+    if (null == selection) {
+      selection = "(" + getTableNameForCriterion(className, be.getPropertyName()) + "." + getColumnNameForCriterion(className, be.getPropertyName()) + " BETWEEN " + " ? AND ?) ";
+    } else {
+      selection += "AND (" + getTableNameForCriterion(className, be.getPropertyName()) + "." +  getColumnNameForCriterion(className, be.getPropertyName()) + " BETWEEN " + " ? AND ?) ";
+    }
+    selectionArgsList.add(String.valueOf(be.getLo()));
+    selectionArgsList.add(String.valueOf(be.getHi()));
+  }
 
 	private void extractSimpleExpression(Criteria criteria, SimpleExpression se) {
 		String className = null;

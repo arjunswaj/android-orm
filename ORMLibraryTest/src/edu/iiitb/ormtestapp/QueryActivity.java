@@ -62,8 +62,7 @@ public class QueryActivity extends Activity {
   private void testInheritanceJoinedSubClassQueryByList(ORMHelper ormHelper) {
     Criteria criteria = ormHelper.createCriteria(Intern.class);
     List<Intern> internList = criteria.add(
-        Restrictions.and(Restrictions.ge("stipend", 202),
-            Restrictions.le("stipend", 203))).list();
+        Restrictions.between("stipend", 202, 203)).list();
     for (Intern intern : internList) {
       Log.d(TAG,
           "id: " + intern.getId() + ", stipend: " + intern.getStipend()
