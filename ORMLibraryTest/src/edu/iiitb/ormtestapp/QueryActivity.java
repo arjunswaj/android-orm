@@ -197,13 +197,13 @@ public class QueryActivity extends Activity {
   
   private void testQuerySubCriteria(ORMHelper ormHelper)
   {
-	  Log.d("testQuerySubCritera", "Hello.... HELLLLLLOOOOO");
+	  Log.v("testQuerySubCritera", "Hello.... HELLLLLLOOOOO");
 	  Criteria criteria = ormHelper.createCriteria(Country.class);
 		List<Country> countries = criteria
 				.add(Restrictions.like("name", "India 1"))
 				.createCriteria("capital")
 				.add(Restrictions.like("name", "New 1 Delhi")).list();
-		Log.d("MainActivity", "Got " + countries.size() + " objects of country");
+		Log.d("QueryActivity", "Got " + countries.size() + " objects of country");
 		for (Country country : countries)
 		{
 			Log.d("QUERY BY LIST", "id: " + country.getId() + ", name: "

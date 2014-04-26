@@ -2,8 +2,6 @@ package iiitb.dm.ormlibrary.query.criterion;
 
 import iiitb.dm.ormlibrary.query.Criterion;
 
-import java.util.Collection;
-
 public class Restrictions {
   /**
    * Don't initialize Restrictions. Use the public static APIs

@@ -1,14 +1,5 @@
 package iiitb.dm.ormlibrary.query.impl;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.persistence.Entity;
-import javax.persistence.InheritanceType;
-import android.annotation.SuppressLint;
-import android.util.Log;
 import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.query.Criteria;
@@ -20,6 +11,16 @@ import iiitb.dm.ormlibrary.query.impl.CriteriaImpl.SubCriteria;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
 import iiitb.dm.ormlibrary.utils.Constants;
 import iiitb.dm.ormlibrary.utils.Utils;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.InheritanceType;
+
+import android.annotation.SuppressLint;
 
 public class QueryBuilder {
 
