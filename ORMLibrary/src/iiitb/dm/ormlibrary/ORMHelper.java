@@ -85,7 +85,7 @@ public class ORMHelper extends SQLiteOpenHelper {
 
 	public Object find(Class<?> entity, long id) {
 	  return new CriteriaImpl(entity.getName(), getReadableDatabase())
-	    .add(Restrictions.gt("id", id)).list().get(0);
+	    .add(Restrictions.eq("id", id)).list().get(0);
 	}
 	
 	public void update(Object obj) {
