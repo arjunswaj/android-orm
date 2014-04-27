@@ -5,6 +5,7 @@ import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.Criterion;
 import iiitb.dm.ormlibrary.query.criterion.BetweenExpression;
+import iiitb.dm.ormlibrary.query.criterion.InExpression;
 import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
 import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
 import iiitb.dm.ormlibrary.query.impl.CriteriaImpl.SubCriteria;
@@ -74,8 +75,37 @@ public class QueryBuilder {
 			extractLogicalExpression(criteria, (LogicalExpression) criterion);
 		} else if (criterion instanceof BetweenExpression) {
 		  extractBetweenExpression(criteria, (BetweenExpression) criterion);
-		}
+		} else if (criterion instanceof InExpression) {
+      extractInExpression(criteria, (InExpression) criterion);
+    }
 	}
+	
+  private void extractInExpression(Criteria criteria, InExpression ie) {
+    String className = null;
+    if (criteria instanceof SubCriteria)
+      className = ((SubCriteria) criteria).getClassName();
+    else
+      className = entityOrClassName;
+    if (null == selection) {
+      selection = "";
+    } else {
+      selection += "AND ";
+    }
+    StringBuilder sb = new StringBuilder();
+    sb.append("(")
+        .append(getTableNameForCriterion(className, ie.getPropertyName()))
+        .append(".")
+        .append(getColumnNameForCriterion(className, ie.getPropertyName()))
+        .append(" IN (");
+    String comma = "";
+    for (Object value : ie.getValues()) {
+      sb.append(comma).append(" ?");
+      selectionArgsList.add(String.valueOf(value));
+      comma = ", ";
+    }
+    sb.append(")) ");
+    selection += sb.toString();
+  }
 	
 	private void extractBetweenExpression(Criteria criteria, BetweenExpression be) {
     String className = null;

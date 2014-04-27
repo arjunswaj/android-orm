@@ -1,5 +1,7 @@
 package iiitb.dm.ormlibrary.query.criterion;
 
+import java.util.Collection;
+
 import iiitb.dm.ormlibrary.query.Criterion;
 
 public class Restrictions {
@@ -49,5 +51,13 @@ public class Restrictions {
 
   public static LogicalExpression or(Criterion lhs, Criterion rhs) {
     return new LogicalExpression(lhs, rhs, "OR");
+  }
+  
+  public static InExpression in(String propertyName, Object[] values) {
+    return new InExpression( propertyName, values );
+  }
+  
+  public static InExpression in(String propertyName, Collection<?> values) {
+    return new InExpression( propertyName, values.toArray() );
   }
 }
