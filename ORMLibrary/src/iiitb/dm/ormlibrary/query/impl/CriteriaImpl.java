@@ -1,6 +1,7 @@
 package iiitb.dm.ormlibrary.query.impl;
 
 import iiitb.dm.ormlibrary.ddl.ClassDetails;
+
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.Criterion;
 import iiitb.dm.ormlibrary.query.criterion.Order;
@@ -36,10 +37,11 @@ public class CriteriaImpl implements Criteria {
 	private String having;
 	private String orderBy;
 	private String limit;
-	private ProjectionList projectionList;
+
 
 	// Criterion corresponding to each subcriteria
 	private Map<Criteria, List<Criterion>> criteriaCriterionMap = new HashMap<Criteria, List<Criterion>>();
+	private Map<Criteria, ProjectionList> criteriaProjectionListMap = new HashMap<Criteria, ProjectionList>();
 
 	/**
 	 * sqliteDatabase
@@ -82,11 +84,22 @@ public class CriteriaImpl implements Criteria {
 	}
 
 	@Override
+	public Criteria setProjection(ProjectionList projectionList) {
+		criteriaProjectionListMap.put(this, projectionList);
+		return this;
+	}
+
+	private void setProjection(Criteria criteria, ProjectionList projectionList){
+		criteriaProjectionListMap.put(criteria, projectionList);
+	}
+
+
+	@Override
 	public Criteria addOrder(Order order) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	@Override
 	public List<?> list()
 	{
@@ -143,7 +156,7 @@ public class CriteriaImpl implements Criteria {
 		try {			
 			criteriaClassName = entityOrClassName;
 			StringBuilder sb = new StringBuilder();
-			QueryBuilder queryBuilder = new QueryBuilder(entityOrClassName, criteriaCriterionMap);
+			QueryBuilder queryBuilder = new QueryBuilder(entityOrClassName, criteriaCriterionMap, criteriaProjectionListMap);
 			sb.append(queryBuilder.getQuery().get(0).getKey());
 			List<ColumnField> columnFieldList = queryBuilder.getQueryDetails().getColumnFieldList();
 
@@ -153,7 +166,7 @@ public class CriteriaImpl implements Criteria {
 			 *  class(entityClassName)
 			 */ 
 			ClassDetails entityClassDetails = AnnotationsScanner.getInstance()// TODO: AnnotationScannerImpl()
-			.getEntityObjectDetails(entityOrClassName);
+					.getEntityObjectDetails(entityOrClassName);
 			if (entityClassDetails.getAnnotationOptionValues().get(
 					Constants.INHERITANCE) != null
 					&& entityClassDetails.getAnnotationOptionValues()
@@ -178,7 +191,7 @@ public class CriteriaImpl implements Criteria {
 
 			// Finally, execute query.
 			cursor = sqliteDatabase.rawQuery(sql, queryBuilder.getQuery().get(0).getValue());
-			
+
 			result = new ObjectFiller(columnFieldList, entityOrClassName, cursor).getObjects();
 		}
 		catch(Exception ex)
@@ -188,54 +201,16 @@ public class CriteriaImpl implements Criteria {
 		return result;
 	}
 
-	@Override
-	public Criteria setProjection(ProjectionList projectionList) {
-		this.projectionList = projectionList;
-		return this;
-	}
 
 	@Override
 	public Cursor cursor() {
 		Cursor cursor = null;
-		/*try {
-			Class<?> eoClass = Class.forName(criteriaClassName);
-			Entity entity = eoClass.getAnnotation(Entity.class);
-			table = entity.name();
-			if (!selectionArgsList.isEmpty()) {
-				selectionArgs = new String[selectionArgsList.size()];
-				int index = 0;
-				for (String val : selectionArgsList) {
-					selectionArgs[index] = val;
-					index += 1;
-				}
-			}
-			StringBuilder sb = new StringBuilder();
-			sb.append("SELECT ");
-			if (null == this.projectionList) {
-				sb.append("* ");
-			} else {
-				String comma = "";
-				for (Projection projection : projectionList.getElements()) {
-					if (projection instanceof PropertyProjection) {
-						PropertyProjection propertyProjection = (PropertyProjection) projection;
-						sb.append(comma).append(propertyProjection.getPropertyName());
-					}
-					comma = ", ";
-				}
-				sb.append(" ");
-			}
-			sb.append("FROM ");
-			sb.append(table).append(" ");
-			sb.append("WHERE ").append(selection);
-			sb.append(";");
-			// cursor = sqliteDatabase.query(distinct, table, columns, selection,
-			// selectionArgs, groupBy, having, orderBy, limit);x
-			String sql = sb.toString();
-			Log.d("Generated SQL", sql);
-			cursor = sqliteDatabase.rawQuery(sql, selectionArgs);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}*/
+
+		QueryBuilder queryBuilder = new QueryBuilder(criteriaClassName, criteriaCriterionMap, criteriaProjectionListMap);
+		String sql = queryBuilder.getQuery().get(0).getKey();
+		Log.d("Generated SQL", sql);
+		cursor = sqliteDatabase.rawQuery(sql, queryBuilder.getQuery().get(0).getValue());
+
 		return cursor;
 	}
 
@@ -308,7 +283,8 @@ public class CriteriaImpl implements Criteria {
 
 		@Override
 		public Criteria setProjection(ProjectionList projectionList) {
-			return CriteriaImpl.this.setProjection(projectionList);
+			CriteriaImpl.this.setProjection(this, projectionList);
+			return this;
 		}
 
 		@Override

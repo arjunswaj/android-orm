@@ -41,25 +41,28 @@ public class ObjectFiller {
 		// Parse the result and set the fields in the created objects.
 		if (cursor.moveToFirst()) {
 			Object eo = null;
-			try{
-				do {
-					// Check if the object with the same id is not already there in result collection
-					if((eo = findObjectInCollection(objectList, entityOrClassName, 
-							cursor.getLong(cursor.getColumnIndex(findColumn(Utils.getClassOfId(entityOrClassName),
-									Utils.getFieldTypeDetailsOfId(entityOrClassName).getFieldName()))),
-									Utils.getFieldTypeDetailsOfId(entityOrClassName).getFieldName())) == null)
-					{
+			do {
+				// Check if the object with the same id is not already there in result collection
+				if((eo = findObjectInCollection(objectList, entityOrClassName, 
+						cursor.getLong(cursor.getColumnIndex(findColumn(Utils.getClassOfId(entityOrClassName),
+								Utils.getFieldTypeDetailsOfId(entityOrClassName).getFieldName()))),
+								Utils.getFieldTypeDetailsOfId(entityOrClassName).getFieldName())) == null)
+				{
+					try {
 						eo = Utils.getClassObject(entityOrClassName).newInstance();
-						Log.v("List", " Created a new object of " + entityOrClassName);
-						objectList.add(eo);
+					} catch (InstantiationException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-					fillObject(eo, eoClass, cursor);
-				} while (cursor.moveToNext());
-			}
-			catch(Exception ex)
-			{
-				ex.printStackTrace();
-			}
+					Log.v("List", " Created a new object of " + entityOrClassName);
+					objectList.add(eo);
+				}
+				fillObject(eo, eoClass, cursor);
+			} while (cursor.moveToNext());
+
 			cursor.close();
 		}
 	}
@@ -84,9 +87,9 @@ public class ObjectFiller {
 			ClassDetails classDetails = null;
 			classDetails = annotationsScanner.getEntityObjectDetails(objectType.getName());
 
-			Log.v("fillObject", "Filling Object of " + objectType.getName() + " with id " + cursor.getString(cursor.getColumnIndex(findColumn(Utils.getClassOfId(classDetails.getClassName()),
+			/*Log.v("fillObject", "Filling Object of " + objectType.getName() + " with id " + cursor.getString(cursor.getColumnIndex(findColumn(Utils.getClassOfId(classDetails.getClassName()),
 					Utils.getFieldTypeDetailsOfId(classDetails.getClassName()).getFieldName()))));
-			
+			 */
 			for(FieldTypeDetails fieldTypeDetails: classDetails.getFieldTypeDetails())
 			{
 				String fieldType = fieldTypeDetails.getFieldType().getSimpleName();
@@ -243,8 +246,8 @@ public class ObjectFiller {
 
 		}
 	}
-	
-	
+
+
 	public void fillId(Object object, Class<?> objectType)
 	{
 		String setterMethodName = Utils.getSetterMethodName(Utils.getFieldTypeDetailsOfId(objectType.getName()).getFieldName());
@@ -274,11 +277,11 @@ public class ObjectFiller {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
+
+
 	}
-	
-	
+
+
 	/*
 	 * Find column name in columnFieldList, from class name and variable name and return it.
 	 * Used while filling objects.
@@ -351,7 +354,7 @@ public class ObjectFiller {
 
 		Class<?> type = null;
 		long id = 0;
-		
+
 		// Determine the type and id of object to be found.
 		try{
 			if(collection == true){

@@ -4,9 +4,12 @@ import iiitb.dm.ormlibrary.ddl.ClassDetails;
 import iiitb.dm.ormlibrary.ddl.FieldTypeDetails;
 import iiitb.dm.ormlibrary.query.Criteria;
 import iiitb.dm.ormlibrary.query.Criterion;
+import iiitb.dm.ormlibrary.query.Projection;
 import iiitb.dm.ormlibrary.query.criterion.BetweenExpression;
 import iiitb.dm.ormlibrary.query.criterion.InExpression;
 import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
+import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
+import iiitb.dm.ormlibrary.query.criterion.PropertyProjection;
 import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
 import iiitb.dm.ormlibrary.query.impl.CriteriaImpl.SubCriteria;
 import iiitb.dm.ormlibrary.scanner.AnnotationsScanner;
@@ -19,9 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.Entity;
 import javax.persistence.InheritanceType;
 
 import android.annotation.SuppressLint;
+
+import java.lang.reflect.Modifier;
 
 public class QueryBuilder {
 
@@ -34,11 +40,16 @@ public class QueryBuilder {
 	private String[] selectionArgs;
 	private List<String> selectionArgsList = new ArrayList<String>();
 	private Map<String, Integer> tableAliases = new HashMap<String, Integer>();
+	private String projectionString = null;
+	Map<Criteria, ProjectionList> criteriaProjectionListMap;
 
-	public QueryBuilder(String entityOrClassName, Map<Criteria, List<Criterion>> criteriaCriterionList)
+	public QueryBuilder(String entityOrClassName, Map<Criteria, List<Criterion>> criteriaCriterionList, Map<Criteria, ProjectionList> criteriaProjectionListMap)
 	{
 		this.entityOrClassName = entityOrClassName;
 		this.criteriaCriterionList = criteriaCriterionList;
+		this.criteriaProjectionListMap = criteriaProjectionListMap;
+		this.projectionString = getProjectionString();
+
 		findTablesToBeJoined();
 
 		// Add all the criterion
@@ -57,6 +68,7 @@ public class QueryBuilder {
 		}
 
 
+
 	}
 
 	public QueryDetails getQueryDetails() {
@@ -67,6 +79,37 @@ public class QueryBuilder {
 		this.queryDetails = queryDetails;
 	}
 
+
+	private String getProjectionString(){
+		if(criteriaProjectionListMap.size() == 0)
+			return null;
+		StringBuilder sb = new StringBuilder();
+		sb.append(" ");
+		for (Map.Entry<Criteria, ProjectionList> criteriaProjectionList : criteriaProjectionListMap.entrySet()){
+			String className = null;
+			if (criteriaProjectionList.getKey() instanceof SubCriteria)
+				className = ((SubCriteria) criteriaProjectionList.getKey()).getClassName();
+			else
+				className = entityOrClassName;
+			for (Projection projection : criteriaProjectionList.getValue().getElements()) {
+				if (projection instanceof PropertyProjection) {
+					PropertyProjection propertyProjection = (PropertyProjection) projection;
+					String tableName = getTableNameForCriterion(className, propertyProjection.getPropertyName());
+					String columnName = getColumnNameForCriterion(className, propertyProjection.getPropertyName());
+					sb.append(tableName)
+					.append(".")
+					.append(columnName)
+					.append(" as ")
+					.append(getColumnAlias(tableName, columnName))
+					.append(" , ");
+
+				}
+			}
+		}
+		sb.replace(sb.length() - 2, sb.length() - 1, "");
+		return sb.toString();
+	}
+
 	private void addCriteria(Criteria criteria, Criterion criterion) {
 
 		if (criterion instanceof SimpleExpression) {
@@ -74,79 +117,81 @@ public class QueryBuilder {
 		} else if (criterion instanceof LogicalExpression) {
 			extractLogicalExpression(criteria, (LogicalExpression) criterion);
 		} else if (criterion instanceof BetweenExpression) {
-		  extractBetweenExpression(criteria, (BetweenExpression) criterion);
+			extractBetweenExpression(criteria, (BetweenExpression) criterion);
 		} else if (criterion instanceof InExpression) {
-      extractInExpression(criteria, (InExpression) criterion);
-    }
+			extractInExpression(criteria, (InExpression) criterion);
+		}
 	}
-	
-  private void extractInExpression(Criteria criteria, InExpression ie) {
-    String className = null;
-    if (criteria instanceof SubCriteria)
-      className = ((SubCriteria) criteria).getClassName();
-    else
-      className = entityOrClassName;
-    if (null == selection) {
-      selection = "";
-    } else {
-      selection += "AND ";
-    }
-    StringBuilder sb = new StringBuilder();
-    sb.append("(")
-        .append(getTableNameForCriterion(className, ie.getPropertyName()))
-        .append(".")
-        .append(getColumnNameForCriterion(className, ie.getPropertyName()))
-        .append(" IN (");
-    String comma = "";
-    for (Object value : ie.getValues()) {
-      sb.append(comma).append(" ?");
-      selectionArgsList.add(String.valueOf(value));
-      comma = ", ";
-    }
-    sb.append(")) ");
-    selection += sb.toString();
-  }
-	
-  private void extractBetweenExpression(Criteria criteria, BetweenExpression be) {
-    String className = null;
-    if (criteria instanceof SubCriteria)
-      className = ((SubCriteria) criteria).getClassName();
-    else
-      className = entityOrClassName;
-    if (null == selection) {
-      selection = "("
-          + getTableNameForCriterion(className, be.getPropertyName()) + "."
-          + getColumnNameForCriterion(className, be.getPropertyName())
-          + " BETWEEN " + " ? AND ?) ";
-    } else {
-      selection += "AND ("
-          + getTableNameForCriterion(className, be.getPropertyName()) + "."
-          + getColumnNameForCriterion(className, be.getPropertyName())
-          + " BETWEEN " + " ? AND ?) ";
-    }
-    selectionArgsList.add(String.valueOf(be.getLo()));
-    selectionArgsList.add(String.valueOf(be.getHi()));
-  }
 
-  private void extractSimpleExpression(Criteria criteria, SimpleExpression se) {
-    String className = null;
-    if (criteria instanceof SubCriteria)
-      className = ((SubCriteria) criteria).getClassName();
-    else
-      className = entityOrClassName;
-    if (null == selection) {
-      selection = "("
-          + getTableNameForCriterion(className, se.getPropertyName()) + "."
-          + getColumnNameForCriterion(className, se.getPropertyName()) + " "
-          + se.getOp() + " ?) ";
-    } else {
-      selection += "AND ("
-          + getTableNameForCriterion(className, se.getPropertyName()) + "."
-          + getColumnNameForCriterion(className, se.getPropertyName()) + " "
-          + se.getOp() + " ?) ";
-    }
-    selectionArgsList.add(se.getValue().toString());
-  }
+	private void extractInExpression(Criteria criteria, InExpression ie) {
+		String className = null;
+		if (criteria instanceof SubCriteria)
+			className = ((SubCriteria) criteria).getClassName();
+		else
+			className = entityOrClassName;
+		if (null == selection) {
+			selection = "";
+		} else {
+			selection += "AND ";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("(")
+		.append(getTableNameForCriterion(className, ie.getPropertyName()))
+		.append(".")
+		.append(getColumnNameForCriterion(className, ie.getPropertyName()))
+		.append(" IN (");
+		String comma = "";
+		for (Object value : ie.getValues()) {
+			sb.append(comma).append(" ?");
+			selectionArgsList.add(String.valueOf(value));
+			comma = ", ";
+		}
+		sb.append(")) ");
+		selection += sb.toString();
+	}
+
+
+
+	private void extractBetweenExpression(Criteria criteria, BetweenExpression be) {
+		String className = null;
+		if (criteria instanceof SubCriteria)
+			className = ((SubCriteria) criteria).getClassName();
+		else
+			className = entityOrClassName;
+		if (null == selection) {
+			selection = "("
+					+ getTableNameForCriterion(className, be.getPropertyName()) + "."
+					+ getColumnNameForCriterion(className, be.getPropertyName())
+					+ " BETWEEN " + " ? AND ?) ";
+		} else {
+			selection += "AND ("
+					+ getTableNameForCriterion(className, be.getPropertyName()) + "."
+					+ getColumnNameForCriterion(className, be.getPropertyName())
+					+ " BETWEEN " + " ? AND ?) ";
+		}
+		selectionArgsList.add(String.valueOf(be.getLo()));
+		selectionArgsList.add(String.valueOf(be.getHi()));
+	}
+
+	private void extractSimpleExpression(Criteria criteria, SimpleExpression se) {
+		String className = null;
+		if (criteria instanceof SubCriteria)
+			className = ((SubCriteria) criteria).getClassName();
+		else
+			className = entityOrClassName;
+		if (null == selection) {
+			selection = "("
+					+ getTableNameForCriterion(className, se.getPropertyName()) + "."
+					+ getColumnNameForCriterion(className, se.getPropertyName()) + " "
+					+ se.getOp() + " ?) ";
+		} else {
+			selection += "AND ("
+					+ getTableNameForCriterion(className, se.getPropertyName()) + "."
+					+ getColumnNameForCriterion(className, se.getPropertyName()) + " "
+					+ se.getOp() + " ?) ";
+		}
+		selectionArgsList.add(se.getValue().toString());
+	}
 
 	private void addCriteriaFromLogicalExpression(Criteria criteria, Criterion criterion) {
 		if (criterion instanceof SimpleExpression) {
@@ -156,31 +201,31 @@ public class QueryBuilder {
 		}
 	}
 
-  private void extractSimpleExpressionFromLogicalExpression(Criteria criteria,
-      SimpleExpression se) {
-    String className = null;
-    if (criteria instanceof SubCriteria)
-      className = ((SubCriteria) criteria).getClassName();
-    else
-      className = entityOrClassName;
-    selection += "("
-        + getTableNameForCriterion(className, se.getPropertyName()) + "."
-        + getColumnNameForCriterion(className, se.getPropertyName()) + " "
-        + se.getOp() + " ?) ";
-    selectionArgsList.add(se.getValue().toString());
-  }
+	private void extractSimpleExpressionFromLogicalExpression(Criteria criteria,
+			SimpleExpression se) {
+		String className = null;
+		if (criteria instanceof SubCriteria)
+			className = ((SubCriteria) criteria).getClassName();
+		else
+			className = entityOrClassName;
+		selection += "("
+				+ getTableNameForCriterion(className, se.getPropertyName()) + "."
+				+ getColumnNameForCriterion(className, se.getPropertyName()) + " "
+				+ se.getOp() + " ?) ";
+		selectionArgsList.add(se.getValue().toString());
+	}
 
-  private void extractLogicalExpression(Criteria criteria, LogicalExpression le) {
-    if (null == selection) {
-      selection = "(";
-    } else {
-      selection += "AND (";
-    }
-    addCriteriaFromLogicalExpression(criteria, le.getLhs());
-    selection += le.getOp() + " ";
-    addCriteriaFromLogicalExpression(criteria, le.getRhs());
-    selection += ") ";
-  }
+	private void extractLogicalExpression(Criteria criteria, LogicalExpression le) {
+		if (null == selection) {
+			selection = "(";
+		} else {
+			selection += "AND (";
+		}
+		addCriteriaFromLogicalExpression(criteria, le.getLhs());
+		selection += le.getOp() + " ";
+		addCriteriaFromLogicalExpression(criteria, le.getRhs());
+		selection += ") ";
+	}
 
 
 	@SuppressLint("NewApi")
@@ -195,16 +240,21 @@ public class QueryBuilder {
 		sb.append("SELECT ");
 		String comma = "";
 
-		// Iterate over tablesToBeJoined and create aliases of columns.
-		for (Map.Entry<String, List<String>> tableColumns : queryDetails.getTablesToBeJoined().entrySet())
-		{
-			String tableName = tableColumns.getKey();
-			for(String column: tableColumns.getValue())
-			{
+		if(projectionString != null)
+			sb.append(projectionString);
 
-				sb.append(comma).append(tableName.toLowerCase()).append(".").append(column)
-				.append(" AS ").append(getColumnAlias(tableName, column));
-				comma = ",";
+		else{
+			// Iterate over tablesToBeJoined and create aliases of columns.
+			for (Map.Entry<String, List<String>> tableColumns : queryDetails.getTablesToBeJoined().entrySet())
+			{
+				String tableName = tableColumns.getKey();
+				for(String column: tableColumns.getValue())
+				{
+
+					sb.append(comma).append(tableName.toLowerCase()).append(".").append(column)
+					.append(" AS ").append(getColumnAlias(tableName, column));
+					comma = ",";
+				}
 			}
 		}
 
@@ -246,7 +296,7 @@ public class QueryBuilder {
 			classDetails = queue.remove(0);
 
 			insertAssociatedClassesIntoQueue(classDetails, 
-			    (String)classDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME));
+					(String)classDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME));
 
 			/* Go up the inheritance tree of this class.
 			 */
@@ -299,7 +349,7 @@ public class QueryBuilder {
 								.get(Constants.NAME),
 								"_id");
 						insertAssociatedClassesIntoQueue(superClassDetails, 
-						    (String)superClassDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME));
+								(String)superClassDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME));
 						classDetails = superClassDetails;
 
 					}
@@ -327,7 +377,7 @@ public class QueryBuilder {
 								.get(Constants.STRATEGY).equals(InheritanceType.JOINED)){
 
 							insertAssociatedClassesIntoQueue(superClassDetails,
-							    (String) tempClassDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME));
+									(String) tempClassDetails.getAnnotationOptionValues().get(Constants.ENTITY).get(Constants.NAME));
 							classDetails = superClassDetails;
 
 							try {
