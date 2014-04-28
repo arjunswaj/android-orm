@@ -148,7 +148,7 @@ public class QueryDetails {
 			this.otherJoinColumn = otherJoinColumn;
 		}
 		public String getJoinString(){
-			return " JOIN " + tableName + " ON " + tableName + "." + joinColumn + "=" + otherTableName + "." + otherJoinColumn;
+			return " LEFT OUTER JOIN " + tableName + " ON " + tableName + "." + joinColumn + "=" + otherTableName + "." + otherJoinColumn;
 		}
 	}
 
