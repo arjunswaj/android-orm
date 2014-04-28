@@ -153,17 +153,19 @@ public class ObjectFiller {
 
 
 							// Add inner type object to collection object.
-							Method addToCollectionMethod = fieldTypeDetails.getFieldType().getMethod("add", Object.class);
-							addToCollectionMethod.invoke(collectionObj, obj);
+							Method addToCollectionMethod = fieldTypeDetails.getFieldType().getMethod("add", Object.class);							
 
 							backEdgeInfo.add(obj);
 							// Fill inner type object
 							Log.v("fillObject", "Created a collection of " + obj.getClass().getName());
 							Object tempObj;
-							if((tempObj = checkBackEdge(classDetails, fieldTypeDetails, cursor, true)) == null)
+							if((tempObj = checkBackEdge(classDetails, fieldTypeDetails, cursor, true)) == null) {
 								fillObject(obj,Class.forName(Utils.getCollectionType(classDetails.getClassName(), fieldTypeDetails.getFieldName())), cursor);
-							else
+								addToCollectionMethod.invoke(collectionObj, obj);
+							}
+							else {
 								obj = tempObj;
+							}
 							backEdgeInfo.remove(obj);
 
 						}

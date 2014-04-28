@@ -62,8 +62,7 @@ public class QueryActivity extends Activity {
   private void testInheritanceJoinedSubClassQueryByList(ORMHelper ormHelper) {
     Criteria criteria = ormHelper.createCriteria(Intern.class);
     List<Intern> internList = criteria.add(
-        Restrictions.and(Restrictions.ge("stipend", 202),
-            Restrictions.le("stipend", 203))).list();
+        Restrictions.between("stipend", 202, 203)).list();
     for (Intern intern : internList) {
       Log.d(TAG,
           "id: " + intern.getId() + ", stipend: " + intern.getStipend()
@@ -72,6 +71,24 @@ public class QueryActivity extends Activity {
     }
   }
 
+  private void testInQueryByList(ORMHelper ormHelper) {
+    Criteria criteria = ormHelper.createCriteria(Intern.class);
+    Integer[] stipendVal = {201, 202, 203, 204, 205, 206};
+    List<Integer> age = new ArrayList<Integer>(100);
+    for (int ctr = 1; ctr <= 100; ctr += 1) {
+      age.add(ctr);
+    }
+    List<Intern> internList = criteria.add(
+        Restrictions.in("stipend", stipendVal))
+        .add(Restrictions.in("age", age)).list();
+    for (Intern intern : internList) {
+      Log.d(TAG,
+          "id: " + intern.getId() + ", stipend: " + intern.getStipend()
+              + ", hourly rate: " + intern.getHourlyRate() + ", name: "
+              + intern.getName() + ", age: " + intern.getAge());
+    }
+  }
+  
   private void testInheritanceTablePerClassSubClassQueryByList(
       ORMHelper ormHelper) {
     Criteria criteria = ormHelper.createCriteria(Ford.class);
@@ -198,13 +215,13 @@ public class QueryActivity extends Activity {
   
   private void testQuerySubCriteria(ORMHelper ormHelper)
   {
-	  Log.d("testQuerySubCritera", "Hello.... HELLLLLLOOOOO");
+	  Log.v("testQuerySubCritera", "Hello.... HELLLLLLOOOOO");
 	  Criteria criteria = ormHelper.createCriteria(Country.class);
 		List<Country> countries = criteria
 				.add(Restrictions.like("name", "India 1"))
 				.createCriteria("capital")
 				.add(Restrictions.like("name", "New 1 Delhi")).list();
-		Log.d("MainActivity", "Got " + countries.size() + " objects of country");
+		Log.d("QueryActivity", "Got " + countries.size() + " objects of country");
 		for (Country country : countries)
 		{
 			Log.d("QUERY BY LIST", "id: " + country.getId() + ", name: "
@@ -241,6 +258,7 @@ public class QueryActivity extends Activity {
     menuList.add("Inheritance Table Per Class - Superclass");
     // menuList.add("Inheritance Joined - Many To Many");
     menuList.add("Query on Association - Sub Criteria");
+    menuList.add("In Query on Inheritance");
     
     listView = (ListView) findViewById(R.id.queryList);
     listView.setAdapter(new ArrayAdapter(this,
@@ -271,6 +289,9 @@ public class QueryActivity extends Activity {
           break;
         case 6:
         	testQuerySubCriteria(ormHelper);
+          break;
+        case 7:
+          testInQueryByList(ormHelper);
           break;
         }
       }
