@@ -118,9 +118,8 @@ class PersistenceHelper {
 		    }
 		    Method setterMethod;
 		    try {
-		    	// TODO: Get the setter method instead of assuming that it will be "setId"
 		    	// TODO: Get the type of the formal parameter instead of assuming it to be long
-		      setterMethod = obj.getClass().getMethod("setId", long.class);
+		      setterMethod = obj.getClass().getMethod(Utils.getSetterMethodName(Utils.getFieldTypeDetailsOfId(classDetails.getClassName()).getFieldName()), long.class);
 		      setterMethod.invoke(obj, id);
 		    } catch (NoSuchMethodException e) {
 		      e.printStackTrace();
@@ -328,6 +327,8 @@ class PersistenceHelper {
 	            Constants.ONE_TO_MANY)) {
 	          Collection<Object> composedObjectCollection = (Collection<Object>) getterMethod
 	              .invoke(obj);
+	          if(composedObjectCollection == null)
+	        	  return;
 	          String joinColumnName = (String) fieldTypeDetail
 	              .getAnnotationOptionValues().get(Constants.JOIN_COLUMN)
 	              .get(Constants.NAME);
@@ -432,6 +433,8 @@ class PersistenceHelper {
 	      throws IllegalAccessException, IllegalArgumentException,
 	      InvocationTargetException {
 	    Object composedObject = getterMethod.invoke(obj);
+	    if(composedObject == null)
+	    	return;
 	    String joinColumnName = (String) fieldTypeDetail
 	        .getAnnotationOptionValues().get(Constants.JOIN_COLUMN)
 	        .get(Constants.NAME);
