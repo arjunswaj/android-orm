@@ -3,7 +3,7 @@
 An **O**bject **R**elational **M**apper for *Android platform*.
 
 ### ORMify your app in 4 simple steps.
-1. Annotate your Entity `.class` files. [^1]
+1. Annotate your Entity `.java` files. [^1]
 
         @Entity(name = "STUDENTS")
         public class Student {
@@ -328,7 +328,7 @@ In this section Retrieve APIs are discussed.This section will give example about
 				Restrictions.like("college", "IIIT-B")
 			)
 		)
-		.add(Restrictions.eq("address", "Address 5"));
+		.add(Restrictions.eq("address", "Electronic City"));
 
 ###Update
 In this section Update of the Entity is discussed.
