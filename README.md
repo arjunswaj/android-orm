@@ -155,6 +155,7 @@ This section will give example about Create.
 				
 				Employee partTimeEmployee = new PartTimeEmployee(23, "Harry Potter", 48);
         		ormHelper.persist(partTimeEmployee);	  
+				
 * ####Composition
 	* ####One To One
 	In this section One To One Composition is discussed.
@@ -194,8 +195,9 @@ This section will give example about Create.
 				
 				Capital capital = new Capital("New Delhi");
 				Country country = new Country("India", capital);
-        		ormHelper.persist(country);	       					      
-	* ####One To Many
+        		ormHelper.persist(country);	      
+				
+	* ####One To Many	
 	In this section One To Many Composition is discussed. [^3] 
 
 	1. Provide the OneToMany mapping in the Entity Files.
@@ -244,6 +246,7 @@ This section will give example about Create.
 				Country country = new Country("India", states);
         		ormHelper.persist(country);	     
         		
+				
 	* ####Many To Many
 	In this section Many To Many Composition is discussed.
 	
