@@ -321,6 +321,7 @@ In this section Retrieve APIs are discussed.This section will give example about
 	All the tuples can be queried by below API.
 		
 		Criteria criteria = ormHelper.createCriteria(Student.class);
+		List<Student> studentList = criteria.list();		
 		
 
 * ####**Find by Id**
@@ -341,6 +342,8 @@ In this section Retrieve APIs are discussed.This section will give example about
 			)
 		)
 		.add(Restrictions.eq("address", "Electronic City"));
+		
+		List<Student> studentList = criteria.list();
 
 ###Update
 In this section Update of the Entity is discussed.
