@@ -77,229 +77,229 @@ This section will give example about Create.
 	* ####**Table Per Class**
 	In this section Inheritance by Table Per Class strategy is discussed. [^2]
 	
-	1. Provide the Inheritance Strategy in the SuperClass Files.
+		1. Provide the Inheritance Strategy in the SuperClass Files
+		
+					@Entity(name = "SPORTSMEN")
+					@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+					public class Sportsman {
+	
+						@Id
+						@Column(name = "_id")
+						private long id;
+	
+						@Column(name = "AGE")
+						private int age;
+	
+						@Column(name = "NAME")
+						private String name;
+	
+					}
 
-        		@Entity(name = "SPORTSMEN")
-        		@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-		        public class Sportsman {
-
-	        	    @Id
-    	        	@Column(name = "_id")
-	        	    private long id;
-
-    		        @Column(name = "AGE")
-            		private int age;
-
-		            @Column(name = "NAME")
-        		    private String name;
-
-		        }
-
-	2. Extend the SuperClass in the SubClass.
-
-        		@Entity(name = "FOOTBALLERS")
-				public class Footballer extends Sportsman {
-
-					@Column(name = "GOALS")
-					private int goals;
-
-					@Column(name = "TEAM")
-					private String team;
-
-		        }
-
-	3. Persist the instance of SubClass or SuperClass.
-				
-				Sportsman sportsman = new Sportsman(44, "Viswanathan Anand");
-        		ormHelper.persist(sportsman);	  
-        		
-        		Sportsman footballer = new Footballer(39, "David Beckham", 17, "England");
-				ormHelper.persist(footballer);
+		2. Extend the SuperClass in the SubClass.
+	
+					@Entity(name = "FOOTBALLERS")
+					public class Footballer extends Sportsman {
+	
+						@Column(name = "GOALS")
+						private int goals;
+	
+						@Column(name = "TEAM")
+						private String team;
+	
+					}
+	
+		3. Persist the instance of SubClass or SuperClass.
+					
+					Sportsman sportsman = new Sportsman(44, "Viswanathan Anand");
+					ormHelper.persist(sportsman);	  
+					
+					Sportsman footballer = new Footballer(39, "David Beckham", 17, "England");
+					ormHelper.persist(footballer);
 				      
 	
 				      				   
 	* ####**Joined**
 	In this section Inheritance by Joined strategy is discussed.
 	
-	1. Provide the Inheritance Strategy and the Discriminator Column in the SuperClass Files.
-
-        		@Entity(name = "EMPLOYEES")
-				@Inheritance(strategy = InheritanceType.JOINED)
-				@DiscriminatorColumn(name = "EMPLOYEE_TYPE")
-				public abstract class Employee {
-
-	        	    @Id
-    	        	@Column(name = "_id")
-	        	    private long id;
-
-    		        @Column(name = "AGE")
-            		private int age;
-
-		            @Column(name = "NAME")
-        		    private String name;
-
-		        }
-
-	2. Extend the SuperClass in the SubClass Files and provide the Discriminator Value.
-
-        		@Entity(name = "PART_TIME_EMPLOYEES")
-				@DiscriminatorValue(value = "PART_TIME")
-				public class PartTimeEmployee extends Employee {
+		1. Provide the Inheritance Strategy and the Discriminator Column in the SuperClass Files.
+	
+					@Entity(name = "EMPLOYEES")
+					@Inheritance(strategy = InheritanceType.JOINED)
+					@DiscriminatorColumn(name = "EMPLOYEE_TYPE")
+					public abstract class Employee {
+	
+						@Id
+						@Column(name = "_id")
+						private long id;
+	
+						@Column(name = "AGE")
+						private int age;
+	
+						@Column(name = "NAME")
+						private String name;
+	
+					}
+	
+		2. Extend the SuperClass in the SubClass Files and provide the Discriminator Value.
+	
+					@Entity(name = "PART_TIME_EMPLOYEES")
+					@DiscriminatorValue(value = "PART_TIME")
+					public class PartTimeEmployee extends Employee {
+						
+						@Column(name = "HOURLY_RATE")
+						private float hourlyRate;
+	
+					}
+	
+		3. Persist the instance of SubClass.
 					
-					@Column(name = "HOURLY_RATE")
-					private float hourlyRate;
-
-		        }
-
-	3. Persist the instance of SubClass.
-				
-				Employee partTimeEmployee = new PartTimeEmployee(23, "Harry Potter", 48);
-        		ormHelper.persist(partTimeEmployee);	  
+					Employee partTimeEmployee = new PartTimeEmployee(23, "Harry Potter", 48);
+					ormHelper.persist(partTimeEmployee);	  
 				
 * ####**Composition**
 	* ####**One To One**
 	In this section One To One Composition is discussed.
-	1. Provide the OneToOne mapping in the Entity Files.
-		
-        		@Entity(name = "COUNTRIES")
-				public class Country {
-				
-					@Id
-					@Column(name = "_id")
-					private long id;
-				
-					@Column(name = "NAME")
-					private String name;
-				
-					@OneToOne(cascade={CascadeType.DELETE})
-					@JoinColumn(name = "CAPITAL_ID")
-					private Capital capital;
-
-		        }
-		        
-	2. Provide the mapped Entity definition.
-
-        		@Entity(name = "CAPITALS")
-				public class Capital {
-
-					@Id
-					@Column(name = "_id")
-					private long id;
-				
-					@Column(name = "NAME")
-					private String name;
-
-		        }
-
-	3. Persist the instance of Composing Entity.
-				
-				Capital capital = new Capital("New Delhi");
-				Country country = new Country("India", capital);
-        		ormHelper.persist(country);	      
+		1. Provide the OneToOne mapping in the Entity Files.
+			
+					@Entity(name = "COUNTRIES")
+					public class Country {
+					
+						@Id
+						@Column(name = "_id")
+						private long id;
+					
+						@Column(name = "NAME")
+						private String name;
+					
+						@OneToOne(cascade={CascadeType.DELETE})
+						@JoinColumn(name = "CAPITAL_ID")
+						private Capital capital;
+	
+					}
+					
+		2. Provide the mapped Entity definition.
+	
+					@Entity(name = "CAPITALS")
+					public class Capital {
+	
+						@Id
+						@Column(name = "_id")
+						private long id;
+					
+						@Column(name = "NAME")
+						private String name;
+	
+					}
+	
+		3. Persist the instance of Composing Entity.
+					
+					Capital capital = new Capital("New Delhi");
+					Country country = new Country("India", capital);
+					ormHelper.persist(country);	      
 				
 	* ####**One To Many**
 	In this section One To Many Composition is discussed. [^3] 
 
-	1. Provide the OneToMany mapping in the Entity Files.
-						
-        		@Entity(name = "COUNTRIES")
-				public class Country {
-				
-					@Id
-					@Column(name = "_id")
-					private long id;
-				
-					@Column(name = "NAME")
-					private String name;
-				
-					@OneToMany(cascade={CascadeType.DELETE})
-					@JoinColumn(name = "COUNTRY_ID")
-					private Collection<State> states;
-
-		        }
-		        
-	2. Provide the mapped Entity definition.
-
-        		@Entity(name = "STATES")
-				public class State {
-
-					@Id
-					@Column(name = "_id")
-					private long id;
-				
-					@Column(name = "NAME")
-					private String name;
-
-		        }
-
-	3. Persist the instance of Composing Entity.
-				
-				State karnataka = new Capital("Karnataka");
-				State gujrat = new Capital("Gujrat");
-				State rajasthan = new Capital("Rajasthan");
-				
-				Collection<State> states = new ArrayList<States>();
-				states.add(karnataka);
-				states.add(gujrat);			
-				states.add(rajasthan);
+		1. Provide the OneToMany mapping in the Entity Files.
+							
+					@Entity(name = "COUNTRIES")
+					public class Country {
 					
-				Country country = new Country("India", states);
-        		ormHelper.persist(country);	     
+						@Id
+						@Column(name = "_id")
+						private long id;
+					
+						@Column(name = "NAME")
+						private String name;
+					
+						@OneToMany(cascade={CascadeType.DELETE})
+						@JoinColumn(name = "COUNTRY_ID")
+						private Collection<State> states;
+	
+					}
+					
+		2. Provide the mapped Entity definition.
+	
+					@Entity(name = "STATES")
+					public class State {
+	
+						@Id
+						@Column(name = "_id")
+						private long id;
+					
+						@Column(name = "NAME")
+						private String name;
+	
+					}
+	
+		3. Persist the instance of Composing Entity.
+					
+					State karnataka = new Capital("Karnataka");
+					State gujrat = new Capital("Gujrat");
+					State rajasthan = new Capital("Rajasthan");
+					
+					Collection<State> states = new ArrayList<States>();
+					states.add(karnataka);
+					states.add(gujrat);			
+					states.add(rajasthan);
+						
+					Country country = new Country("India", states);
+					ormHelper.persist(country);	     
         		
 				
 	* ####**Many To Many**
 	In this section Many To Many Composition is discussed.
 	
-	1. Provide the ManyToMany mapping in the Entity Files.
-						
-        		@Entity(name = "PERSONS")
-				public class Person {
-				
-					@Id
-					@Column(name = "_id")
-					private long id;
-				
-					@Column(name = "NAME")
-					private String name;
-				
-					@ManyToMany
-					private Collection<Patent> patents;
-
-		        }
-		        
-	2. Provide the mapped Entity definition.
-
-        		@Entity(name = "PATENTS")
-				public class Patent {
-
-					@Id
-					@Column(name = "_id")
-					private long id;
-				
-					@Column(name = "TITLE")
-					private String title;
-
-		        }
-
-	3. Persist the instance of Composing Entity.
-				
-				Person p1 = new Person("Leslie Lamport");
-				Person p2 = new Person("James M. Reuter");				
-				Patent patent1 = new Patent("Shared Storage");
-				Patent patent2 = new Patent("Byzantine Consensus");
-								
-				Collection<Patent> patentList1 = new ArrayList<Patent>();
-				patentList1.add(patent1);
-				patentList1.add(patent2);			
-				p1.setPatents(patentList1);
+		1. Provide the ManyToMany mapping in the Entity Files.
+							
+					@Entity(name = "PERSONS")
+					public class Person {
 					
-				Collection<Patent> patentList2 = new ArrayList<Patent>();
-				patentList1.add(patent1);
-		
-				p2.setPatents(patentList2);
-				
-        		ormHelper.persist(p1);
-        		ormHelper.persist(p2);        		
+						@Id
+						@Column(name = "_id")
+						private long id;
+					
+						@Column(name = "NAME")
+						private String name;
+					
+						@ManyToMany
+						private Collection<Patent> patents;
+	
+					}
+					
+		2. Provide the mapped Entity definition.
+	
+					@Entity(name = "PATENTS")
+					public class Patent {
+	
+						@Id
+						@Column(name = "_id")
+						private long id;
+					
+						@Column(name = "TITLE")
+						private String title;
+	
+					}
+	
+		3. Persist the instance of Composing Entity.
+					
+					Person p1 = new Person("Leslie Lamport");
+					Person p2 = new Person("James M. Reuter");				
+					Patent patent1 = new Patent("Shared Storage");
+					Patent patent2 = new Patent("Byzantine Consensus");
+									
+					Collection<Patent> patentList1 = new ArrayList<Patent>();
+					patentList1.add(patent1);
+					patentList1.add(patent2);			
+					p1.setPatents(patentList1);
+						
+					Collection<Patent> patentList2 = new ArrayList<Patent>();
+					patentList1.add(patent1);
+			
+					p2.setPatents(patentList2);
+					
+					ormHelper.persist(p1);
+					ormHelper.persist(p2);        		
         			
 
 ###Retrieve
