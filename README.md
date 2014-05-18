@@ -4,7 +4,6 @@ An **O**bject **R**elational **M**apper for *Android platform*.
 
 ### ORMify your app in 4 simple steps.
 1. Annotate your Entity `.class` files. [^1]
-[^1]: ***Note**: Add getters and setters, default constructor and id of type `long` in all your `Entity` classes.*
 
         @Entity(name = "STUDENTS")
         public class Student {
@@ -77,7 +76,7 @@ This section will give example about Create.
 * ####Inheritance
 	* ####Table Per Class
 	In this section Inheritance by Table Per Class strategy is discussed. [^2]
-[^2]: ***Note**: Composition of any form cannot be used with Table Per Class strategy. Use Joined strategy instead.*
+
 		1. Provide the Inheritance Strategy in the SuperClass Files.
 
         		@Entity(name = "SPORTSMEN")
@@ -197,7 +196,7 @@ This section will give example about Create.
         		ormHelper.persist(country);	       					      
 	* ####One To Many
 	In this section One To Many Composition is discussed. [^3] 
-[^3]: ***Note**: One to Many Mapping requires the use of Collection Interface*
+
 		1. Provide the OneToMany mapping in the Entity Files.
 						
         		@Entity(name = "COUNTRIES")
@@ -342,3 +341,6 @@ Do a search of Entities using the Criteria Class APIs and invoke the delete meth
 ### Authors
 
 [Abhijith Madhav](mailto:abhijith.madhav@iiitb.org), [Arjun S Bharadwaj](mailto:arjun.s.waj@iiitb.org), [Kumudini Kakwani](mailto:kumudini.kakwani@iiitb.org).
+[^1]: ***Note**: Add getters and setters, default constructor and id of type `long` in all your `Entity` classes.*
+[^2]: ***Note**: Composition of any form cannot be used with Table Per Class strategy. Use Joined strategy instead.*
+[^3]: ***Note**: One to Many Mapping requires the use of Collection Interface*
