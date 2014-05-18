@@ -76,8 +76,8 @@ This section will give example about Create.
 * ####Inheritance
 	* ####Table Per Class
 	In this section Inheritance by Table Per Class strategy is discussed. [^2]
-
-		1. Provide the Inheritance Strategy in the SuperClass Files.
+	
+	1. Provide the Inheritance Strategy in the SuperClass Files.
 
         		@Entity(name = "SPORTSMEN")
         		@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
@@ -95,7 +95,7 @@ This section will give example about Create.
 
 		        }
 
-		2. Extend the SuperClass in the SubClass.
+	2. Extend the SuperClass in the SubClass.
 
         		@Entity(name = "FOOTBALLERS")
 				public class Footballer extends Sportsman {
@@ -108,7 +108,7 @@ This section will give example about Create.
 
 		        }
 
-		3. Persist the instance of SubClass or SuperClass.
+	3. Persist the instance of SubClass or SuperClass.
 				
 				Sportsman sportsman = new Sportsman(44, "Viswanathan Anand");
         		ormHelper.persist(sportsman);	  
@@ -120,7 +120,8 @@ This section will give example about Create.
 				      				   
 	* ####Joined
 	In this section Inheritance by Joined strategy is discussed.
-		1. Provide the Inheritance Strategy and the Discriminator Column in the SuperClass Files.
+	
+	1. Provide the Inheritance Strategy and the Discriminator Column in the SuperClass Files.
 
         		@Entity(name = "EMPLOYEES")
 				@Inheritance(strategy = InheritanceType.JOINED)
@@ -139,7 +140,7 @@ This section will give example about Create.
 
 		        }
 
-		2. Extend the SuperClass in the SubClass Files and provide the Discriminator Value.
+	2. Extend the SuperClass in the SubClass Files and provide the Discriminator Value.
 
         		@Entity(name = "PART_TIME_EMPLOYEES")
 				@DiscriminatorValue(value = "PART_TIME")
@@ -150,14 +151,14 @@ This section will give example about Create.
 
 		        }
 
-		3. Persist the instance of SubClass.
+	3. Persist the instance of SubClass.
 				
 				Employee partTimeEmployee = new PartTimeEmployee(23, "Harry Potter", 48);
         		ormHelper.persist(partTimeEmployee);	  
 * ####Composition
 	* ####One To One
 	In this section One To One Composition is discussed.
-		1. Provide the OneToOne mapping in the Entity Files.
+	1. Provide the OneToOne mapping in the Entity Files.
 		
         		@Entity(name = "COUNTRIES")
 				public class Country {
@@ -175,7 +176,7 @@ This section will give example about Create.
 
 		        }
 		        
-		2. Provide the mapped Entity definition.
+	2. Provide the mapped Entity definition.
 
         		@Entity(name = "CAPITALS")
 				public class Capital {
@@ -189,7 +190,7 @@ This section will give example about Create.
 
 		        }
 
-		3. Persist the instance of Composing Entity.
+	3. Persist the instance of Composing Entity.
 				
 				Capital capital = new Capital("New Delhi");
 				Country country = new Country("India", capital);
@@ -197,7 +198,7 @@ This section will give example about Create.
 	* ####One To Many
 	In this section One To Many Composition is discussed. [^3] 
 
-		1. Provide the OneToMany mapping in the Entity Files.
+	1. Provide the OneToMany mapping in the Entity Files.
 						
         		@Entity(name = "COUNTRIES")
 				public class Country {
@@ -215,7 +216,7 @@ This section will give example about Create.
 
 		        }
 		        
-		2. Provide the mapped Entity definition.
+	2. Provide the mapped Entity definition.
 
         		@Entity(name = "STATES")
 				public class State {
@@ -229,7 +230,7 @@ This section will give example about Create.
 
 		        }
 
-		3. Persist the instance of Composing Entity.
+	3. Persist the instance of Composing Entity.
 				
 				State karnataka = new Capital("Karnataka");
 				State gujrat = new Capital("Gujrat");
@@ -245,7 +246,8 @@ This section will give example about Create.
         		
 	* ####Many To Many
 	In this section Many To Many Composition is discussed.
-		1. Provide the ManyToMany mapping in the Entity Files.
+	
+	1. Provide the ManyToMany mapping in the Entity Files.
 						
         		@Entity(name = "PERSONS")
 				public class Person {
@@ -262,7 +264,7 @@ This section will give example about Create.
 
 		        }
 		        
-		2. Provide the mapped Entity definition.
+	2. Provide the mapped Entity definition.
 
         		@Entity(name = "PATENTS")
 				public class Patent {
@@ -276,7 +278,7 @@ This section will give example about Create.
 
 		        }
 
-		3. Persist the instance of Composing Entity.
+	3. Persist the instance of Composing Entity.
 				
 				Person p1 = new Person("Leslie Lamport");
 				Person p2 = new Person("James M. Reuter");				
@@ -342,5 +344,7 @@ Do a search of Entities using the Criteria Class APIs and invoke the delete meth
 
 [Abhijith Madhav](mailto:abhijith.madhav@iiitb.org), [Arjun S Bharadwaj](mailto:arjun.s.waj@iiitb.org), [Kumudini Kakwani](mailto:kumudini.kakwani@iiitb.org).
 [^1]: ***Note**: Add getters and setters, default constructor and id of type `long` in all your `Entity` classes.*
+
 [^2]: ***Note**: Composition of any form cannot be used with Table Per Class strategy. Use Joined strategy instead.*
+
 [^3]: ***Note**: One to Many Mapping requires the use of Collection Interface*
