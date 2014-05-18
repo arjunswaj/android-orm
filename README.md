@@ -36,7 +36,7 @@ Download it [here](https://bitbucket.org/ormlibraryteam/orm-library/downloads/or
             private String college;
         }
         
-2. List all the entity files in an `XML` file, say, `entity_objects.xml`.
+2. List all the entity files in an `XML` file, say, `entity_objects.xml` in the directory `res/xml` of your App.
 
    		<?xml version="1.0" encoding="utf-8"?>
 	    <EntityObjects>
