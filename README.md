@@ -4,10 +4,10 @@ An **O**bject **R**elational **M**apper for *Android platform*.
 
 # Why Mango ORM?
 
-Android natively doesn't have the ORM support. 
-There are few 3rd party ORM libraries, but they have restriction of extending the Entities with the Base Entity class of their library or to extend the Android Activity by the ORM Activity of their library. This invites a serious limitations when working with multiple libraries.
-To solve this issue, ORM library was created. This Library follows the JPA specifications and will provide you the liberty to annotate the Entity classes witrout having to inherit the base entity class. 
-The Query API uses Criteria classes and provides a rich set of APIs similar to Hibernate.
+* Android natively doesn't have the ORM support. 
+* There are few 3rd party ORM libraries, but they have restriction of extending the Entities with the Base Entity class of their library or to extend the Android Activity by the ORM Activity of their library. This invites a serious limitations when working with multiple libraries.
+* To solve this issue, ORM library was created. This Library follows the JPA specifications and will provide you the liberty to annotate the Entity classes witrout having to inherit the base entity class. 
+* The Query API uses Criteria classes and provides a rich set of APIs similar to Hibernate.
 
 # Download
 
