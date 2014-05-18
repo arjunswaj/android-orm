@@ -63,7 +63,8 @@ Download it [here](https://bitbucket.org/ormlibraryteam/orm-library/downloads/or
 			...
 		</application>    
 		
-		
+	If the schema changes, update the database_version value to reflect the changes.
+	
 4. Get the instance of `ORMHelper` and perform the **CRUD** Operations as required.
 
 		final ORMHelper ormHelper = ORMHelper.getInstance(getApplicationContext());
