@@ -73,8 +73,8 @@ This section provides a detailed overview on performing CRUD Operations.
 ###Create
 This section will give example about Create.
 
-* ####Inheritance
-	* ####Table Per Class
+* ####**Inheritance**
+	* ####**Table Per Class**
 	In this section Inheritance by Table Per Class strategy is discussed. [^2]
 	
 	1. Provide the Inheritance Strategy in the SuperClass Files.
@@ -118,7 +118,7 @@ This section will give example about Create.
 				      
 	
 				      				   
-	* ####Joined
+	* ####**Joined**
 	In this section Inheritance by Joined strategy is discussed.
 	
 	1. Provide the Inheritance Strategy and the Discriminator Column in the SuperClass Files.
@@ -156,8 +156,8 @@ This section will give example about Create.
 				Employee partTimeEmployee = new PartTimeEmployee(23, "Harry Potter", 48);
         		ormHelper.persist(partTimeEmployee);	  
 				
-* ####Composition
-	* ####One To One
+* ####**Composition**
+	* ####**One To One**
 	In this section One To One Composition is discussed.
 	1. Provide the OneToOne mapping in the Entity Files.
 		
@@ -197,7 +197,7 @@ This section will give example about Create.
 				Country country = new Country("India", capital);
         		ormHelper.persist(country);	      
 				
-	* ####One To Many	
+	* ####**One To Many**
 	In this section One To Many Composition is discussed. [^3] 
 
 	1. Provide the OneToMany mapping in the Entity Files.
@@ -247,7 +247,7 @@ This section will give example about Create.
         		ormHelper.persist(country);	     
         		
 				
-	* ####Many To Many
+	* ####**Many To Many**
 	In this section Many To Many Composition is discussed.
 	
 	1. Provide the ManyToMany mapping in the Entity Files.
@@ -305,18 +305,18 @@ This section will give example about Create.
 ###Retrieve
 In this section Retrieve APIs are discussed.This section will give example about Create.
 
-* ####Query All
+* ####**Query All**
 	All the tuples can be queried by below API.
 		
 		Criteria criteria = ormHelper.createCriteria(Student.class);
 		
 
-* ####Find by Id
+* ####**Find by Id**
 	A specific tuple can be queried by below API.
 		
 		Student student = (Student) ormHelper.find(Student.class, 26L);		
 
-* ####Restrictions
+* ####**Restrictions**
 	Restrictions on the tuples can be added using the below APIs.
 		
 		Criteria criteria = ormHelper.createCriteria(Student.class)
