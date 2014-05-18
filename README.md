@@ -13,7 +13,7 @@ An **O**bject **R**elational **M**apper for *Android platform*.
 
 Download it [here](https://bitbucket.org/ormlibraryteam/orm-library/downloads/ormlibrary.jar)
 
-### ORMify your app in 4 simple steps.
+# ORMify your app in 4 simple steps.
 1. Annotate your Entity `.java` files. [^1]
 
         @Entity(name = "STUDENTS")
