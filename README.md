@@ -70,16 +70,91 @@ That's it! Your droid is ORMified.
 ###CRUD Operations - A detailed overview
 
 
-This section gives a detailed overview on performing CRUD Operations.
+This section provides a detailed overview on performing CRUD Operations.
 
 ###Create
 This section will give example about Create.
 
 * ####Inheritance
 	* ####Table Per Class
-		This section will give example about Table per class strategy.
+		In this section Inheritance by Table per class strategy is discussed.
+		
+		1. Provide the Inheritance Strategy in the SuperClass Files.
+
+        		@Entity(name = "SPORTSMAN")
+        		@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+		        public class Sportsman {
+
+	        	    @Id
+    	        	@Column(name = "_id")
+	        	    private long id;
+
+    		        @Column(name = "AGE")
+            		private int age;
+
+		            @Column(name = "NAME")
+        		    private String name;
+
+		        }
+
+		2. Extend the SuperClass in the SubClass.
+
+        		@Entity(name = "FOOTBALLER")
+				public class Footballer extends Sportsman {
+
+					@Column(name = "GOALS")
+					private int goals;
+
+					@Column(name = "TEAM")
+					private String team;
+
+		        }
+
+		3. Persist the instance of SubClass or SuperClass.
+				
+				Sportsman sportsman = new Sportsman(44, "Viswanathan Anand");
+        		ormHelper.persist(sportsman);	  
+        		
+        		Sportsman footballer = new Footballer(39, "David Beckham", 17, "England");
+				ormHelper.persist(footballer);
+				      
 	* ####Joined
-		This section will give example about Joined strategy.	
+		In this section Inheritance by Joined strategy is discussed.
+		
+		1. Provide the Inheritance Strategy and the Discriminator Column in the SuperClass Files.
+
+        		@Entity(name = "EMPLOYEE")
+				@Inheritance(strategy = InheritanceType.JOINED)
+				@DiscriminatorColumn(name = "EMPLOYEE_TYPE")
+				public abstract class Employee {
+
+	        	    @Id
+    	        	@Column(name = "_id")
+	        	    private long id;
+
+    		        @Column(name = "AGE")
+            		private int age;
+
+		            @Column(name = "NAME")
+        		    private String name;
+
+		        }
+
+		2. Extend the SuperClass in the SubClass Files and provide the Discriminator Value.
+
+        		@Entity(name = "PART_TIME_EMPLOYEE")
+				@DiscriminatorValue(value = "PART_TIME")
+				public class PartTimeEmployee extends Employee {
+					
+					@Column(name = "HOURLY_RATE")
+					private float hourlyRate;
+
+		        }
+
+		3. Persist the instance of SubClass.
+				
+				Employee partTimeEmployee = new PartTimeEmployee(23, "Harry Potter", 48);
+        		ormHelper.persist(partTimeEmployee);	  
 * ####Composition
 	* ####One To One
 		This section will give example about One To One Mapping.
