@@ -4,8 +4,9 @@ An **O**bject **R**elational **M**apper for *Android platform*.
 
 ### ORMify your app in 4 simple steps.
 1. Annotate your Entity `.class` files. [^1]
+[^1]: ***Note**: Add getters and setters, default constructor and id of type `long` in all your `Entity` classes.*
 
-        @Entity(name = "STUDENT")
+        @Entity(name = "STUDENTS")
         public class Student {
 
             @Id
@@ -62,8 +63,6 @@ An **O**bject **R**elational **M**apper for *Android platform*.
 
 That's it! Your droid is ORMified.
 
-[^1]: ***Note**: Add getters and setters, default constructor and id of type `long` in all your `Entity` classes.*
-
 ----------
 
 
@@ -77,11 +76,11 @@ This section will give example about Create.
 
 * ####Inheritance
 	* ####Table Per Class
-		In this section Inheritance by Table per class strategy is discussed.
-		
+	In this section Inheritance by Table Per Class strategy is discussed. [^2]
+[^2]: ***Note**: Composition of any form cannot be used with Table Per Class strategy. Use Joined strategy instead.*
 		1. Provide the Inheritance Strategy in the SuperClass Files.
 
-        		@Entity(name = "SPORTSMAN")
+        		@Entity(name = "SPORTSMEN")
         		@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 		        public class Sportsman {
 
@@ -99,7 +98,7 @@ This section will give example about Create.
 
 		2. Extend the SuperClass in the SubClass.
 
-        		@Entity(name = "FOOTBALLER")
+        		@Entity(name = "FOOTBALLERS")
 				public class Footballer extends Sportsman {
 
 					@Column(name = "GOALS")
@@ -118,12 +117,13 @@ This section will give example about Create.
         		Sportsman footballer = new Footballer(39, "David Beckham", 17, "England");
 				ormHelper.persist(footballer);
 				      
+	
+				      				   
 	* ####Joined
-		In this section Inheritance by Joined strategy is discussed.
-		
+	In this section Inheritance by Joined strategy is discussed.
 		1. Provide the Inheritance Strategy and the Discriminator Column in the SuperClass Files.
 
-        		@Entity(name = "EMPLOYEE")
+        		@Entity(name = "EMPLOYEES")
 				@Inheritance(strategy = InheritanceType.JOINED)
 				@DiscriminatorColumn(name = "EMPLOYEE_TYPE")
 				public abstract class Employee {
@@ -142,7 +142,7 @@ This section will give example about Create.
 
 		2. Extend the SuperClass in the SubClass Files and provide the Discriminator Value.
 
-        		@Entity(name = "PART_TIME_EMPLOYEE")
+        		@Entity(name = "PART_TIME_EMPLOYEES")
 				@DiscriminatorValue(value = "PART_TIME")
 				public class PartTimeEmployee extends Employee {
 					
@@ -157,25 +157,186 @@ This section will give example about Create.
         		ormHelper.persist(partTimeEmployee);	  
 * ####Composition
 	* ####One To One
-		This section will give example about One To One Mapping.
+	In this section One To One Composition is discussed.
+		1. Provide the OneToOne mapping in the Entity Files.
+		
+        		@Entity(name = "COUNTRIES")
+				public class Country {
+				
+					@Id
+					@Column(name = "_id")
+					private long id;
+				
+					@Column(name = "NAME")
+					private String name;
+				
+					@OneToOne(cascade={CascadeType.DELETE})
+					@JoinColumn(name = "CAPITAL_ID")
+					private Capital capital;
+
+		        }
+		        
+		2. Provide the mapped Entity definition.
+
+        		@Entity(name = "CAPITALS")
+				public class Capital {
+
+					@Id
+					@Column(name = "_id")
+					private long id;
+				
+					@Column(name = "NAME")
+					private String name;
+
+		        }
+
+		3. Persist the instance of Composing Entity.
+				
+				Capital capital = new Capital("New Delhi");
+				Country country = new Country("India", capital);
+        		ormHelper.persist(country);	       					      
 	* ####One To Many
-		This section will give example about One To Many Mapping.
-	* ####Many To One
-		This section will give example about Many To One Mapping.
+	In this section One To Many Composition is discussed. [^3] 
+[^3]: ***Note**: One to Many Mapping requires the use of Collection Interface*
+		1. Provide the OneToMany mapping in the Entity Files.
+						
+        		@Entity(name = "COUNTRIES")
+				public class Country {
+				
+					@Id
+					@Column(name = "_id")
+					private long id;
+				
+					@Column(name = "NAME")
+					private String name;
+				
+					@OneToMany(cascade={CascadeType.DELETE})
+					@JoinColumn(name = "COUNTRY_ID")
+					private Collection<State> states;
+
+		        }
+		        
+		2. Provide the mapped Entity definition.
+
+        		@Entity(name = "STATES")
+				public class State {
+
+					@Id
+					@Column(name = "_id")
+					private long id;
+				
+					@Column(name = "NAME")
+					private String name;
+
+		        }
+
+		3. Persist the instance of Composing Entity.
+				
+				State karnataka = new Capital("Karnataka");
+				State gujrat = new Capital("Gujrat");
+				State rajasthan = new Capital("Rajasthan");
+				
+				Collection<State> states = new ArrayList<States>();
+				states.add(karnataka);
+				states.add(gujrat);			
+				states.add(rajasthan);
+					
+				Country country = new Country("India", states);
+        		ormHelper.persist(country);	     
+        		
 	* ####Many To Many
-		This section will give example about Many To Many Mapping.	
+	In this section Many To Many Composition is discussed.
+		1. Provide the ManyToMany mapping in the Entity Files.
+						
+        		@Entity(name = "PERSONS")
+				public class Person {
+				
+					@Id
+					@Column(name = "_id")
+					private long id;
+				
+					@Column(name = "NAME")
+					private String name;
+				
+					@ManyToMany
+					private Collection<Patent> patents;
+
+		        }
+		        
+		2. Provide the mapped Entity definition.
+
+        		@Entity(name = "PATENTS")
+				public class Patent {
+
+					@Id
+					@Column(name = "_id")
+					private long id;
+				
+					@Column(name = "TITLE")
+					private String title;
+
+		        }
+
+		3. Persist the instance of Composing Entity.
+				
+				Person p1 = new Person("Leslie Lamport");
+				Person p2 = new Person("James M. Reuter");				
+				Patent patent1 = new Patent("Shared Storage");
+				Patent patent2 = new Patent("Byzantine Consensus");
+								
+				Collection<Patent> patentList1 = new ArrayList<Patent>();
+				patentList1.add(patent1);
+				patentList1.add(patent2);			
+				p1.setPatents(patentList1);
+					
+				Collection<Patent> patentList2 = new ArrayList<Patent>();
+				patentList1.add(patent1);
+		
+				p2.setPatents(patentList2);
+				
+        		ormHelper.persist(p1);
+        		ormHelper.persist(p2);        		
+        			
 
 ###Retrieve
-This section will give example about Retrieve.
+In this section Retrieve APIs are discussed.This section will give example about Create.
 
-* ####Inheritance
-	This section will give example about Criteria Class APIs.
+* ####Query All
+	All the tuples can be queried by below API.
+		
+		Criteria criteria = ormHelper.createCriteria(Student.class);
+		
+
+* ####Find by Id
+	A specific tuple can be queried by below API.
+		
+		Student student = (Student) ormHelper.find(Student.class, 26L);		
+
+* ####Restrictions
+	Restrictions on the tuples can be added using the below APIs.
+		
+		Criteria criteria = ormHelper.createCriteria(Student.class)
+		.add(Restrictions.like("name", "Name%"))
+		.add(Restrictions.between("cgpa", 2.4, 4.0)
+		.add(
+			Restrictions.or(
+				Restrictions.eq("age", 23), 
+				Restrictions.like("college", "IIIT-B")
+			)
+		)
+		.add(Restrictions.eq("address", "Address 5"));
 
 ###Update
-This section will give example about Update.
+In this section Update of the Entity is discussed.
+Do a search of Entities using the Criteria Class APIs. Modify the returned entities and invoke the update method on `ORMHelper`.
+
+	ormHelper.update(entity);
 
 ###Delete
-This section will give example about Delete.
+In this section Update of the Entity is discussed.
+Do a search of Entities using the Criteria Class APIs and invoke the delete method on `ORMHelper`.
+
+	ormHelper.delete(entity);
 
 ----------
 ### Authors
