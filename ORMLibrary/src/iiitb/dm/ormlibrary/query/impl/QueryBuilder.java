@@ -8,6 +8,7 @@ import iiitb.dm.ormlibrary.query.Projection;
 import iiitb.dm.ormlibrary.query.criterion.BetweenExpression;
 import iiitb.dm.ormlibrary.query.criterion.InExpression;
 import iiitb.dm.ormlibrary.query.criterion.LogicalExpression;
+import iiitb.dm.ormlibrary.query.criterion.Order;
 import iiitb.dm.ormlibrary.query.criterion.ProjectionList;
 import iiitb.dm.ormlibrary.query.criterion.PropertyProjection;
 import iiitb.dm.ormlibrary.query.criterion.SimpleExpression;
@@ -41,14 +42,17 @@ public class QueryBuilder {
 	private List<String> selectionArgsList = new ArrayList<String>();
 	private Map<String, Integer> tableAliases = new HashMap<String, Integer>();
 	private String projectionString = null;
-	Map<Criteria, ProjectionList> criteriaProjectionListMap;
+	private Map<Criteria, ProjectionList> criteriaProjectionListMap;
+	private String orderString;
 
-	public QueryBuilder(String entityOrClassName, Map<Criteria, List<Criterion>> criteriaCriterionList, Map<Criteria, ProjectionList> criteriaProjectionListMap)
+	public QueryBuilder(String entityOrClassName, Map<Criteria, List<Criterion>> criteriaCriterionList, 
+			Map<Criteria, ProjectionList> criteriaProjectionListMap, Map<Criteria, List<Order>> criteriaOrderMap)
 	{
 		this.entityOrClassName = entityOrClassName;
 		this.criteriaCriterionList = criteriaCriterionList;
 		this.criteriaProjectionListMap = criteriaProjectionListMap;
 		this.projectionString = getProjectionString();
+		this.orderString = setOrderString(criteriaOrderMap);
 
 		findTablesToBeJoined();
 
@@ -69,6 +73,35 @@ public class QueryBuilder {
 
 
 
+	}
+
+	private String setOrderString(Map<Criteria, List<Order>> criteriaOrderMap) {
+
+		StringBuilder sb = new StringBuilder();
+		if(criteriaOrderMap.size() > 0)
+		{
+			sb.append(" ORDER BY ");
+			for (Map.Entry<Criteria, List<Order>> criteriaOrderList : criteriaOrderMap.entrySet()){
+
+				String className = null;
+				if (criteriaOrderList.getKey() instanceof SubCriteria)
+					className = ((SubCriteria) criteriaOrderList.getKey()).getClassName();
+				else
+					className = entityOrClassName;
+				for(Order order : criteriaOrderList.getValue())
+				{
+					sb.append(getColumnAlias(getTableNameForCriterion(className, order.getPropertyName()),
+							getColumnNameForCriterion(className, order.getPropertyName())));
+					if(order.isAscending())
+						sb.append(" ASC, ");
+					else
+						sb.append(" DESC, ");
+				}
+
+			}
+			sb.replace(sb.length() - 2, sb.length() - 1, " ");
+		}
+		return sb.toString();
 	}
 
 	public QueryDetails getQueryDetails() {
@@ -262,19 +295,24 @@ public class QueryBuilder {
 		sb.append(table);
 
 		sb.append(queryDetails.getJoinString());
-
-
+		
 
 		// append selection conditions
 		if (null != selection) {
 			sb.append(" WHERE ").append(selection);
 		}
 
-		sb.append(";");
+		
 
 		queriesAndArguements.add(new AbstractMap.SimpleEntry<String, String[]>(sb.toString(), selectionArgs));
 		return queriesAndArguements;
 	}
+	
+	public String getOrderString()
+	{
+		return orderString;
+	}
+	
 
 	/**
 	 * finds Tables to be joined from entityOrClassName, 

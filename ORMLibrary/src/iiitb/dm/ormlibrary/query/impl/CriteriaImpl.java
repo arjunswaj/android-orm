@@ -42,6 +42,7 @@ public class CriteriaImpl implements Criteria {
 	// Criterion corresponding to each subcriteria
 	private Map<Criteria, List<Criterion>> criteriaCriterionMap = new HashMap<Criteria, List<Criterion>>();
 	private Map<Criteria, ProjectionList> criteriaProjectionListMap = new HashMap<Criteria, ProjectionList>();
+	private Map<Criteria, List<Order>> criteriaOrderMap = new HashMap<Criteria, List<Order>>();
 
 	/**
 	 * sqliteDatabase
@@ -96,8 +97,29 @@ public class CriteriaImpl implements Criteria {
 
 	@Override
 	public Criteria addOrder(Order order) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		if(criteriaOrderMap.get(this) == null)
+		{
+			List<Order> orderList = new ArrayList<Order>();
+			orderList.add(order);
+			criteriaOrderMap.put(this, orderList);
+		}
+		else
+			criteriaOrderMap.get(this).add(order);
+		return this;
+
+	}
+	
+	public void addOrder(Criteria criteria, Order order)
+	{
+		if(criteriaOrderMap.get(criteria) == null)
+		{
+			List<Order> orderList = new ArrayList<Order>();
+			orderList.add(order);
+			criteriaOrderMap.put(criteria, orderList);
+		}
+		else
+			criteriaOrderMap.get(criteria).add(order);
 	}
 
 	@Override
@@ -156,7 +178,7 @@ public class CriteriaImpl implements Criteria {
 		try {			
 			criteriaClassName = entityOrClassName;
 			StringBuilder sb = new StringBuilder();
-			QueryBuilder queryBuilder = new QueryBuilder(entityOrClassName, criteriaCriterionMap, criteriaProjectionListMap);
+			QueryBuilder queryBuilder = new QueryBuilder(entityOrClassName, criteriaCriterionMap, criteriaProjectionListMap, criteriaOrderMap);
 			sb.append(queryBuilder.getQuery().get(0).getKey());
 			List<ColumnField> columnFieldList = queryBuilder.getQueryDetails().getColumnFieldList();
 
@@ -185,6 +207,8 @@ public class CriteriaImpl implements Criteria {
 				sb.append(" AND ").append(tableName.toLowerCase()).append(".")
 				.append(discriminatorCol).append(" IS NULL ");
 			}
+			
+			sb.append(queryBuilder.getOrderString());
 
 			String sql = sb.toString();
 			Log.d("Generated SQL", sql);
@@ -206,7 +230,7 @@ public class CriteriaImpl implements Criteria {
 	public Cursor cursor() {
 		Cursor cursor = null;
 
-		QueryBuilder queryBuilder = new QueryBuilder(criteriaClassName, criteriaCriterionMap, criteriaProjectionListMap);
+		QueryBuilder queryBuilder = new QueryBuilder(criteriaClassName, criteriaCriterionMap, criteriaProjectionListMap, criteriaOrderMap);
 		String sql = queryBuilder.getQuery().get(0).getKey();
 		Log.d("Generated SQL", sql);
 		cursor = sqliteDatabase.rawQuery(sql, queryBuilder.getQuery().get(0).getValue());
@@ -268,7 +292,8 @@ public class CriteriaImpl implements Criteria {
 
 		@Override
 		public Criteria addOrder(Order order) {
-			return null;
+			CriteriaImpl.this.addOrder(this, order);
+			return this;
 		}
 
 		@Override

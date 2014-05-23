@@ -2,6 +2,7 @@ package edu.iiitb.ormtestapp;
 
 import iiitb.dm.ormlibrary.ORMHelper;
 import iiitb.dm.ormlibrary.query.Criteria;
+import iiitb.dm.ormlibrary.query.criterion.Order;
 import iiitb.dm.ormlibrary.query.criterion.Restrictions;
 
 import java.util.ArrayList;
@@ -204,7 +205,7 @@ public class QueryActivity extends Activity {
     criteria = ormHelper.createCriteria(Country.class);
     List<Country> countries = criteria
         .add(Restrictions.like("name", "India 1")).createCriteria("states")
-        .add(Restrictions.like("name", "Karnataka 2")).list();
+        .add(Restrictions.like("name", "Karnataka 2")).addOrder(Order.asc("id")).list();
     for (Country country : countries) {
       Log.d(TAG, "id: " + country.getId() + ", name: " + country.getName()
           + ", capital: " + country.getCapital());
@@ -215,7 +216,6 @@ public class QueryActivity extends Activity {
   
   private void testQuerySubCriteria(ORMHelper ormHelper)
   {
-	  Log.v("testQuerySubCritera", "Hello.... HELLLLLLOOOOO");
 	  Criteria criteria = ormHelper.createCriteria(Country.class);
 		List<Country> countries = criteria
 				.add(Restrictions.like("name", "India 1"))
@@ -233,7 +233,7 @@ public class QueryActivity extends Activity {
 		criteria = ormHelper.createCriteria(Person.class);
 		List<Person> persons = criteria.add(Restrictions.like("name", "Leslie Lamport 1"))
 				.createCriteria("patents")
-				.add(Restrictions.like("title","%Distributed%")).list();
+				.add(Restrictions.like("title","%Distributed%")).addOrder(Order.desc("title")).list();
 		for(Person person: persons)
 		{
 			Log.d("Query BY LIST", "id: " + person.getId() + ", name: " + person.getName());
@@ -256,7 +256,7 @@ public class QueryActivity extends Activity {
     menuList.add("Inheritance Mixed - Subclass");
     menuList.add("Inheritance Joined - Superclass");
     menuList.add("Inheritance Table Per Class - Superclass");
-    // menuList.add("Inheritance Joined - Many To Many");
+    menuList.add("Inheritance Joined - Many To Many");
     menuList.add("Query on Association - Sub Criteria");
     menuList.add("In Query on Inheritance");
     
@@ -288,9 +288,12 @@ public class QueryActivity extends Activity {
           testInheritanceTablePerClassSuperClassQueryByList(ormHelper);
           break;
         case 6:
+        	testQueryManyToMany(ormHelper);
+        	break;
+        case 7:
         	testQuerySubCriteria(ormHelper);
           break;
-        case 7:
+        case 8:
           testInQueryByList(ormHelper);
           break;
         }
