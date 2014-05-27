@@ -36,7 +36,8 @@ public class CriteriaImpl implements Criteria {
 	private String groupBy;
 	private String having;
 	private String orderBy;
-	private String limit;
+	private int limit = -1;
+	private int offset = -1;
 
 
 	// Criterion corresponding to each subcriteria
@@ -209,6 +210,11 @@ public class CriteriaImpl implements Criteria {
 			}
 			
 			sb.append(queryBuilder.getOrderString());
+			
+			if(limit != -1)
+				sb.append(" LIMIT " + limit);
+			if(offset != -1)
+				sb.append(" OFFSET " + offset);
 
 			String sql = sb.toString();
 			Log.d("Generated SQL", sql);
@@ -246,6 +252,20 @@ public class CriteriaImpl implements Criteria {
 	public Criteria createCriteria(String relatedEntityFieldName)
 	{
 		return new SubCriteria(this, relatedEntityFieldName);
+	}
+	
+	
+
+	@Override
+	public Criteria setFirstResult(int row) {
+		offset = row;
+		return this;
+	}
+
+	@Override
+	public Criteria setMaxResults(int row) {
+		limit = row;
+		return this;
 	}
 
 
@@ -359,5 +379,18 @@ public class CriteriaImpl implements Criteria {
 			}
 			return className;
 		}
+
+		@Override
+		public Criteria setFirstResult(int row) {
+			return this;
+		}
+
+		@Override
+		public Criteria setMaxResults(int row) {
+			
+			return this;
+		}
 	}
+
+
 }

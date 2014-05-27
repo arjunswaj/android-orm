@@ -25,4 +25,10 @@ public interface Criteria {
    */
   public Criteria createCriteria(String associationPath);
   
+  
+  public Criteria setFirstResult(int row);
+  
+  public Criteria setMaxResults(int row);
+  
+  
 }
