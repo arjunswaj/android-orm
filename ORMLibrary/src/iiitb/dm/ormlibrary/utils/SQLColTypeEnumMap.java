@@ -17,9 +17,11 @@ public class SQLColTypeEnumMap
 	{
 		map.put("String", SQLColType.TEXT);
 		map.put("Float", SQLColType.REAL);
+		map.put("Double", SQLColType.REAL);
 		map.put("Integer", SQLColType.INTEGER);
 		map.put("Long", SQLColType.INTEGER);
 		map.put("float", SQLColType.REAL);
+		map.put("double", SQLColType.REAL);
 		map.put("int", SQLColType.INTEGER);
 		map.put("long", SQLColType.INTEGER);
 
