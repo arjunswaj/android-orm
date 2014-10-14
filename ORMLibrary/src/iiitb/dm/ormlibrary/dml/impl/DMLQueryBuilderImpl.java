@@ -32,6 +32,9 @@ public class DMLQueryBuilderImpl implements DMLQueryBuilder {
 			case FLOAT:
 				values.append(Float.parseFloat(fieldValue.getFieldValue()));
 				break;
+			case DOUBLE:
+				values.append(Double.parseDouble(fieldValue.getFieldValue()));
+				break;
 			case LONG:
 				values.append(Long.parseLong(fieldValue.getFieldValue()));
 				break;

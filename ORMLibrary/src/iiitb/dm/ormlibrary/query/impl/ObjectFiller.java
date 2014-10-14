@@ -111,6 +111,16 @@ public class ObjectFiller {
 								float.class);
 						float args = cursor.getFloat(cursor.getColumnIndex(colName));
 						setterMethod.invoke(object, args);
+					} else if (fieldType.equals("Double")) {
+						Method setterMethod = objectType.getMethod(setterMethodName,
+								Double.class);
+						double args = cursor.getDouble(cursor.getColumnIndex(colName));
+						setterMethod.invoke(object, args);
+					} else if (fieldType.equals("double")) {
+						Method setterMethod = objectType.getMethod(setterMethodName,
+								double.class);
+						double args = cursor.getDouble(cursor.getColumnIndex(colName));
+						setterMethod.invoke(object, args);
 					} else if (fieldType.equals("Integer")) {
 						Method setterMethod = objectType.getMethod(setterMethodName,
 								Integer.class);

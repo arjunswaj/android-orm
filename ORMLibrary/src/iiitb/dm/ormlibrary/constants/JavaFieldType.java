@@ -7,6 +7,6 @@ package iiitb.dm.ormlibrary.constants;
  */
 public enum JavaFieldType {
 
-  INTEGER, FLOAT, LONG, STRING;
+  INTEGER, FLOAT, LONG, STRING, DOUBLE;
 
 }

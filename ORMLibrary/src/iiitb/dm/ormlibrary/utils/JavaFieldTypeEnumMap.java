@@ -12,9 +12,11 @@ public class JavaFieldTypeEnumMap {
 	static {
 		map.put("java.lang.String", JavaFieldType.STRING);
 		map.put("java.lang.Float", JavaFieldType.FLOAT);
+		map.put("java.lang.Double", JavaFieldType.DOUBLE);
 		map.put("java.lang.Integer", JavaFieldType.INTEGER);
 		map.put("java.lang.Long", JavaFieldType.LONG);
 		map.put("float", JavaFieldType.FLOAT);
+		map.put("double", JavaFieldType.DOUBLE);
 		map.put("int", JavaFieldType.INTEGER);
 		map.put("long", JavaFieldType.LONG);
 		
