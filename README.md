@@ -11,7 +11,7 @@ An **O**bject **R**elational **M**apper for *Android platform*.
 
 # Download
 
-Download it [here](https://github.com/arjunswaj/android-orm/blob/master/jars/ormlibrary_v1.0.jar)
+Download it [here](https://bitbucket.org/ormlibraryteam/orm-library/src/9f15b572c0b65e606b44f825c338968177122862/jars/?at=master)
 
 # ORMify your app in 4 simple steps.
 1. Annotate your Entity `.java` files. [^1]
