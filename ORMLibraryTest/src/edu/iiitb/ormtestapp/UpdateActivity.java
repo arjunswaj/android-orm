@@ -22,6 +22,7 @@ import edu.iiitb.ormtestapp.composition.eo.Country;
 import edu.iiitb.ormtestapp.composition.eo.Patent;
 import edu.iiitb.ormtestapp.composition.eo.Person;
 import edu.iiitb.ormtestapp.composition.eo.State;
+import edu.iiitb.ormtestapp.eo.ParcelableStudent;
 import edu.iiitb.ormtestapp.eo.Student;
 import edu.iiitb.ormtestapp.inheritance.joined.eo.Employee;
 import edu.iiitb.ormtestapp.inheritance.joined.eo.FullTimeEmployee;
@@ -61,6 +62,12 @@ public class UpdateActivity extends Activity {
       student.setCollege("IIT - Madras");
       student.setAddress("42, M G Road, Chennai");
       ormHelper.update(student);
+    }
+    criteria = ormHelper.createCriteria(ParcelableStudent.class);
+    List<ParcelableStudent> psList = criteria.list();
+    for (ParcelableStudent ps: psList) {
+    	ps.setAge(ps.getAge() + 1);
+    	ormHelper.update(ps);
     }
 
   }

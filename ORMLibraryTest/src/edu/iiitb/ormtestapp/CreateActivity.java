@@ -21,6 +21,7 @@ import edu.iiitb.ormtestapp.composition.eo.Patent;
 import edu.iiitb.ormtestapp.composition.eo.Person;
 import edu.iiitb.ormtestapp.composition.eo.State;
 import edu.iiitb.ormtestapp.eo.Course;
+import edu.iiitb.ormtestapp.eo.ParcelableStudent;
 import edu.iiitb.ormtestapp.eo.Student;
 import edu.iiitb.ormtestapp.inheritance.joined.eo.FullTimeEmployee;
 import edu.iiitb.ormtestapp.inheritance.joined.eo.Intern;
@@ -53,6 +54,11 @@ public class CreateActivity extends Activity {
 			student = new Student(21 + (index % 3), "Name " + (index % 5), "Address "
 					+ (index % 9), 1.0f + (float) (index / 8), "IIIT-B " + (index % 4));
 			ormHelper.persist(student);
+		}
+		
+		for (int index = 0; index < 5; index += 1) {
+			ParcelableStudent ps = new ParcelableStudent(22 + index);
+			ormHelper.persist(ps);
 		}
 	}
 

@@ -12,6 +12,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 import android.content.Entity;
 
@@ -32,6 +33,7 @@ public class Constants
 	public static final String MANY_TO_MANY = ManyToMany.class.getSimpleName();
 	public static final String JOIN_TABLE = JoinTable.class.getSimpleName();
 	public static final String ID = Id.class.getSimpleName();
+	public static final String TRANSIENT = Transient.class.getSimpleName();
 	
 	// Annotation option keys
 	public static final String STRATEGY = "strategy";

@@ -20,6 +20,7 @@ import edu.iiitb.ormtestapp.composition.eo.Country;
 import edu.iiitb.ormtestapp.composition.eo.Patent;
 import edu.iiitb.ormtestapp.composition.eo.Person;
 import edu.iiitb.ormtestapp.composition.eo.State;
+import edu.iiitb.ormtestapp.eo.ParcelableStudent;
 import edu.iiitb.ormtestapp.eo.Student;
 import edu.iiitb.ormtestapp.inheritance.joined.eo.Employee;
 import edu.iiitb.ormtestapp.inheritance.joined.eo.FullTimeEmployee;
@@ -58,6 +59,11 @@ public class DeleteActivity extends Activity {
       ormHelper.delete(student);
     }
 
+    criteria = ormHelper.createCriteria(ParcelableStudent.class);
+    List<ParcelableStudent> psList = criteria.list();
+    for (ParcelableStudent ps: psList) {    	
+    	ormHelper.delete(ps);
+    }
   }
 
   private void testInheritanceJoinedSubClassDelete(ORMHelper ormHelper) {

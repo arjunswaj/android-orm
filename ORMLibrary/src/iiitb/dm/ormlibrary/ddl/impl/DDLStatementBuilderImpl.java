@@ -10,13 +10,11 @@ import iiitb.dm.ormlibrary.utils.SQLColTypeEnumMap;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.InheritanceType;
-import javax.persistence.CascadeType;
 
 import android.util.Log;
 
@@ -53,7 +51,10 @@ public class DDLStatementBuilderImpl implements DDLStatementBuilder
 			columnName = "";
 			columnType= "";
 			columnConstraints = new ArrayList<String>();
-			if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE) != null)
+			if (fieldTypeDetail.getAnnotationOptionValues().get(
+					Constants.TRANSIENT) != null) {
+				// no-op for transient fields
+			} else if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE) != null)
 			{
 				// If this is the owner class
 				if(fieldTypeDetail.getAnnotationOptionValues().get(Constants.ONE_TO_ONE).get(Constants.MAPPED_BY).equals(""))
